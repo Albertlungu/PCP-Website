@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UOttawa Pre-College Program</title>
-    <meta name="description" content="University of Ottawa Pre-College Program - Advanced music education for high school students">
+    <title>Calendar - UOttawa Pre-College</title>
+    <meta name="description" content="View upcoming performance classes, masterclasses, and events">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles-calendar-signup.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="background-animations"></div>
+    
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container">
@@ -24,7 +26,7 @@
                 <span></span>
             </button>
             <ul class="nav-menu">
-                <li><a href="index.html" class="active">Home</a></li>
+                <li><a href="index.html">Home</a></li>
                 <li><a href="description.html">About</a></li>
                 <li class="has-dropdown">
                     <a href="#" class="dropdown-toggle">Program</a>
@@ -38,7 +40,7 @@
                 <li class="has-dropdown">
                     <a href="#" class="dropdown-toggle">Participate</a>
                     <ul class="dropdown-menu">
-                        <li><a href="calendar.html">Calendar</a></li>
+                        <li><a href="calendar.html" class="active">Calendar</a></li>
                         <li><a href="signup.html">Sign Up to Perform</a></li>
                     </ul>
                 </li>
@@ -48,52 +50,56 @@
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-overlay"></div>
-        <div class="container hero-content">
-            <h1 class="hero-title">University of Ottawa Pre-College Program</h1>
-            <p class="hero-subtitle">Empowering the next generation of musical excellence</p>
-            <div class="hero-buttons">
-                <a href="description.html" class="btn btn-primary">Learn More</a>
-                <a href="our-students.html" class="btn btn-secondary">Meet Our Students</a>
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <div class="page-header-content">
+                <h1>Performance Calendar</h1>
             </div>
         </div>
     </section>
 
-    <!-- Features Section -->
-    <section class="features">
+    <!-- Calendar Controls -->
+    <section class="content-section">
         <div class="container">
-            <h2 class="section-title">Program Highlights</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">♪</div>
-                    <h3>Chamber Music</h3>
-                    <p>Weekly chamber coaching with performances at the end of each term and in the Kiwanis Music Festival.</p>
-                    <a href="chamber-music.html" class="feature-link">Learn more →</a>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">♫</div>
-                    <h3>Masterclasses</h3>
-                    <p>Expert instruction from University of Ottawa faculty and prominent regional instructors.</p>
-                    <a href="masterclasses.html" class="feature-link">Learn more →</a>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">♬</div>
-                    <h3>Performance Class</h3>
-                    <p>Regular opportunities to perform and receive peer feedback in a supportive environment.</p>
-                    <a href="performance-class.html" class="feature-link">Learn more →</a>
+            <div class="calendar-controls">
+                <button class="calendar-view-btn active" data-view="calendar">
+                    <span class="icon">📅</span> Calendar View
+                </button>
+                <button class="calendar-view-btn" data-view="list">
+                    <span class="icon">📋</span> List View
+                </button>
+                <div class="calendar-filters">
+                    <button class="filter-btn active" data-filter="all">All Events</button>
+                    <button class="filter-btn" data-filter="masterclass">Masterclasses</button>
+                    <button class="filter-btn" data-filter="performance">Performance Classes</button>
                 </div>
             </div>
-        </div>
-    </section>
 
-    <!-- CTA Section -->
-    <section class="cta">
-        <div class="container">
-            <h2>Join Our Musical Community</h2>
-            <p>Designed for advanced music students in the Ottawa/Gatineau area pursuing excellence</p>
-            <a href="description.html" class="btn btn-primary">Get Started</a>
+            <!-- Calendar View -->
+            <div id="calendar-view" class="calendar-container">
+                <div class="calendar-header">
+                    <button class="calendar-nav-btn" id="prev-month">‹</button>
+                    <h2 class="calendar-month-year" id="current-month-year">September 2024</h2>
+                    <button class="calendar-nav-btn" id="next-month">›</button>
+                </div>
+                <div class="calendar-grid" id="calendar-grid">
+                    <!-- Calendar will be generated here -->
+                </div>
+            </div>
+
+            <!-- List View -->
+            <div id="list-view" class="events-list" style="display: none;">
+                <!-- Events will be listed here -->
+            </div>
+
+            <!-- Event Details Modal -->
+            <div class="event-modal" id="event-modal">
+                <div class="event-modal-content">
+                    <button class="event-modal-close" id="modal-close">&times;</button>
+                    <div id="event-details"></div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -110,6 +116,7 @@
                     <ul>
                         <li><a href="description.html">Description</a></li>
                         <li><a href="schedule.html">Schedule</a></li>
+                        <li><a href="calendar.html">Calendar</a></li>
                         <li><a href="code-of-conduct.html">Code of Conduct</a></li>
                     </ul>
                 </div>
@@ -119,6 +126,7 @@
                         <li><a href="chamber-music.html">Chamber Music</a></li>
                         <li><a href="masterclasses.html">Masterclasses</a></li>
                         <li><a href="performance-class.html">Performance Class</a></li>
+                        <li><a href="signup.html">Sign Up to Perform</a></li>
                     </ul>
                 </div>
             </div>
@@ -129,5 +137,6 @@
     </footer>
 
     <script src="script.js"></script>
+    <script src="calendar.js"></script>
 </body>
 </html>

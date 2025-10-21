@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up to Perform - UOttawa Pre-College</title>
+    <meta name="description" content="Sign up to perform in upcoming performance classes">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles-calendar-signup.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-animations"></div>
+    
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <h1>UOttawa Pre-College</h1>
+            </div>
+            <button class="mobile-menu-toggle" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-menu">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="description.html">About</a></li>
+                <li class="has-dropdown">
+                    <a href="#" class="dropdown-toggle">Program</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="chamber-music.html">Chamber Music</a></li>
+                        <li><a href="masterclasses.html">Masterclasses</a></li>
+                        <li><a href="performance-class.html">Performance Class</a></li>
+                        <li><a href="schedule.html">Schedule</a></li>
+                    </ul>
+                </li>
+                <li class="has-dropdown">
+                    <a href="#" class="dropdown-toggle">Participate</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="calendar.html">Calendar</a></li>
+                        <li><a href="signup.html" class="active">Sign Up to Perform</a></li>
+                    </ul>
+                </li>
+                <li><a href="our-students.html">Our Students</a></li>
+                <li><a href="code-of-conduct.html">Conduct</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <div class="page-header-content">
+                <h1>Sign Up to Perform</h1>
+            </div>
+        </div>
+    </section>
+
+    <!-- Signup Form Section -->
+    <section class="content-section">
+        <div class="container">
+            <div class="signup-intro content-card">
+                <h2>Register Your Performance</h2>
+                <p>Fill out the form below to sign up for an upcoming performance class. Please ensure all information is accurate and complete. You'll receive a confirmation once your submission is processed.</p>
+            </div>
+
+            <!-- Current Schedule Display -->
+            <div class="schedule-display content-card">
+                <h3>Upcoming Available Slots</h3>
+                <div id="available-slots" class="available-slots-grid">
+                    <div class="loading-spinner">Loading available dates...</div>
+                </div>
+            </div>
+
+            <!-- Signup Form -->
+            <div class="signup-form-container content-card">
+                <form id="performance-signup-form" class="performance-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="date">Performance Date *</label>
+                            <select id="date" name="date" required>
+                                <option value="">Select a date...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="name">Your Name *</label>
+                            <input type="text" id="name" name="name" placeholder="e.g., John Smith" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="instrument">Instrument *</label>
+                            <select id="instrument" name="instrument" required>
+                                <option value="">Select your instrument...</option>
+                                <option value="Violin">Violin</option>
+                                <option value="Viola">Viola</option>
+                                <option value="Cello">Cello</option>
+                                <option value="Piano">Piano</option>
+                                <option value="Flute">Flute</option>
+                                <option value="Clarinet">Clarinet</option>
+                                <option value="Oboe">Oboe</option>
+                                <option value="Bassoon">Bassoon</option>
+                                <option value="French Horn">French Horn</option>
+                                <option value="Trumpet">Trumpet</option>
+                                <option value="Trombone">Trombone</option>
+                                <option value="Percussion">Percussion</option>
+                                <option value="Voice">Voice</option>
+                                <option value="String Quartet">String Quartet</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="duration">Estimated Duration *</label>
+                            <input type="text" id="duration" name="duration" placeholder="e.g., 12' 30''" required>
+                            <small class="form-help">Format: minutes' seconds''</small>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="piece">Piece Title *</label>
+                        <input type="text" id="piece" name="piece" placeholder="e.g., Mozart Violin Concerto #3, G Major, first movement" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="remarks">Additional Remarks (Optional)</label>
+                        <textarea id="remarks" name="remarks" rows="3" placeholder="Any special requirements or notes..."></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-submit">
+                            <span class="btn-text">Submit Registration</span>
+                            <span class="btn-loading" style="display: none;">
+                                <span class="spinner"></span> Submitting...
+                            </span>
+                        </button>
+                    </div>
+
+                    <div class="form-message" id="form-message"></div>
+                </form>
+            </div>
+
+            <!-- View Schedule Button -->
+            <div style="text-align: center; margin-top: 2rem;">
+                <a href="calendar.html" class="btn btn-secondary">View Full Calendar</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>UOttawa Pre-College</h3>
+                    <p>Excellence in music education</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="description.html">Description</a></li>
+                        <li><a href="schedule.html">Schedule</a></li>
+                        <li><a href="calendar.html">Calendar</a></li>
+                        <li><a href="code-of-conduct.html">Code of Conduct</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Program</h4>
+                    <ul>
+                        <li><a href="chamber-music.html">Chamber Music</a></li>
+                        <li><a href="masterclasses.html">Masterclasses</a></li>
+                        <li><a href="performance-class.html">Performance Class</a></li>
+                        <li><a href="signup.html">Sign Up to Perform</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 University of Ottawa Pre-College Program. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script src="signup.js"></script>
+</body>
+</html>

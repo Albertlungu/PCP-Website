@@ -281,6 +281,27 @@ document.addEventListener('DOMContentLoaded', function() {
     createBackgroundDecor();
     initBackgroundNoteClicks();
     
+    // Dropdown overlay effect
+    const dropdowns = document.querySelectorAll('.has-dropdown');
+    let dropdownTimeout;
+    
+    dropdowns.forEach(dropdown => {
+        dropdown.addEventListener('mouseenter', function() {
+            clearTimeout(dropdownTimeout);
+            document.body.classList.add('dropdown-active');
+        });
+        
+        dropdown.addEventListener('mouseleave', function() {
+            dropdownTimeout = setTimeout(() => {
+                // Check if mouse is over any dropdown
+                const anyDropdownHovered = Array.from(dropdowns).some(dd => dd.matches(':hover'));
+                if (!anyDropdownHovered) {
+                    document.body.classList.remove('dropdown-active');
+                }
+            }, 100);
+        });
+    });
+    
     // Create scroll progress indicator
     createScrollProgress();
     

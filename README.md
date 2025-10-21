@@ -1,72 +1,107 @@
-<<<<<<< HEAD
-# PCP-Website
-=======
-# UOttawa Pre-College Program Website
+# PCP Website - Pre-College Program
 
-A modern, responsive website for the University of Ottawa Pre-College Program, designed to showcase the program's offerings and student achievements.
+## Overview
+Website for the University of Ottawa Pre-College Music Program featuring:
+- Performance calendar with interactive calendar and list views
+- Student signup system for performances  
+- Program information and student profiles
+- Dropdown navigation for better organization
 
-## Features
+## Recent Updates
 
-- **Modern Design**: Clean, professional interface with smooth animations and transitions
-- **Fully Responsive**: Optimized for desktop, tablet, and mobile devices
-- **Easy Navigation**: Intuitive menu system with mobile-friendly hamburger menu
-- **Rich Content**: Comprehensive information about the program, including:
-  - Program Description
-  - Schedule Information
-  - Chamber Music Details
-  - Masterclasses Information
-  - Performance Class Overview
-  - Code of Conduct
-  - Student Profiles
+### Navigation Improvements (Latest)
+- **Compact Design**: Navbar now uses `fit-content` width - automatically adjusts to content size
+- **Dropdown Menus**: Organized navigation into logical groups:
+  - **Program**: Chamber Music, Masterclasses, Performance Class, Schedule
+  - **Participate**: Calendar, Sign Up to Perform
+- **Perfect Alignment**: Dropdowns positioned directly under parent labels (left-aligned)
+- **Improved Hover Behavior**: Dropdown stays open while hovering over the dropdown menu itself
+- **Shorter Labels**: "Description" → "About", "Code of Conduct" → "Conduct"
 
-## Pages
+### Performance Calendar (`calendar.html`)
+- Interactive monthly calendar view with clickable dates
+- List view showing all events chronologically
+- Filter by event type (masterclasses, performances, special events)
+- Click any event to see full details in a modal popup
+- Color-coded event indicators (Gold = Masterclass, Burgundy = Performance, Blue = Special)
 
-1. **Home** (`index.html`) - Landing page with hero section and program highlights
-2. **Description** (`description.html`) - Detailed program information
-3. **Schedule** (`schedule.html`) - Program schedule and timeline
-4. **Chamber Music** (`chamber-music.html`) - Chamber music program details
-5. **Masterclasses** (`masterclasses.html`) - Information about masterclass offerings
-6. **Performance Class** (`performance-class.html`) - Performance class details
-7. **Code of Conduct** (`code-of-conduct.html`) - Student conduct guidelines
-8. **Our Students** (`our-students.html`) - Profiles of current students
+### Signup System (`signup.html`)
+- Displays available performance slots at the top
+- Complete registration form with validation
+- Auto-formatting for duration field (minutes' seconds")
+- Real-time form validation with helpful error messages
+- Submits directly to Google Spreadsheet
 
 ## Technology Stack
 
 - **HTML5** - Semantic markup
-- **CSS3** - Modern styling with CSS Grid and Flexbox
-- **JavaScript** - Interactive features and animations
-- **Google Fonts** - Inter font family for clean typography
+- **CSS3** - Modern styling with Flexbox, Grid, and glassmorphism effects
+- **JavaScript** - Interactive features, calendar logic, form handling
+- **Google Fonts** - Inter and Playfair Display fonts
 
 ## Design Features
 
-- Custom color scheme featuring University of Ottawa branding
-- Smooth scroll animations and transitions
-- Card-based layout for content organization
-- Gradient backgrounds and modern UI elements
-- Intersection Observer API for scroll-triggered animations
+- Custom color scheme: Burgundy (#6d0a2e) and Gold (#d4af37)
+- Floating navigation bar with glassmorphism effect
+- Smooth animations and transitions throughout
+- Dropdown menus with frosted glass effect
+- Interactive background with floating music notes
+- Click ripple effects and animated musical symbols
 - Mobile-first responsive design
+- Dark gradient background with subtle patterns
 
-## Getting Started
+## Pages
 
-Simply open `index.html` in a web browser to view the website. No build process or dependencies required.
+1. **Home** (`index.html`) - Landing page with hero section and program highlights
+2. **About** (`description.html`) - Detailed program information
+3. **Program Pages**:
+   - Chamber Music (`chamber-music.html`)
+   - Masterclasses (`masterclasses.html`)
+   - Performance Class (`performance-class.html`)
+   - Schedule (`schedule.html`)
+4. **Participate**:
+   - Calendar (`calendar.html`) - View all upcoming events
+   - Sign Up (`signup.html`) - Register to perform
+5. **Our Students** (`our-students.html`) - Student profiles
+6. **Conduct** (`code-of-conduct.html`) - Student conduct guidelines
 
-### Local Development
+## Setup Instructions
 
-To run locally:
+### For Calendar & Signup Features
 
-1. Clone or download this repository
-2. Open `index.html` in your preferred web browser
-3. Or use a local server:
-   ```bash
-   # Using Python 3
-   python -m http.server 8000
+1. **Google Apps Script Setup** (for signup form):
+   - See `SETUP.md` for detailed instructions
+   - Creates a web app that writes to your Google Spreadsheet
    
-   # Using Python 2
-   python -m SimpleHTTPServer 8000
-   
-   # Using Node.js http-server
-   npx http-server
-   ```
+2. **Google Sheets API** (optional, for dynamic calendar updates):
+   - Get API key from Google Cloud Console
+   - Update `calendar.js` with your API key
+
+Currently, the calendar uses embedded data from your spreadsheet and works without additional setup. The signup form requires Google Apps Script configuration.
+
+## File Structure
+
+```
+pcp-website/
+├── index.html                      # Homepage
+├── description.html                # Program description
+├── schedule.html                   # Schedule information
+├── chamber-music.html              # Chamber music details
+├── masterclasses.html              # Masterclasses info
+├── performance-class.html          # Performance class details
+├── calendar.html                   # NEW: Calendar page
+├── signup.html                     # NEW: Signup form
+├── our-students.html               # Student profiles
+├── code-of-conduct.html            # Code of conduct
+├── styles.css                      # Main stylesheet
+├── styles-calendar-signup.css      # Calendar & signup styles
+├── script.js                       # Main JavaScript
+├── calendar.js                     # Calendar functionality
+├── signup.js                       # Signup form handling
+├── README.md                       # This file
+├── SETUP.md                        # Setup instructions
+└── VISUAL-GUIDE.md                 # Visual representation of pages
+```
 
 ## Browser Support
 
@@ -79,37 +114,24 @@ To run locally:
 ## Customization
 
 ### Colors
-
-The color scheme can be customized by modifying the CSS variables in `styles.css`:
-
+Edit CSS variables in `styles.css`:
 ```css
 :root {
-    --primary-color: #8B1538;
-    --secondary-color: #2C3E50;
-    --accent-color: #E74C3C;
-    /* ... other colors */
+    --primary-color: #6d0a2e;    /* Burgundy */
+    --accent-color: #d4af37;      /* Gold */
+    --secondary-color: #101624;   /* Dark blue */
 }
 ```
 
-### Content
-
-All content can be easily updated by editing the respective HTML files. The structure is semantic and well-commented for easy maintenance.
-
-## File Structure
-
-```
-PCP-Website/
-├── index.html              # Home page
-├── description.html        # Program description
-├── schedule.html          # Schedule page
-├── chamber-music.html     # Chamber music page
-├── masterclasses.html     # Masterclasses page
-├── performance-class.html # Performance class page
-├── code-of-conduct.html   # Code of conduct
-├── our-students.html      # Student profiles
-├── styles.css             # Main stylesheet
-├── script.js              # JavaScript functionality
-└── README.md              # This file
+### Adding Navigation Items
+Edit the navigation `<ul class="nav-menu">` in each HTML file. For dropdowns, use:
+```html
+<li class="has-dropdown">
+    <a href="#" class="dropdown-toggle">Label</a>
+    <ul class="dropdown-menu">
+        <li><a href="page.html">Item</a></li>
+    </ul>
+</li>
 ```
 
 ## Credits
@@ -119,4 +141,3 @@ Designed and developed for the University of Ottawa Pre-College Program.
 ## License
 
 © 2024 University of Ottawa Pre-College Program. All rights reserved.
->>>>>>> 9c44ce2 (Initial commit (everything's basically already done...))
