@@ -443,19 +443,21 @@
 
 .slot-card {
     background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(212, 175, 55, 0.3);
+    border: 2px solid rgba(212, 175, 55, 0.3);
     border-radius: 16px;
     padding: 1.5rem;
     display: flex;
     align-items: center;
     gap: 1rem;
     transition: all 0.3s ease;
+    cursor: pointer;
 }
 
 .slot-card:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(212, 175, 55, 0.5);
-    transform: translateY(-3px);
+    background: rgba(212, 175, 55, 0.12);
+    border-color: rgba(212, 175, 55, 0.7);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(212, 175, 55, 0.2);
 }
 
 .slot-icon {
@@ -588,11 +590,21 @@
     padding: 1rem 2rem;
     font-size: 1.1rem;
     position: relative;
+    transition: all 0.3s ease;
+}
+
+.btn-submit:hover {
+    transform: scale(1.02);
+    background: rgba(255, 255, 255, 1);
 }
 
 .btn-submit:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+.btn-submit:disabled:hover {
+    transform: none;
 }
 
 .btn-loading {
