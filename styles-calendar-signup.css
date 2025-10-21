@@ -26,6 +26,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    white-space: nowrap;
 }
 
 .calendar-view-btn .icon {
@@ -654,10 +655,21 @@
     .calendar-controls {
         flex-direction: column;
         align-items: stretch;
+        gap: 1rem;
     }
     
     .calendar-filters {
         justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .filter-btn {
+        padding: 0.6rem 1.25rem;
+        font-size: 0.85rem;
+    }
+    
+    .calendar-container {
+        padding: 1.5rem;
     }
     
     .calendar-grid {
@@ -670,13 +682,28 @@
         font-size: 0.85rem;
     }
     
+    .calendar-day-header {
+        font-size: 0.75rem;
+        padding: 0.5rem;
+    }
+    
     .event-list-card {
         flex-direction: column;
         text-align: center;
+        padding: 1.25rem;
     }
     
     .event-date {
         margin: 0 auto;
+        min-width: 70px;
+    }
+    
+    .event-day {
+        font-size: 1.75rem;
+    }
+    
+    .event-title {
+        font-size: 1.1rem;
     }
     
     .form-row {
@@ -685,6 +712,33 @@
     
     .available-slots-grid {
         grid-template-columns: 1fr;
+    }
+    
+    .slot-card {
+        padding: 1.25rem;
+    }
+    
+    .slot-icon {
+        font-size: 1.75rem;
+        width: 45px;
+        height: 45px;
+    }
+    
+    .signup-intro,
+    .schedule-display,
+    .signup-form-container {
+        padding: 1.5rem;
+    }
+    
+    .performance-form {
+        gap: 1.25rem;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 0.75rem;
+        font-size: 0.95rem;
     }
 }
 
@@ -699,7 +753,42 @@
         font-size: 1.25rem;
     }
     
+    .calendar-container {
+        padding: 1rem;
+    }
+    
+    .calendar-day {
+        min-height: 50px;
+        padding: 0.35rem;
+        font-size: 0.75rem;
+    }
+    
     .event-modal-content {
         padding: 1.5rem;
+    }
+    
+    .event-modal-close {
+        width: 30px;
+        height: 30px;
+        font-size: 1.25rem;
+    }
+    
+    .slot-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .slot-icon {
+        margin: 0 auto;
+    }
+    
+    .signup-intro h2,
+    .schedule-display h3 {
+        font-size: 1.35rem;
+    }
+    
+    .btn-submit {
+        padding: 0.875rem 1.5rem;
+        font-size: 1rem;
     }
 }
