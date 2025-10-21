@@ -9,7 +9,7 @@
 │  [Calendar View] [List View]  |  [All] [Masterclasses] [Performances]  │
 ├─────────────────────────────────────────────────────────┤
 │                                                           │
-│              ◀  September 2024  ▶                        │
+│              ◀  September 2025  ▶                        │
 │                                                           │
 │   Sun   Mon   Tue   Wed   Thu   Fri   Sat               │
 │   ───   ───   ───   ───   ───   ───   ───               │
@@ -39,7 +39,7 @@
 │  ✕                                │
 │                                   │
 │  Violin Masterclass               │
-│  September 27, 2024               │
+│  September 27, 2025               │
 │  Guest Artist: Chooi              │
 │                                   │
 │  Performers:                      │

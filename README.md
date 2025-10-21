@@ -140,4 +140,4 @@ Designed and developed for the University of Ottawa Pre-College Program.
 
 ## License
 
-© 2024 University of Ottawa Pre-College Program. All rights reserved.
+© 2025 University of Ottawa Pre-College Program. All rights reserved.

@@ -17,10 +17,10 @@ async function fetchAvailableDates() {
         // In production, this would fetch from Google Sheets API
         // For now, we'll use hardcoded dates that are available for signup
         const allDates = [
-            { date: 'Nov 08', label: 'November 8, 2024 - Performance Class', available: true },
-            { date: 'Nov 22', label: 'November 22, 2024 - Violin Masterclass', available: true },
-            { date: 'Nov 29', label: 'November 29, 2024 - Viola Masterclass', available: true },
-            { date: 'Dec 06', label: 'December 6, 2024 - Performance Class', available: true }
+            { date: 'Nov 08', label: 'November 8, 2025 - Performance Class', available: true },
+            { date: 'Nov 22', label: 'November 22, 2025 - Violin Masterclass', available: true },
+            { date: 'Nov 29', label: 'November 29, 2025 - Viola Masterclass', available: true },
+            { date: 'Dec 06', label: 'December 6, 2025 - Performance Class', available: true }
         ];
         
         return allDates.filter(d => d.available);

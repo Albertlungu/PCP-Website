@@ -2,7 +2,7 @@
 // This reads from the Google Sheets and displays events in a calendar format
 
 const SPREADSHEET_ID = '1GSVqiWOL4mZTVuTaTuaskvX7zCzQrhJ7zL1Pvzl3F68';
-const API_KEY = 'AIzaSyBpfVZ7x8xXZW_YOUR_API_KEY_HERE'; // You'll need to replace this with your actual API key
+const API_KEY = 'AIzaSyDYPaPDtcWQDMna_ZIFtofdnNcBSPYS2ys'; // I updated with my API key
 const SHEET_NAME = 'Sheet1';
 
 // Event data structure
@@ -118,11 +118,37 @@ function parseDate(dateStr, year) {
     return new Date(year, month, day);
 }
 
-// Fetch events from Google Sheets
+// Helper function to format guest artist display
+function formatGuestArtist(guestArtist) {
+    if (guestArtist && guestArtist.toUpperCase() === 'HOST') {
+        return 'Performance Class';
+    }
+    return guestArtist || 'TBA';
+}
+
+// Fetch events from Google Sheets API
 async function fetchEvents() {
     try {
-        // For development, we'll use hardcoded data from the spreadsheet
-        // In production, you would use the Google Sheets API
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${SHEET_NAME}?key=${API_KEY}`;
+
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (!data.values) {
+            throw new Error('No data found in spreadsheet');
+        }
+
+        allEvents = parseSheetData(data.values);
+        console.log(`Successfully loaded ${allEvents.length} events from Google Sheets`);
+        return allEvents;
+    } catch (error) {
+        console.error('Error fetching events from Google Sheets:', error);
+
+        // Fallback to hardcoded data if API fails
+        console.log('Falling back to hardcoded data...');
         const hardcodedData = [
             ['Date', 'Guest Artist', 'Name', 'Instrument', 'Piece', 'Duration', 'Remarks'],
             ['uOttawa PC Performance Class Schedule', '', '', '', '', '', ''],
@@ -154,12 +180,10 @@ async function fetchEvents() {
             ['Nov 29', 'Thies-Thompson', '', '', '', '', 'Viola Masterclass'],
             ['Dec 6', 'HOST', 'Vincent Pham', 'Violin', 'Saint Saens Introduction and Rondo Capriccioso', '10\' 00\'\'', 'Performance Class']
         ];
-        
+
         allEvents = parseSheetData(hardcodedData);
+        console.log(`Loaded ${allEvents.length} events from fallback data`);
         return allEvents;
-    } catch (error) {
-        console.error('Error fetching events:', error);
-        return [];
     }
 }
 
@@ -281,7 +305,7 @@ function renderListView() {
         
         eventInfo.innerHTML = `
             <div class="event-title">${event.remarks}</div>
-            <div class="event-guest">Guest: ${event.guestArtist}</div>
+            <div class="event-guest">Guest: ${formatGuestArtist(event.guestArtist)}</div>
             ${performersHTML}
         `;
         
@@ -308,7 +332,7 @@ function showEventDetails(events) {
                 <div class="event-detail-header">
                     <h3>${event.remarks}</h3>
                     <p class="event-detail-date">${dateStr}</p>
-                    <p class="event-detail-guest"><strong>Guest Artist:</strong> ${event.guestArtist}</p>
+                    <p class="event-detail-guest"><strong>${formatGuestArtist(event.guestArtist).includes('Performance Class') ? '' : 'Guest Artist: '}</strong>${formatGuestArtist(event.guestArtist)}</p>
                 </div>
         `;
         

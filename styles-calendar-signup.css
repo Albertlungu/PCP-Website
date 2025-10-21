@@ -13,10 +13,43 @@
     gap: 1rem;
 }
 
+.calendar-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.spreadsheet-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    color: rgba(245, 246, 255, 0.8);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.spreadsheet-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(212, 175, 55, 0.3);
+    color: var(--accent-light);
+    transform: translateY(-1px);
+}
+
+.spreadsheet-link:active {
+    transform: translateY(0);
+}
+
 .calendar-view-btn {
     background: rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    border: 3px solid rgba(255, 255, 255, 0.15);
     color: rgba(245, 246, 255, 0.85);
     padding: 0.75rem 1.5rem;
     border-radius: 12px;
@@ -156,13 +189,33 @@
     transform: translateY(-2px);
 }
 
+.calendar-day:not(.empty).has-event:hover {
+    border: 3px solid rgba(212, 175, 55, 0.6);
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-2px);
+    box-shadow: 0 0 12px rgba(212, 175, 55, 0.2);
+}
+
 .calendar-day.today {
-    border-color: var(--accent-color);
+    border: 3px solid var(--accent-color);
     background: rgba(212, 175, 55, 0.15);
 }
 
+.calendar-day.today.has-event {
+    border: 3px solid var(--accent-color);
+    background: rgba(212, 175, 55, 0.15);
+    box-shadow: 0 0 12px rgba(212, 175, 55, 0.3);
+}
+
 .calendar-day.has-event {
-    border-color: rgba(212, 175, 55, 0.4);
+    border: 3px solid rgba(212, 175, 55, 0.4);
+}
+
+.calendar-day.has-event:hover {
+    border: 3px solid rgba(212, 175, 55, 0.6);
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-2px);
+    box-shadow: 0 0 12px rgba(212, 175, 55, 0.2);
 }
 
 .day-number {
@@ -657,6 +710,16 @@
         align-items: stretch;
         gap: 1rem;
     }
+
+    .calendar-info {
+        justify-content: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .spreadsheet-link {
+        font-size: 0.85rem;
+        padding: 0.6rem 1rem;
+    }
     
     .calendar-filters {
         justify-content: center;
@@ -676,10 +739,11 @@
         gap: 0.25rem;
     }
     
-    .calendar-day {
+    .calendar-day.has-event {
         min-height: 60px;
         padding: 0.5rem;
         font-size: 0.85rem;
+        border: 3px solid rgba(212, 175, 55, 0.4);
     }
     
     .calendar-day-header {
@@ -757,10 +821,11 @@
         padding: 1rem;
     }
     
-    .calendar-day {
+    .calendar-day.has-event {
         min-height: 50px;
         padding: 0.35rem;
         font-size: 0.75rem;
+        border: 3px solid rgba(212, 175, 55, 0.4);
     }
     
     .event-modal-content {
