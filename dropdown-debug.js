@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Log hover events on parent
         dropdown.addEventListener('mouseenter', () => {
-            console.log(`\n✅ MOUSE ENTERED parent dropdown ${index + 1}`);
+            console.log(`\nMOUSE ENTERED parent dropdown ${index + 1}`);
             
             setTimeout(() => {
                 const updatedMenuStyles = window.getComputedStyle(menu);
@@ -150,5 +150,5 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, 500);
     
-    console.log('\n✅ Debug script fully initialized. Hover over dropdowns to see logs.\n');
+    console.log('\nDebug script fully initialized. Hover over dropdowns to see logs.\n');
 });

@@ -90,7 +90,7 @@ Created `dropdown-debug.js` to log:
 ## Debug Output
 
 The console will show:
-- `✅ Mouse ENTERED dropdown` - When hovering parent
+- `Mouse ENTERED dropdown` - When hovering parent
 - `🎯 Mouse ENTERED menu` - When hovering dropdown
 - `❌ Mouse LEFT dropdown` - When leaving parent
 - `🚫 Mouse LEFT menu` - When leaving dropdown

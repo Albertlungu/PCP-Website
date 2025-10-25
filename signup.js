@@ -6,7 +6,7 @@ const SHEET_NAME = 'Sheet1';
 
 // This would be your Google Apps Script Web App URL
 // You'll need to create a Google Apps Script that handles POST requests
-const SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+// const SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
 
 // Available dates for signup (dates that have HOST or available slots)
 let availableDates = [];
@@ -69,11 +69,9 @@ async function displayAvailableSlots() {
 // Submit form to Google Sheets
 async function submitPerformance(formData) {
     try {
-        // In production, this would POST to your Google Apps Script
-        // For demonstration, we'll simulate a successful submission
-        
-        /* 
-        Production code would look like:
+        // Google Apps Script Web App URL - UPDATE THIS with your deployed script URL
+        const SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
@@ -82,24 +80,20 @@ async function submitPerformance(formData) {
             },
             body: JSON.stringify(formData)
         });
-        
-        if (!response.ok) {
-            throw new Error('Failed to submit');
-        }
-        
-        return await response.json();
-        */
-        
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        // Log the submission data
-        console.log('Performance registration submitted:', formData);
-        
+
+        // Since no-cors mode doesn't allow reading response, assume success
         return {
             success: true,
             message: 'Registration submitted successfully!'
         };
+
+        /* Original code for when you can use CORS:
+        if (!response.ok) {
+            throw new Error('Failed to submit');
+        }
+
+        return await response.json();
+        */
     } catch (error) {
         console.error('Error submitting performance:', error);
         throw error;

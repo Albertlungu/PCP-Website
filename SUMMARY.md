@@ -1,6 +1,6 @@
 # PCP Website Enhancement - Summary
 
-## ✅ What I've Created
+## What I've Created
 
 ### 1. **Calendar Page** (`calendar.html`)
 A professional, interactive calendar system that displays all your performance classes and masterclasses from the Google Spreadsheet.
@@ -26,7 +26,7 @@ A beautiful, user-friendly form for students to register for performances.
   - Piece title
   - Duration (auto-formatted as you type)
   - Optional remarks
-- ✅ Real-time form validation
+- Real-time form validation
 - ⏳ Loading states during submission
 - ✓ Success/error messages
 - 📱 Mobile-friendly interface
@@ -80,7 +80,7 @@ For reading calendar data dynamically (currently using hardcoded data).
 
 ### Current Status
 
-✅ **Working Now (no setup needed):**
+**Working Now (no setup needed):**
 - Homepage
 - All existing pages
 - Calendar displays events (using embedded data from your spreadsheet)
