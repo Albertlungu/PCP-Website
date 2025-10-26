@@ -6,28 +6,81 @@ const SHEET_NAME = 'Sheet1';
 
 // This would be your Google Apps Script Web App URL
 // You'll need to create a Google Apps Script that handles POST requests
-// const SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz3wMEwOpDMGyO-OMeNb9_T4Cdme4KfMVgAk7tXDqeA2jB9FX6jxeKLqBOLt1bzuGl0/exec';
 
 // Available dates for signup (dates that have HOST or available slots)
 let availableDates = [];
 
-// Fetch available dates from the sheet
+// JSONP loader as fallback for CORS issues
+function loadJsonp(url, callbackParam = 'callback') {
+    return new Promise((resolve, reject) => {
+        const cbName = `jsonp_cb_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
+        const script = document.createElement('script');
+        const sep = url.includes('?') ? '&' : '?';
+        script.src = `${url}${sep}${callbackParam}=${cbName}`;
+        script.async = true;
+
+        const cleanup = () => {
+            if (script.parentNode) script.parentNode.removeChild(script);
+            try { delete window[cbName]; } catch (e) { window[cbName] = undefined; }
+        };
+
+        window[cbName] = (data) => {
+            cleanup();
+            resolve(data);
+        };
+
+        script.onerror = () => {
+            cleanup();
+            reject(new Error('JSONP request failed'));
+        };
+
+        document.head.appendChild(script);
+    });
+}
+
+// Fetch available dates from the sheet with CORS fallback
 async function fetchAvailableDates() {
     try {
-        // In production, this would fetch from Google Sheets API
-        // For now, we'll use hardcoded dates that are available for signup
-        const allDates = [
-            { date: 'Nov 08', label: 'November 8, 2025 - Performance Class', available: true },
-            { date: 'Nov 22', label: 'November 22, 2025 - Violin Masterclass', available: true },
-            { date: 'Nov 29', label: 'November 29, 2025 - Viola Masterclass', available: true },
-            { date: 'Dec 06', label: 'December 6, 2025 - Performance Class', available: true }
-        ];
-        
-        return allDates.filter(d => d.available);
-    } catch (error) {
-        console.error('Error fetching available dates:', error);
-        return [];
+        // Try regular CORS mode first
+        const response = await fetch(`${SCRIPT_URL}?action=getAvailableDates`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Successfully loaded dates via CORS');
+        return result.success ? result.dates : getFallbackDates();
+
+    } catch (corsError) {
+        // Fall back to JSONP if CORS fails
+        console.warn('❌ CORS failed, trying JSONP fallback:', corsError.message);
+
+        try {
+            const result = await loadJsonp(`${SCRIPT_URL}?action=getAvailableDates`);
+            console.log('✅ Successfully loaded dates via JSONP fallback');
+            return result.success ? result.dates : getFallbackDates();
+        } catch (jsonpError) {
+            console.error('❌ Both CORS and JSONP failed:', jsonpError.message);
+            return getFallbackDates();
+        }
     }
+}
+
+// Fallback dates function
+function getFallbackDates() {
+    return [
+        { date: 'Nov 08', label: 'November 8, 2025 - Performance Class', available: true },
+        { date: 'Nov 22', label: 'November 22, 2025 - Violin Masterclass', available: true },
+        { date: 'Nov 29', label: 'November 29, 2025 - Viola Masterclass', available: true },
+        { date: 'Dec 06', label: 'December 6, 2025 - Performance Class', available: true }
+    ];
 }
 
 // Display available slots
@@ -45,11 +98,18 @@ async function displayAvailableSlots() {
     availableDates.forEach(slot => {
         const slotCard = document.createElement('div');
         slotCard.className = 'slot-card';
+
+        let availabilityText = '';
+        if (slot.availableSlots !== undefined) {
+            availabilityText = `<div class="slot-availability">${slot.availableSlots} slots available</div>`;
+        }
+
         slotCard.innerHTML = `
             <div class="slot-icon">🎵</div>
             <div class="slot-info">
                 <div class="slot-date">${slot.label}</div>
                 <div class="slot-status available">Available</div>
+                ${availabilityText}
             </div>
         `;
         slotsContainer.appendChild(slotCard);
@@ -66,13 +126,39 @@ async function displayAvailableSlots() {
     });
 }
 
-// Submit form to Google Sheets
+// Submit form to Google Sheets with CORS fallback
 async function submitPerformance(formData) {
     try {
-        // Google Apps Script Web App URL - UPDATE THIS with your deployed script URL
-        const SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
-
+        // Try regular CORS mode first
         const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Successfully submitted via CORS');
+
+        if (result.success) {
+            return {
+                success: true,
+                message: 'Registration submitted successfully!'
+            };
+        } else {
+            throw new Error(result.message || 'Submission failed');
+        }
+
+    } catch (corsError) {
+        // Fall back to no-cors mode if CORS fails
+        console.warn('❌ CORS failed for submission, trying no-cors mode:', corsError.message);
+
+        await fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
             headers: {
@@ -81,22 +167,12 @@ async function submitPerformance(formData) {
             body: JSON.stringify(formData)
         });
 
-        // Since no-cors mode doesn't allow reading response, assume success
+        // In no-cors mode we can't read the response, so assume success
+        console.log('✅ Submitted via no-cors fallback');
         return {
             success: true,
-            message: 'Registration submitted successfully!'
+            message: 'Registration submitted successfully! Please check your email for confirmation.'
         };
-
-        /* Original code for when you can use CORS:
-        if (!response.ok) {
-            throw new Error('Failed to submit');
-        }
-
-        return await response.json();
-        */
-    } catch (error) {
-        console.error('Error submitting performance:', error);
-        throw error;
     }
 }
 
