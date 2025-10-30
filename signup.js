@@ -188,6 +188,10 @@ function validateForm(formData) {
         errors.push('Please enter your full name');
     }
     
+    if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+        errors.push('Please enter a valid email address');
+    }
+    
     if (!formData.instrument) {
         errors.push('Please select your instrument');
     }
@@ -234,6 +238,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         const formData = {
             date: document.getElementById('date').value,
             name: document.getElementById('name').value,
+            email: document.getElementById('email').value,
             instrument: document.getElementById('instrument').value,
             piece: document.getElementById('piece').value,
             duration: document.getElementById('duration').value,
@@ -261,7 +266,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             const result = await submitPerformance(formData);
             
             if (result.success) {
-                showFormMessage('✓ Your performance registration has been submitted successfully! You will receive a confirmation soon.', 'success');
+                showFormMessage('✓ Your performance registration has been submitted successfully! You will receive a confirmation email shortly.', 'success');
                 form.reset();
                 
                 // Refresh available slots

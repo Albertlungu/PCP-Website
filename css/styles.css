@@ -823,7 +823,7 @@ body.dropdown-active::after {
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px) scale(1.02);
+    transform: scale(1.02);
     box-shadow: 
         0 12px 32px rgba(255, 255, 255, 0.4),
         0 2px 0 rgba(255, 255, 255, 0.5) inset,
@@ -852,7 +852,7 @@ body.dropdown-active::after {
 .btn-secondary:hover {
     background: rgba(255, 255, 255, 0.98);
     color: var(--primary-color);
-    transform: translateY(-2px) scale(1.02);
+    transform: scale(1.02);
     box-shadow: 
         0 12px 32px rgba(255, 255, 255, 0.5),
         0 2px 0 rgba(255, 255, 255, 0.5) inset,
