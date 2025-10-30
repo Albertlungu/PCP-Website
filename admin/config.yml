@@ -1,0 +1,23 @@
+backend:
+  name: github
+  repo: Albertlungu/PCP-Website
+  branch: main
+  base_url: https://api.netlify.com
+  auth_endpoint: auth
+
+media_folder: "images/students"
+public_folder: "/images/students"
+
+collections:
+  - name: "students"
+    label: "Students"
+    label_singular: "Student"
+    folder: "_data/students"
+    create: true
+    delete: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Student Name", name: "name", widget: "string" }
+      - { label: "Description", name: "description", widget: "text" }
+      - { label: "Profile Image", name: "image", widget: "image", required: false }
+      - { label: "Order", name: "order", widget: "number", default: 0, value_type: "int", hint: "Lower numbers appear first" }
