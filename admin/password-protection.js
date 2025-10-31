@@ -9,7 +9,7 @@
     }
 
     // Password configuration
-    const ADMIN_PASSWORD_HASH = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'; // Default: empty string, change this!
+    const ADMIN_PASSWORD_HASH = 'f4617ba48c63cb6a8044081026b6fe2cfbbb14618fb4ee28527be9619bb2336c'; // Default: empty string, change this!
     const SESSION_KEY = 'admin_authenticated';
     
     // Check if already authenticated in this session
