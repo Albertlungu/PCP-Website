@@ -2,6 +2,24 @@
 
 body.admin-mode {
     background: linear-gradient(135deg, #0f1624 0%, #1d1b2e 50%, #2d1b2e 100%);
+    position: relative;
+}
+
+/* Soft red glow around screen edges */
+body.admin-mode::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 9999;
+    box-shadow:
+        inset 0 0 80px rgba(231, 76, 60, 0.15),
+        inset 0 0 120px rgba(231, 76, 60, 0.1),
+        inset 0 0 160px rgba(192, 57, 43, 0.08);
+    border-radius: 0;
 }
 
 /* Admin Header */
@@ -67,8 +85,8 @@ body.admin-mode {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.65rem 1.25rem;
-    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    border-radius: 16px;
     font-weight: 600;
     font-size: 0.9rem;
     border: none;
@@ -97,6 +115,18 @@ body.admin-mode {
     background: rgba(255, 255, 255, 0.08);
     color: #f5f6ff;
     border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.admin-btn-danger {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+}
+
+.admin-btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+    background: linear-gradient(135deg, #c0392b, #a93226);
 }
 
 .admin-btn-secondary:hover {
@@ -148,21 +178,30 @@ body.admin-mode {
 
 /* Student Card in Admin */
 .student-card {
-    background: rgba(255, 255, 255, 0.08);
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.10) 0%,
+        rgba(255, 255, 255, 0.06) 100%
+    );
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     padding: 2rem;
-    border-radius: 20px;
+    border-radius: 24px;
     border: 1px solid rgba(255, 255, 255, 0.18);
-    box-shadow: 0 8px 32px rgba(10, 16, 28, 0.3);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+        0 8px 32px rgba(10, 16, 28, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
 }
 
 .student-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 40px rgba(10, 16, 28, 0.4);
-    border-color: rgba(212, 175, 55, 0.35);
+    transform: translateY(-6px);
+    box-shadow:
+        0 16px 48px rgba(10, 16, 28, 0.5),
+        0 0 0 1px rgba(212, 175, 55, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    border-color: rgba(212, 175, 55, 0.5);
 }
 
 .student-actions {
@@ -176,8 +215,8 @@ body.admin-mode {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
+    padding: 0.65rem 1.25rem;
+    border-radius: 14px;
     border: none;
     cursor: pointer;
     font-size: 0.9rem;
@@ -253,19 +292,19 @@ body.admin-mode {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 1.25rem 2.5rem;
+    padding: 1.5rem 3rem;
     background: linear-gradient(
         135deg,
         rgba(212, 175, 55, 0.15),
         rgba(212, 175, 55, 0.25)
     );
     border: 2px dashed rgba(212, 175, 55, 0.5);
-    border-radius: 16px;
+    border-radius: 20px;
     color: var(--accent-light);
     font-size: 1.1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .add-student-btn:hover {
@@ -318,8 +357,10 @@ body.admin-mode {
     backdrop-filter: blur(40px) saturate(200%);
     -webkit-backdrop-filter: blur(40px) saturate(200%);
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    border-radius: 24px !important;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+    border-radius: 28px !important;
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
     width: 90% !important;
     max-width: 600px !important;
     max-height: 90vh !important;
@@ -394,10 +435,10 @@ body.admin-mode {
 .form-input,
 .form-textarea {
     width: 100%;
-    padding: 0.875rem 1.25rem;
+    padding: 1rem 1.5rem;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 12px;
+    border-radius: 16px;
     color: #f5f6ff;
     font-size: 1rem;
     font-family: 'Inter', sans-serif;
@@ -438,10 +479,10 @@ body.admin-mode {
 }
 
 .upload-file-btn {
-    padding: 0.75rem 1.5rem;
+    padding: 0.875rem 1.75rem;
     background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.3));
     border: 2px solid rgba(212, 175, 55, 0.4);
-    border-radius: 12px;
+    border-radius: 16px;
     color: var(--accent-light);
     font-weight: 600;
     font-size: 0.95rem;

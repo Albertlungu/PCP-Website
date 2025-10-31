@@ -176,6 +176,22 @@ function initializeEventListeners() {
         console.error('Add Student button not found!');
     }
 
+    // Clear all button
+    const clearAllBtn = document.getElementById('clearAllBtn');
+    if (clearAllBtn) {
+        clearAllBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (confirm('Are you sure you want to delete ALL students? This action cannot be undone!')) {
+                students = [];
+                saveToLocalStorage();
+                renderStudents();
+                updateHistoryButtons();
+                showNotification('All students deleted', 'warning');
+            }
+        });
+        console.log('Clear all button listener attached');
+    }
+
     // Modal close buttons
     const modalClose = document.getElementById('modalClose');
     if (modalClose) {
