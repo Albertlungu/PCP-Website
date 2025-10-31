@@ -32,10 +32,10 @@
                         <span>⏱</span> History
                     </button>
                     <button id="exportBtn" class="admin-btn admin-btn-primary">
-                        <span>⚡</span> Export HTML
+                        Export HTML
                     </button>
                     <a href="our-students.html" class="admin-btn admin-btn-secondary">
-                        <span>👁</span> Preview
+                        Preview
                     </a>
                 </div>
             </div>
@@ -76,16 +76,29 @@
                         <label class="form-label">Student Image</label>
                         <div class="image-upload-area">
                             <div class="image-preview" id="imagePreview">
-                                <span class="preview-placeholder">Paste image URL below</span>
+                                <span class="preview-placeholder">Upload image or paste URL below</span>
                             </div>
-                            <input 
-                                type="text" 
-                                id="imageUrl" 
-                                class="form-input" 
+                            <div class="upload-button-container">
+                                <button type="button" class="upload-file-btn" id="uploadFileBtn">
+                                    📁 Choose File from Computer
+                                </button>
+                                <input
+                                    type="file"
+                                    id="imageFileInput"
+                                    accept="image/*"
+                                    style="display: none;"
+                                >
+                            </div>
+                            <div class="or-divider">
+                                <span>OR</span>
+                            </div>
+                            <input
+                                type="text"
+                                id="imageUrl"
+                                class="form-input"
                                 placeholder="https://example.com/image.jpg"
-                                required
                             >
-                            <small class="form-help">Enter the URL of the student's photo</small>
+                            <small class="form-help">Upload an image file or enter an image URL</small>
                         </div>
                     </div>
 

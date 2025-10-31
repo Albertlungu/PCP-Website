@@ -1,4 +1,4 @@
-// students-loader.js - Dynamic student profile loader for Decap CMS
+// students-loader.js - Dynamic student profile loader for Decap CMS + Admin Panel
 
 (function() {
     'use strict';
@@ -6,7 +6,8 @@
     // Configuration
     const CONFIG = {
         studentsDataPath: '/_data/students/',
-        fallbackImage: '/images/placeholder-student.jpg'
+        fallbackImage: '/images/placeholder-student.jpg',
+        localStorageKey: 'pcp_students_data' // Same key as admin panel
     };
 
     /**
@@ -93,22 +94,52 @@
     }
 
     /**
+     * Load students from localStorage (admin panel data)
+     */
+    function loadStudentsFromLocalStorage() {
+        try {
+            const savedData = localStorage.getItem(CONFIG.localStorageKey);
+            if (savedData) {
+                const students = JSON.parse(savedData);
+                console.log(`Loaded ${students.length} student(s) from admin panel`);
+                return students.map(student => ({
+                    name: student.name,
+                    description: student.bio,
+                    image: student.image
+                }));
+            }
+        } catch (error) {
+            console.error('Error loading from localStorage:', error);
+        }
+        return null;
+    }
+
+    /**
      * Load all student profiles
      */
     async function loadStudents() {
+        // First, try to load from localStorage (admin panel)
+        const localStudents = loadStudentsFromLocalStorage();
+        if (localStudents && localStudents.length > 0) {
+            console.log('Using students from admin panel');
+            return localStudents;
+        }
+
+        // Fall back to GitHub API
+        console.log('Loading students from GitHub...');
         const studentFiles = await fetchStudentsList();
-        
+
         if (studentFiles.length === 0) {
             console.warn('No student files found');
             return [];
         }
 
         const students = [];
-        
+
         for (const filename of studentFiles) {
             const url = `${CONFIG.studentsDataPath}${filename}`;
             const studentData = await fetchMarkdownFile(url);
-            
+
             if (studentData) {
                 students.push(studentData);
             }
@@ -116,8 +147,17 @@
 
         // Sort by order field (ascending)
         students.sort((a, b) => (a.order || 0) - (b.order || 0));
-        
+
         return students;
+    }
+
+    /**
+     * Escape HTML to prevent XSS
+     */
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text || '';
+        return div.innerHTML;
     }
 
     /**
@@ -125,27 +165,57 @@
      */
     function createStudentCard(student) {
         const imageSrc = student.image || CONFIG.fallbackImage;
-        
+        const name = escapeHtml(student.name);
+        const description = escapeHtml(student.description);
+
         return `
             <div class="student-card">
-                <div class="student-image-container">
-                    <img src="${imageSrc}" alt="${student.name}" class="student-image" 
+                <div class="student-image">
+                    <img src="${imageSrc}" alt="${name}"
                          onerror="this.src='${CONFIG.fallbackImage}'">
                 </div>
                 <div class="student-info">
-                    <h3 class="student-name">${student.name}</h3>
-                    <p class="student-description">${student.description}</p>
+                    <h3>${name}</h3>
+                    <p>${description}</p>
                 </div>
             </div>
         `;
     }
 
     /**
+     * Show admin preview banner
+     */
+    function showAdminBanner() {
+        const banner = document.createElement('div');
+        banner.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.95), rgba(212, 175, 55, 0.85));
+            color: #1a1a2e;
+            padding: 1rem;
+            text-align: center;
+            font-weight: 600;
+            z-index: 100000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        `;
+        banner.innerHTML = `
+            📝 PREVIEW MODE: Viewing students from Admin Panel
+            <a href="admin.html" style="color: #1a1a2e; text-decoration: underline; margin-left: 1rem;">Back to Admin</a>
+        `;
+        document.body.insertBefore(banner, document.body.firstChild);
+
+        // Add padding to body to prevent content from hiding under banner
+        document.body.style.paddingTop = '3.5rem';
+    }
+
+    /**
      * Render students to the page
      */
-    function renderStudents(students) {
+    function renderStudents(students, isFromLocalStorage = false) {
         const container = document.getElementById('students-grid');
-        
+
         if (!container) {
             console.error('Students grid not found');
             return;
@@ -158,6 +228,11 @@
 
         const html = students.map(createStudentCard).join('');
         container.innerHTML = html;
+
+        // Show banner if viewing admin data
+        if (isFromLocalStorage) {
+            showAdminBanner();
+        }
     }
 
     /**
@@ -165,8 +240,12 @@
      */
     async function init() {
         console.log('Loading students...');
+
+        // Check if we have local data
+        const hasLocalData = localStorage.getItem(CONFIG.localStorageKey) !== null;
+
         const students = await loadStudents();
-        renderStudents(students);
+        renderStudents(students, hasLocalData);
         console.log(`Loaded ${students.length} student(s)`);
     }
 

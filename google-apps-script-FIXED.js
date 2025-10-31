@@ -437,6 +437,10 @@ function findAndFillAvailableSlot(sheet, registrationData) {
         }
 
         Logger.log('Successfully filled slot');
+
+        // Send confirmation email
+        sendConfirmationEmail(registrationData);
+
         return { success: true };
       }
     }
@@ -454,6 +458,98 @@ function findAndFillAvailableSlot(sheet, registrationData) {
       success: false,
       message: 'Error finding available slot. Please try again.'
     };
+  }
+}
+
+// Send confirmation email to the student
+function sendConfirmationEmail(registrationData) {
+  try {
+    const recipientEmail = registrationData.email;
+    const studentName = registrationData.name;
+    const performanceDate = registrationData.date;
+    const instrument = registrationData.instrument;
+    const piece = registrationData.piece;
+    const duration = registrationData.duration;
+
+    const subject = 'Performance Registration Confirmation - UOttawa Pre-College Program';
+
+    const htmlBody = `
+      <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f8f9fa; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #6d0a2e, #d4af37); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">UOttawa Pre-College Program</h1>
+          <p style="color: #f5f6ff; margin: 10px 0 0 0; font-size: 16px;">Excellence in Music Education</p>
+        </div>
+
+        <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+          <h2 style="color: #6d0a2e; margin-bottom: 20px; text-align: center;">Registration Confirmed!</h2>
+
+          <p style="color: #333; font-size: 16px; margin-bottom: 20px;">Dear ${studentName},</p>
+
+          <p style="color: #333; font-size: 16px; margin-bottom: 20px;">
+            Thank you for registering for a performance class! Your registration has been successfully processed.
+          </p>
+
+          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #d4af37;">
+            <h3 style="color: #6d0a2e; margin: 0 0 15px 0; font-size: 18px;">Performance Details:</h3>
+            <p style="margin: 8px 0; color: #333;"><strong>Date:</strong> ${performanceDate}</p>
+            <p style="margin: 8px 0; color: #333;"><strong>Instrument:</strong> ${instrument}</p>
+            <p style="margin: 8px 0; color: #333;"><strong>Piece:</strong> ${piece}</p>
+            <p style="margin: 8px 0; color: #333;"><strong>Duration:</strong> ${duration}</p>
+          </div>
+
+          <p style="color: #333; font-size: 16px; margin-bottom: 20px;">
+            We look forward to hearing your performance! Please arrive 15 minutes before your scheduled time and ensure you have all necessary materials.
+          </p>
+
+          <div style="text-align: center; margin: 30px 0;">
+            <p style="color: #666; font-size: 14px; margin: 0;">
+              If you have any questions, please don't hesitate to contact us.
+            </p>
+          </div>
+
+          <div style="border-top: 1px solid #eee; padding-top: 20px; text-align: center;">
+            <p style="color: #666; font-size: 14px; margin: 0;">
+              University of Ottawa Pre-College Program<br>
+              Excellence in Music Education
+            </p>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const textBody = `
+      UOttawa Pre-College Program - Registration Confirmation
+
+      Dear ${studentName},
+
+      Thank you for registering for a performance class! Your registration has been successfully processed.
+
+      Performance Details:
+      - Date: ${performanceDate}
+      - Instrument: ${instrument}
+      - Piece: ${piece}
+      - Duration: ${duration}
+
+      We look forward to hearing your performance! Please arrive 15 minutes before your scheduled time and ensure you have all necessary materials.
+
+      If you have any questions, please don't hesitate to contact us.
+
+      University of Ottawa Pre-College Program
+      Excellence in Music Education
+    `;
+
+    MailApp.sendEmail({
+      to: recipientEmail,
+      subject: subject,
+      htmlBody: htmlBody,
+      body: textBody
+    });
+
+    Logger.log('Confirmation email sent to: ' + recipientEmail);
+
+  } catch (error) {
+    Logger.log('Error sending confirmation email: ' + error.message);
+    // Don't fail the registration if email fails
   }
 }
 
