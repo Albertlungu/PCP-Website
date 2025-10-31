@@ -278,7 +278,6 @@ function initializeEventListeners() {
     }
 
     // Form submission
-    const studentForm = document.getElementById('studentForm');
     if (studentForm) {
         studentForm.addEventListener('submit', handleFormSubmit);
         console.log('Form submit listener attached');
