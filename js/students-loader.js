@@ -183,9 +183,22 @@
     }
 
     /**
-     * Show admin preview banner
+     * Check if we're in the admin area
+     */
+    function isAdminArea() {
+        const path = window.location.pathname;
+        return path.startsWith('/admin/') || path === '/admin';
+    }
+
+    /**
+     * Show admin preview banner (only in admin area)
      */
     function showAdminBanner() {
+        // Only show banner when viewing from /admin/ path
+        if (!isAdminArea()) {
+            return;
+        }
+
         const banner = document.createElement('div');
         banner.style.cssText = `
             position: fixed;
@@ -202,7 +215,7 @@
         `;
         banner.innerHTML = `
             📝 PREVIEW MODE: Viewing students from Admin Panel
-            <a href="admin.html" style="color: #1a1a2e; text-decoration: underline; margin-left: 1rem;">Back to Admin</a>
+            <a href="/admin/index.html" style="color: #1a1a2e; text-decoration: underline; margin-left: 1rem;">Back to Admin</a>
         `;
         document.body.insertBefore(banner, document.body.firstChild);
 
