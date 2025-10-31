@@ -1,3 +1,39 @@
+/**
+ * Admin Panel Styles
+ *
+ * @file admin.css
+ * @description Comprehensive styling for the admin panel interface.
+ * Features a modern, glassmorphism design with smooth animations,
+ * rounded corners, and a subtle red glow effect for "editing mode" awareness.
+ *
+ * @author UOttawa Pre-College Program
+ * @version 2.0.0
+ *
+ * Design Features:
+ * - Soft red glow around screen edges (inset box-shadows)
+ * - Glassmorphism effects with backdrop-filter
+ * - Consistent 16-28px border-radius for modern rounded look
+ * - Smooth transitions (0.3-0.4s cubic-bezier)
+ * - Gold accent color theme (#d4af37)
+ * - Dark gradient background
+ *
+ * Color Palette:
+ * - Primary Background: #0f1624 -> #2d1b2e (gradient)
+ * - Accent Color: #d4af37 (gold)
+ * - Text Color: #f5f6ff (light)
+ * - Red Glow: rgba(231, 76, 60, 0.15)
+ * - Danger Color: #e74c3c (red)
+ *
+ * Related Files:
+ * - /js/admin-students.js - Admin functionality
+ * - /admin.html - Admin interface markup
+ * - /server/admin-server.js - Backend server
+ */
+
+/* ============================================================================
+   BASE STYLES
+   ========================================================================= */
+
 /* Admin Mode Styles */
 
 body.admin-mode {
@@ -518,34 +554,51 @@ body.admin-mode::before {
 }
 
 .image-preview {
-    width: 150px;
+    width: 100%;
     height: 150px;
-    margin: 0 auto;
-    border-radius: 50%;
-    border: 3px solid rgba(212, 175, 55, 0.3);
+    margin: 0 auto 1rem;
+    border-radius: 16px;
+    border: 2px dashed rgba(212, 175, 55, 0.4);
     background: rgba(255, 255, 255, 0.05);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
     transition: all 0.3s ease;
+    position: relative;
+}
+
+.image-preview:hover {
+    border-color: rgba(212, 175, 55, 0.6);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.image-preview[contenteditable="true"]:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
 }
 
 .image-preview img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    max-width: 100%;
+    max-height: 100%;
+    height: 100px;
+    width: auto;
+    object-fit: contain;
 }
 
 .preview-placeholder {
-    font-size: 0.85rem;
-    color: rgba(245, 246, 255, 0.5);
+    font-size: 0.9rem;
+    color: rgba(245, 246, 255, 0.6);
     text-align: center;
     padding: 1rem;
+    user-select: none;
 }
 
 .image-preview.has-image {
+    border-style: solid;
     border-color: rgba(212, 175, 55, 0.6);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 /* Modal Actions */

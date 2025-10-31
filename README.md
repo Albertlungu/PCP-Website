@@ -1,143 +1,282 @@
-# PCP Website - Pre-College Program
+# 🎵 UOttawa Pre-College Program Website
 
-## Overview
-Website for the University of Ottawa Pre-College Music Program featuring:
-- Performance calendar with interactive calendar and list views
-- Student signup system for performances  
-- Program information and student profiles
-- Dropdown navigation for better organization
+![Version](https://img.shields.io/badge/version-2.0.0-blue)
+![Node](https://img.shields.io/badge/node-%3E%3D14.0.0-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-green)
 
-## Recent Updates
+> Professional website for the University of Ottawa Pre-College Music Program with integrated admin panel for easy content management.
 
-### Navigation Improvements (Latest)
-- **Compact Design**: Navbar now uses `fit-content` width - automatically adjusts to content size
-- **Dropdown Menus**: Organized navigation into logical groups:
-  - **Program**: Chamber Music, Masterclasses, Performance Class, Schedule
-  - **Participate**: Calendar, Sign Up to Perform
-- **Perfect Alignment**: Dropdowns positioned directly under parent labels (left-aligned)
-- **Improved Hover Behavior**: Dropdown stays open while hovering over the dropdown menu itself
-- **Shorter Labels**: "Description" → "About", "Code of Conduct" → "Conduct"
+## 📋 Table of Contents
 
-### Performance Calendar (`calendar.html`)
-- Interactive monthly calendar view with clickable dates
-- List view showing all events chronologically
-- Filter by event type (masterclasses, performances, special events)
-- Click any event to see full details in a modal popup
-- Color-coded event indicators (Gold = Masterclass, Burgundy = Performance, Blue = Special)
+- [Overview](#overview)
+- [Features](#features)
+- [Project Structure](#project-structure)
+- [Quick Start](#quick-start)
+- [Documentation](#documentation)
+- [Development](#development)
+- [Deployment](#deployment)
+- [Contributing](#contributing)
+- [License](#license)
 
-### Signup System (`signup.html`)
-- Displays available performance slots at the top
-- Complete registration form with validation
-- Auto-formatting for duration field (minutes' seconds")
-- Real-time form validation with helpful error messages
-- Submits directly to Google Spreadsheet
+## 🎯 Overview
 
-## Technology Stack
+This is a modern, responsive website for the UOttawa Pre-College Program featuring:
+- **Public Website**: Informational pages about the program, events, and students
+- **Admin Panel**: Easy-to-use interface for managing student profiles
+- **Auto-Deployment**: Automatic deployment to Vercel via Git integration
+- **Password Protection**: Secure admin area with session-based authentication
 
-- **HTML5** - Semantic markup
-- **CSS3** - Modern styling with Flexbox, Grid, and glassmorphism effects
-- **JavaScript** - Interactive features, calendar logic, form handling
-- **Google Fonts** - Inter and Playfair Display fonts
+## ✨ Features
 
-## Design Features
+### Public Website
+- 📱 Fully responsive design
+- 🎨 Modern glassmorphism UI
+- 🎭 Interactive navigation with dropdowns
+- 📅 Event calendar integration
+- 👥 Dynamic student profiles
+- 📝 Sign-up forms for performances
 
-- Custom color scheme: Burgundy (#6d0a2e) and Gold (#d4af37)
-- Floating navigation bar with glassmorphism effect
-- Smooth animations and transitions throughout
-- Dropdown menus with frosted glass effect
-- Interactive background with floating music notes
-- Click ripple effects and animated musical symbols
-- Mobile-first responsive design
-- Dark gradient background with subtle patterns
+### Admin Panel
+- ✏️ Add, edit, and delete student profiles
+- 🖼️ Image upload (base64) or URL input
+- 🔄 Undo/Redo functionality (50-item history)
+- 💾 Auto-save with Git integration
+- 📤 One-click deployment to Vercel
+- 🔒 Password-protected admin area
+- 🎨 Modern UI with soft red glow effect
+- 📱 Responsive design for all devices
 
-## Pages
+### Technical Features
+- ⚡ Vanilla JavaScript (no framework dependencies)
+- 🎯 LocalStorage for offline editing
+- 🔄 Auto-commit and push to GitHub
+- 🚀 Automatic Vercel deployment
+- 🔐 SHA-256 password hashing
+- 📦 Modular code structure
+- 📚 Comprehensive documentation
 
-1. **Home** (`index.html`) - Landing page with hero section and program highlights
-2. **About** (`description.html`) - Detailed program information
-3. **Program Pages**:
-   - Chamber Music (`chamber-music.html`)
-   - Masterclasses (`masterclasses.html`)
-   - Performance Class (`performance-class.html`)
-   - Schedule (`schedule.html`)
-4. **Participate**:
-   - Calendar (`calendar.html`) - View all upcoming events
-   - Sign Up (`signup.html`) - Register to perform
-5. **Our Students** (`our-students.html`) - Student profiles
-6. **Conduct** (`code-of-conduct.html`) - Student conduct guidelines
+## 📁 Project Structure
 
-## Setup Instructions
+```
+PCP-Website/
+│
+├── 📄 *.html                   # Public pages (root level for Vercel)
+│   ├── index.html             # Homepage
+│   ├── description.html       # About page
+│   ├── our-students.html      # Student profiles
+│   ├── calendar.html          # Event calendar
+│   └── ...
+│
+├── 🎨 css/                     # Stylesheets
+│   ├── styles.css             # Main public styles
+│   ├── admin.css              # Admin panel styles
+│   └── styles-calendar-signup.css
+│
+├── 📜 js/                      # JavaScript files
+│   ├── admin-students.js      # Admin panel logic
+│   ├── students-loader.js     # Dynamic student loading
+│   └── ...
+│
+├── 🖼️ images/                  # Image assets
+│
+├── 🔐 admin/                   # Password-protected admin area
+│   ├── index.html             # Admin panel
+│   ├── our-students.html      # Admin preview
+│   └── password-protection.js # Auth system
+│
+├── 🖥️ server/                  # Server-side scripts
+│   ├── admin-server.js        # Local development server
+│   └── START_ADMIN.command    # Mac startup script
+│
+├── 📚 docs/                    # Documentation
+│   ├── admin/                 # Admin guides
+│   ├── setup/                 # Setup instructions
+│   ├── deployment/            # Deployment guides
+│   └── QUICK_START.md
+│
+├── 📊 _data/                   # Data files
+│   └── students/              # Student markdown files
+│
+├── ⚙️ vercel.json              # Vercel configuration
+└── 📖 README.md                # This file
+```
 
-### For Calendar & Signup Features
+## 🚀 Quick Start
 
-1. **Google Apps Script Setup** (for signup form):
-   - See `SETUP.md` for detailed instructions
-   - Creates a web app that writes to your Google Spreadsheet
+### Prerequisites
+- Node.js >= 14.0.0
+- Git
+- A text editor (VS Code recommended)
+
+### For Content Editors (Non-Coders)
+
+1. **Start the admin server:**
+   ```bash
+   # On Mac: Double-click
+   server/START_ADMIN.command
    
-2. **Google Sheets API** (optional, for dynamic calendar updates):
-   - Get API key from Google Cloud Console
-   - Update `calendar.js` with your API key
+   # On Windows/Linux:
+   cd server
+   node admin-server.js
+   ```
 
-Currently, the calendar uses embedded data from your spreadsheet and works without additional setup. The signup form requires Google Apps Script configuration.
+2. **Open admin panel:**
+   ```
+   http://localhost:3000/admin.html
+   ```
 
-## File Structure
+3. **Edit students:**
+   - Click "Add New Student"
+   - Upload image or enter URL
+   - Fill in name and bio
+   - Click "Save Student"
 
+4. **Deploy changes:**
+   - Click "Export HTML"
+   - Wait for "Success! Changes deployed" message
+   - Changes will be live on Vercel in ~2 minutes
+
+### For Developers
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/yourusername/pcp-website.git
+   cd pcp-website
+   ```
+
+2. **Start development server:**
+   ```bash
+   node server/admin-server.js
+   ```
+
+3. **Make changes and test locally**
+
+4. **Commit and deploy:**
+   ```bash
+   git add .
+   git commit -m "Your message"
+   git push
+   ```
+
+## 📚 Documentation
+
+Comprehensive documentation is available in the `/docs` folder:
+
+### Admin Guides
+- [Admin Workflow Guide](docs/admin/ADMIN_WORKFLOW_GUIDE.md) - Complete workflow
+- [Important Admin Note](docs/admin/IMPORTANT_ADMIN_NOTE.md) - Quick reference
+- [Password Setup](docs/admin/PASSWORD_SETUP.md) - Security configuration
+- [Admin Guide](docs/admin/ADMIN_GUIDE.md) - Detailed admin instructions
+
+### Deployment
+- [Vercel Deployment Guide](docs/deployment/VERCEL_DEPLOYMENT_GUIDE.md) - Auto-deployment
+- [Quick Start](docs/QUICK_START.md) - Get started quickly
+
+### Setup
+- [Decap CMS Setup](docs/setup/DECAP_CMS_SETUP.md) - Optional CMS
+- [Google Sheets Setup](docs/setup/GOOGLE_SHEETS_SETUP.md) - Integration guide
+
+## 🛠️ Development
+
+### Code Organization
+
+- **HTML Files**: Root level (required for Vercel routing)
+- **CSS Files**: `/css` folder (standard web convention)
+- **JavaScript Files**: `/js` folder (standard web convention)
+- **Admin Files**: `/admin` folder (password-protected area)
+- **Server Scripts**: `/server` folder (Node.js scripts)
+- **Documentation**: `/docs` folder (organized by topic)
+
+### Code Documentation
+
+All code is comprehensively documented with:
+- **JSDoc comments** for JavaScript files
+- **CSS section headers** with descriptions
+- **HTML comments** explaining page structure
+- **Inline comments** for complex logic
+
+### Key Files
+
+- `js/admin-students.js` - Admin panel functionality (600+ lines, fully documented)
+- `css/admin.css` - Admin UI styling (comprehensive design system)
+- `server/admin-server.js` - Local server with Git automation
+- `js/students-loader.js` - Dynamic student profile loading
+
+## 🚀 Deployment
+
+### Automatic Deployment (Recommended)
+
+1. **Edit locally** at `localhost:3000/admin.html`
+2. **Click "Export HTML"** in admin panel
+3. **Server automatically:**
+   - Saves changes to `our-students.html`
+   - Commits to Git with timestamp
+   - Pushes to GitHub
+   - Triggers Vercel deployment
+
+### Manual Deployment
+
+```bash
+git add .
+git commit -m "Update content"
+git push origin main
 ```
-pcp-website/
-├── index.html                      # Homepage
-├── description.html                # Program description
-├── schedule.html                   # Schedule information
-├── chamber-music.html              # Chamber music details
-├── masterclasses.html              # Masterclasses info
-├── performance-class.html          # Performance class details
-├── calendar.html                   # NEW: Calendar page
-├── signup.html                     # NEW: Signup form
-├── our-students.html               # Student profiles
-├── code-of-conduct.html            # Code of conduct
-├── styles.css                      # Main stylesheet
-├── styles-calendar-signup.css      # Calendar & signup styles
-├── script.js                       # Main JavaScript
-├── calendar.js                     # Calendar functionality
-├── signup.js                       # Signup form handling
-├── README.md                       # This file
-├── SETUP.md                        # Setup instructions
-└── VISUAL-GUIDE.md                 # Visual representation of pages
-```
 
-## Browser Support
+Vercel will automatically detect the push and deploy in ~2 minutes.
 
-- Chrome (latest)
-- Firefox (latest)
-- Safari (latest)
-- Edge (latest)
-- Mobile browsers (iOS Safari, Chrome Mobile)
+### Vercel Admin Area
 
-## Customization
+- **URL**: `https://yoursite.vercel.app/admin/`
+- **Mode**: View-only (no editing capabilities)
+- **Purpose**: Preview current students remotely
+- **Access**: Password-protected
 
-### Colors
-Edit CSS variables in `styles.css`:
-```css
-:root {
-    --primary-color: #6d0a2e;    /* Burgundy */
-    --accent-color: #d4af37;      /* Gold */
-    --secondary-color: #101624;   /* Dark blue */
-}
-```
+## 🤝 Contributing
 
-### Adding Navigation Items
-Edit the navigation `<ul class="nav-menu">` in each HTML file. For dropdowns, use:
-```html
-<li class="has-dropdown">
-    <a href="#" class="dropdown-toggle">Label</a>
-    <ul class="dropdown-menu">
-        <li><a href="page.html">Item</a></li>
-    </ul>
-</li>
-```
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-## Credits
+### Development Workflow
 
-Designed and developed for the University of Ottawa Pre-College Program.
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Test thoroughly
+5. Commit your changes (`git commit -m 'Add amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
 
-## License
+### Code Style
 
-© 2025 University of Ottawa Pre-College Program. All rights reserved.
+- Use **2 spaces** for indentation
+- Follow **JSDoc** conventions for JavaScript
+- Add **section comments** in CSS files
+- Write **semantic HTML**
+- Keep functions **small and focused**
+- Add **comprehensive comments**
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built with ❤️ for the UOttawa Pre-College Program
+- Powered by [Vercel](https://vercel.com)
+- Developed with assistance from [Claude Code](https://claude.com/claude-code)
+
+## 📞 Support
+
+For questions or issues:
+- 📧 Email: contact@uottawa-pcp.ca
+- 🐛 Issues: [GitHub Issues](https://github.com/yourusername/pcp-website/issues)
+- 📖 Docs: See `/docs` folder
+
+## 🔄 Version History
+
+- **v2.0.0** - Complete redesign with organized structure and comprehensive documentation
+- **v1.5.0** - Added admin panel with auto-deployment
+- **v1.0.0** - Initial release
+
+---
+
+**Made with 🎵 by the UOttawa Pre-College Team**

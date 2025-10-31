@@ -78,8 +78,8 @@
                     <div class="form-section">
                         <label class="form-label">Student Image</label>
                         <div class="image-upload-area">
-                            <div class="image-preview" id="imagePreview">
-                                <span class="preview-placeholder">Upload image or paste URL below</span>
+                            <div class="image-preview" id="imagePreview" style="cursor: pointer;" title="Click to paste or drop an image">
+                                <span class="preview-placeholder">📋 Paste image here or click "Choose File"</span>
                             </div>
                             <div class="upload-button-container">
                                 <button type="button" class="upload-file-btn" id="uploadFileBtn">
@@ -92,16 +92,12 @@
                                     style="display: none;"
                                 >
                             </div>
-                            <div class="or-divider">
-                                <span>OR</span>
-                            </div>
+                            <!-- Hidden field to store image data -->
                             <input
-                                type="text"
+                                type="hidden"
                                 id="imageUrl"
-                                class="form-input"
-                                placeholder="https://example.com/image.jpg"
                             >
-                            <small class="form-help">Upload an image file or enter an image URL</small>
+                            <small class="form-help">💡 Tip: Copy an image and paste it (Cmd+V / Ctrl+V) or choose a file</small>
                         </div>
                     </div>
 

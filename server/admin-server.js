@@ -2,10 +2,29 @@
 
 /**
  * Admin Auto-Save Server
- * Allows the admin panel to automatically update our-students.html
  *
- * Usage: node admin-server.js
- * Then access: http://localhost:3000/admin.html
+ * @fileoverview Local development server for the admin panel.
+ * Serves static files and provides API endpoint for saving student changes.
+ * Automatically commits and pushes changes to Git for Vercel deployment.
+ *
+ * @author UOttawa Pre-College Program
+ * @version 2.0.0
+ *
+ * Features:
+ * - Static file serving with proper MIME types
+ * - API endpoint for saving student data
+ * - Automatic Git commit and push
+ * - Security: Directory traversal prevention
+ * - CORS enabled for local development
+ *
+ * Usage:
+ *   node server/admin-server.js
+ *   Then access: http://localhost:3000/admin.html
+ *
+ * Related Files:
+ * - /js/admin-students.js - Client-side admin logic
+ * - /admin.html - Admin interface
+ * - /our-students.html - Target file for updates
  */
 
 const http = require('http');
@@ -15,7 +34,8 @@ const url = require('url');
 const { execSync } = require('child_process');
 
 const PORT = 3000;
-const ROOT_DIR = __dirname;
+// ROOT_DIR should be project root, not server folder
+const ROOT_DIR = path.join(__dirname, '..');
 
 // MIME types for different file extensions
 const MIME_TYPES = {

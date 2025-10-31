@@ -1,17 +1,72 @@
-// Admin Students Management System
-// Handles student CRUD operations for the admin panel
+/**
+ * Admin Students Management System
+ *
+ * @fileoverview Comprehensive student management system for the admin panel.
+ * Provides CRUD operations, undo/redo functionality, auto-save to server,
+ * and localStorage persistence.
+ *
+ * @author UOttawa Pre-College Program
+ * @version 2.0.0
+ *
+ * Features:
+ * - Add, edit, and delete student profiles
+ * - Image upload (base64 encoding) or URL input
+ * - Undo/Redo with history tracking (max 50 items)
+ * - Auto-save to local server with Git integration
+ * - Export students to HTML format
+ * - localStorage persistence for offline editing
+ * - Real-time validation and preview
+ *
+ * Dependencies:
+ * - None (vanilla JavaScript)
+ *
+ * Related Files:
+ * - /css/admin.css - Styling for admin interface
+ * - /server/admin-server.js - Backend for saving changes
+ * - /admin.html - Main admin interface
+ */
 
 console.log('Admin Students JS loaded');
 
-// Storage keys
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
+/** @const {string} LocalStorage key for student data */
 const STUDENTS_STORAGE_KEY = 'pcp_students_data';
+
+/** @const {string} LocalStorage key for history/undo data */
 const HISTORY_STORAGE_KEY = 'pcp_students_history';
+
+/** @const {number} Maximum number of history items to keep */
 const MAX_HISTORY_ITEMS = 50;
 
-// Global state
+// ============================================================================
+// GLOBAL STATE
+// ============================================================================
+
+/**
+ * Array of student objects
+ * @type {Array<{name: string, bio: string, image: string}>}
+ */
 let students = [];
+
+/**
+ * Index of currently editing student (-1 if adding new)
+ * @type {number}
+ */
 let currentEditingIndex = -1;
+
+/**
+ * Stack of previous states for undo/redo
+ * @type {Array<Array>}
+ */
 let historyStack = [];
+
+/**
+ * Current position in history stack
+ * @type {number}
+ */
 let historyPosition = -1;
 
 // Initialize the admin panel
@@ -255,6 +310,22 @@ function initializeEventListeners() {
         console.warn('File upload elements not found');
     }
 
+    // Clipboard paste support for images
+    const imagePreview = document.getElementById('imagePreview');
+    if (imagePreview) {
+        imagePreview.addEventListener('paste', handleImagePaste);
+        imagePreview.setAttribute('contenteditable', 'true');
+        imagePreview.style.cursor = 'text';
+        console.log('Clipboard paste listener attached to image preview');
+    }
+
+    // Also listen for paste on the whole modal body
+    const studentForm = document.getElementById('studentForm');
+    if (studentForm) {
+        studentForm.addEventListener('paste', handleImagePaste);
+        console.log('Clipboard paste listener attached to form');
+    }
+
     // Undo/Redo buttons
     const undoBtn = document.getElementById('undoBtn');
     if (undoBtn) {
@@ -303,9 +374,43 @@ function initializeEventListeners() {
     console.log('All event listeners initialized');
 }
 
-// Handle file upload
-function handleImageFileUpload(event) {
-    const file = event.target.files[0];
+/**
+ * Scale image to 100px height while maintaining aspect ratio
+ * @param {string} imageDataUrl - Base64 image data URL
+ * @param {Function} callback - Callback with scaled image data URL
+ */
+function scaleImageTo100px(imageDataUrl, callback) {
+    const img = new Image();
+    img.onload = function() {
+        // Calculate new dimensions (100px height, maintain aspect ratio)
+        const targetHeight = 100;
+        const aspectRatio = img.width / img.height;
+        const targetWidth = Math.round(targetHeight * aspectRatio);
+
+        // Create canvas for resizing
+        const canvas = document.createElement('canvas');
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+        // Convert back to base64
+        const scaledImage = canvas.toDataURL('image/jpeg', 0.9);
+        callback(scaledImage);
+    };
+    img.onerror = function() {
+        console.error('Error loading image for scaling');
+        callback(imageDataUrl); // Return original if scaling fails
+    };
+    img.src = imageDataUrl;
+}
+
+/**
+ * Process and upload image file with scaling
+ * @param {File} file - Image file to process
+ */
+function processImageFile(file) {
     if (!file) return;
 
     console.log('File selected:', file.name, file.type, file.size);
@@ -316,10 +421,10 @@ function handleImageFileUpload(event) {
         return;
     }
 
-    // Check file size (max 5MB)
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    // Check file size (max 10MB before scaling)
+    const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
-        alert('Image is too large. Please select an image smaller than 5MB.');
+        alert('Image is too large. Please select an image smaller than 10MB.');
         return;
     }
 
@@ -327,18 +432,23 @@ function handleImageFileUpload(event) {
     const reader = new FileReader();
     reader.onload = function(e) {
         const base64Image = e.target.result;
-        console.log('Image loaded, size:', base64Image.length, 'characters');
+        console.log('Image loaded, original size:', base64Image.length, 'characters');
 
-        // Update the image URL field with base64 data
-        const imageUrlInput = document.getElementById('imageUrl');
-        if (imageUrlInput) {
-            imageUrlInput.value = base64Image;
-        }
+        // Scale image to 100px height
+        scaleImageTo100px(base64Image, function(scaledImage) {
+            console.log('Image scaled, new size:', scaledImage.length, 'characters');
 
-        // Update preview
-        updateImagePreview();
+            // Update the hidden image URL field with scaled base64 data
+            const imageUrlInput = document.getElementById('imageUrl');
+            if (imageUrlInput) {
+                imageUrlInput.value = scaledImage;
+            }
 
-        console.log('Image uploaded successfully');
+            // Update preview
+            updateImagePreview();
+
+            console.log('Image uploaded and scaled successfully');
+        });
     };
 
     reader.onerror = function(error) {
@@ -349,7 +459,37 @@ function handleImageFileUpload(event) {
     reader.readAsDataURL(file);
 }
 
-// Update image preview
+// Handle file upload
+function handleImageFileUpload(event) {
+    const file = event.target.files[0];
+    processImageFile(file);
+}
+
+/**
+ * Handle clipboard paste for images
+ * @param {ClipboardEvent} event - Paste event
+ */
+function handleImagePaste(event) {
+    const items = event.clipboardData?.items;
+    if (!items) return;
+
+    // Look for image in clipboard
+    for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+            event.preventDefault(); // Prevent default paste behavior
+
+            const file = items[i].getAsFile();
+            console.log('Image pasted from clipboard:', file.type, file.size);
+
+            processImageFile(file);
+            return;
+        }
+    }
+}
+
+/**
+ * Update image preview display
+ */
 function updateImagePreview() {
     const imageUrlInput = document.getElementById('imageUrl');
     const imagePreview = document.getElementById('imagePreview');
@@ -359,13 +499,12 @@ function updateImagePreview() {
     const imageUrl = imageUrlInput.value;
 
     if (imageUrl && imageUrl.trim() !== '') {
-        // Check if it's a base64 image
-        const isBase64 = imageUrl.startsWith('data:image/');
-        const displayText = isBase64 ? '(Uploaded image)' : imageUrl;
-
-        imagePreview.innerHTML = `<img src="${imageUrl}" alt="Preview" onerror="this.parentElement.innerHTML='<span class=\\'preview-placeholder\\'>Invalid image URL</span>'">`;
+        // Display image (already scaled to 100px height)
+        imagePreview.innerHTML = `<img src="${imageUrl}" alt="Preview" style="height: 100px; width: auto; object-fit: contain;" onerror="this.parentElement.innerHTML='<span class=\\'preview-placeholder\\'>Invalid image</span>'">`;
+        imagePreview.classList.add('has-image');
     } else {
-        imagePreview.innerHTML = '<span class="preview-placeholder">Upload image or paste URL below</span>';
+        imagePreview.innerHTML = '<span class="preview-placeholder">📋 Paste image here or click "Choose File"</span>';
+        imagePreview.classList.remove('has-image');
     }
 }
 

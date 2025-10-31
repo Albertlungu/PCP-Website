@@ -3,7 +3,8 @@
 # Start Admin Server Script for Mac
 # Double-click this file to start the admin server
 
-cd "$(dirname "$0")"
+# Navigate to project root (parent of server folder)
+cd "$(dirname "$0")/.."
 
 echo "🎵 Starting UOttawa Pre-College Admin Server..."
 echo ""
@@ -26,7 +27,7 @@ echo "✅ Node.js $NODE_VERSION detected"
 echo ""
 
 # Start the server
-node admin-server.js
+node server/admin-server.js
 
 # Keep terminal open on error
 if [ $? -ne 0 ]; then
