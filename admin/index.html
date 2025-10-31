@@ -3,10 +3,202 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - UOttawa Pre-College</title>
-    <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+    <title>Admin Panel - UOttawa Pre-College</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <script src="password-protection.js"></script>
 </head>
-<body>
-    <!-- Decap CMS will inject its interface here -->
+<body class="admin-mode">
+    <div class="background-animations"></div>
+
+    <!-- Environment Notice (Vercel) -->
+    <div id="vercelNotice" style="display: none; position: fixed; top: 0; left: 0; right: 0; background: linear-gradient(135deg, rgba(34, 139, 230, 0.95), rgba(52, 152, 219, 0.85)); color: white; padding: 1rem; text-align: center; font-weight: 600; z-index: 100001; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+        ⚠️ VIEW-ONLY MODE: You're on Vercel. To edit students, use the local admin panel at <code style="background: rgba(0,0,0,0.2); padding: 0.25rem 0.5rem; border-radius: 4px;">localhost:3000/admin.html</code>
+    </div>
+
+    <!-- Admin Header -->
+    <div class="admin-header">
+        <div class="container">
+            <div class="admin-header-content">
+                <div class="admin-logo">
+                    <h1>Admin Panel</h1>
+                    <span class="admin-badge" id="modeBadge">Editing Mode</span>
+                </div>
+                <div class="admin-controls">
+                    <button id="undoBtn" class="admin-btn admin-btn-secondary" disabled>
+                        <span>↶</span> Undo
+                    </button>
+                    <button id="redoBtn" class="admin-btn admin-btn-secondary" disabled>
+                        <span>↷</span> Redo
+                    </button>
+                    <button id="historyBtn" class="admin-btn admin-btn-secondary">
+                        <span>⏱</span> History
+                    </button>
+                    <button id="exportBtn" class="admin-btn admin-btn-primary">
+                        Export HTML
+                    </button>
+                    <a href="our-students.html" class="admin-btn admin-btn-secondary">
+                        Preview
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <section class="admin-content">
+        <div class="container">
+            <div class="admin-section-header">
+                <h2>Manage Students</h2>
+                <p>Add, edit, or remove student profiles. Changes are saved locally until you export.</p>
+            </div>
+
+            <div class="students-grid" id="studentsGrid">
+                <!-- Students will be rendered here -->
+            </div>
+
+            <div class="add-student-card" id="addStudentCard">
+                <button class="add-student-btn" id="addStudentBtn">
+                    <span class="add-icon">+</span>
+                    <span>Add New Student</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Edit Modal -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add Student</h2>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="studentForm">
+                    <div class="form-section">
+                        <label class="form-label">Student Image</label>
+                        <div class="image-upload-area">
+                            <div class="image-preview" id="imagePreview">
+                                <span class="preview-placeholder">Upload image or paste URL below</span>
+                            </div>
+                            <div class="upload-button-container">
+                                <button type="button" class="upload-file-btn" id="uploadFileBtn">
+                                    📁 Choose File from Computer
+                                </button>
+                                <input
+                                    type="file"
+                                    id="imageFileInput"
+                                    accept="image/*"
+                                    style="display: none;"
+                                >
+                            </div>
+                            <div class="or-divider">
+                                <span>OR</span>
+                            </div>
+                            <input
+                                type="text"
+                                id="imageUrl"
+                                class="form-input"
+                                placeholder="https://example.com/image.jpg"
+                            >
+                            <small class="form-help">Upload an image file or enter an image URL</small>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <label class="form-label" for="studentName">Student Name</label>
+                        <input
+                            type="text"
+                            id="studentName"
+                            class="form-input"
+                            placeholder="Enter student name"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-section">
+                        <label class="form-label" for="studentBio">Student Description</label>
+                        <textarea
+                            id="studentBio"
+                            class="form-textarea"
+                            rows="6"
+                            placeholder="Enter student bio and musical background"
+                            required
+                        ></textarea>
+                        <small class="form-help">Describe the student's musical journey and achievements</small>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="admin-btn admin-btn-secondary" id="cancelBtn">Cancel</button>
+                        <button type="submit" class="admin-btn admin-btn-primary">Save Student</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div class="modal-overlay" id="historyModal">
+        <div class="modal-content modal-wide">
+            <div class="modal-header">
+                <h2>Version History</h2>
+                <button class="modal-close" id="historyModalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="historyList" class="history-list">
+                    <!-- History items will be rendered here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div class="modal-overlay" id="exportModal">
+        <div class="modal-content modal-wide">
+            <div class="modal-header">
+                <h2>Export HTML</h2>
+                <button class="modal-close" id="exportModalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="export-instructions">
+                    <h3>How to Deploy Your Changes</h3>
+                    <ol>
+                        <li>Copy the HTML code below</li>
+                        <li>Open <code>our-students.html</code> in your GitHub repository</li>
+                        <li>Replace the <code>&lt;div class="students-grid"&gt;</code> section with the copied code</li>
+                        <li>Commit and push your changes</li>
+                        <li>Vercel will automatically deploy (takes ~2 minutes)</li>
+                    </ol>
+                </div>
+                <div class="export-code-container">
+                    <button class="copy-btn" id="copyCodeBtn">Copy to Clipboard</button>
+                    <pre id="exportCode" class="export-code"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/admin-students.js"></script>
+    <script>
+        // Detect if we're on Vercel (not localhost)
+        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            // Show Vercel notice
+            const vercelNotice = document.getElementById('vercelNotice');
+            if (vercelNotice) {
+                vercelNotice.style.display = 'block';
+                document.body.style.paddingTop = '3.5rem';
+            }
+
+            // Update badge
+            const modeBadge = document.getElementById('modeBadge');
+            if (modeBadge) {
+                modeBadge.textContent = 'View Only';
+                modeBadge.style.background = 'rgba(52, 152, 219, 0.2)';
+            }
+        }
+    </script>
 </body>
 </html>
