@@ -374,15 +374,15 @@ function initializeEventListeners() {
 }
 
 /**
- * Scale image to 100px height while maintaining aspect ratio
+ * Scale image to 500px height while maintaining aspect ratio
  * @param {string} imageDataUrl - Base64 image data URL
  * @param {Function} callback - Callback with scaled image data URL
  */
-function scaleImageTo100px(imageDataUrl, callback) {
+function scaleImageTo500px(imageDataUrl, callback) {
     const img = new Image();
     img.onload = function() {
-        // Calculate new dimensions (100px height, maintain aspect ratio)
-        const targetHeight = 100;
+        // Calculate new dimensions (500px height, maintain aspect ratio)
+        const targetHeight = 500;
         const aspectRatio = img.width / img.height;
         const targetWidth = Math.round(targetHeight * aspectRatio);
 
@@ -392,10 +392,15 @@ function scaleImageTo100px(imageDataUrl, callback) {
         canvas.height = targetHeight;
 
         const ctx = canvas.getContext('2d');
+
+        // Use better image smoothing for higher quality
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
         ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
 
-        // Convert back to base64
-        const scaledImage = canvas.toDataURL('image/jpeg', 0.9);
+        // Convert back to base64 with higher quality (0.95 instead of 0.9)
+        const scaledImage = canvas.toDataURL('image/jpeg', 0.95);
         callback(scaledImage);
     };
     img.onerror = function() {
@@ -433,8 +438,8 @@ function processImageFile(file) {
         const base64Image = e.target.result;
         console.log('Image loaded, original size:', base64Image.length, 'characters');
 
-        // Scale image to 100px height
-        scaleImageTo100px(base64Image, function(scaledImage) {
+        // Scale image to 500px height for better quality
+        scaleImageTo500px(base64Image, function(scaledImage) {
             console.log('Image scaled, new size:', scaledImage.length, 'characters');
 
             // Update the hidden image URL field with scaled base64 data
