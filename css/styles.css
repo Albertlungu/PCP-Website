@@ -1433,6 +1433,7 @@ body.dropdown-active .page-header {
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     padding: 2rem;
+    /* width: 575px; */
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.18);
     box-shadow: 
@@ -1453,7 +1454,6 @@ body.dropdown-active .page-header {
 }
 
 .student-card h3 {
-    font-family: 'Playfair Display', serif;
     color: #f5f6ff;
 }
 
