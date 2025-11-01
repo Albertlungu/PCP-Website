@@ -82,7 +82,7 @@
         `;
 
         modal.innerHTML = `
-            <h2 style="margin: 0 0 1rem 0; color: #8B1538; font-family: 'Playfair Display', serif;">Password Required</h2>
+            <h2 style="margin: 0 0 1rem 0; color: #8B1538; font-family: 'Arial', serif;">Password Required</h2>
             <p style="margin: 0 0 1.5rem 0; color: #666; font-size: 0.95rem;">Please enter the password to access the performance sign-up page.</p>
             <form id="password-form">
                 <input
