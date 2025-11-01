@@ -101,8 +101,10 @@ export default async function handler(req, res) {
         studentsHTML += '            </div>';
 
         // Step 3: Replace the students-grid section in the HTML
-        const regex = /<div class="students-grid" id="students-grid">[\s\S]*?<\/div>(\s*<\/div>)/;
-        const updatedContent = currentContent.replace(regex, studentsHTML + '\n        </div>');
+        // This regex matches the opening div, all content inside, and the closing div
+        // but NOT the closing div of the parent container
+        const regex = /<div class="students-grid" id="students-grid">\s*(?:<div class="student-card">[\s\S]*?<\/div>\s*)*<\/div>/;
+        const updatedContent = currentContent.replace(regex, studentsHTML);
 
         // Check if content actually changed
         if (updatedContent === currentContent) {
