@@ -239,10 +239,10 @@ function initializeEventListeners() {
             e.preventDefault();
             if (confirm('Are you sure you want to delete ALL students? This action cannot be undone!')) {
                 students = [];
-                saveToLocalStorage();
+                saveStudents();
                 renderStudents();
-                updateHistoryButtons();
-                showNotification('All students deleted', 'warning');
+                updateUndoRedoButtons();
+                console.log('All students cleared successfully');
             }
         });
         console.log('Clear all button listener attached');
@@ -695,13 +695,26 @@ function createStudentCard(student, index) {
 
     // Add event listeners
     const editBtn = card.querySelector('.edit-btn');
-    editBtn.addEventListener('click', () => {
-        console.log('Edit button clicked for index:', index);
-        openModal(index);
-    });
+    if (editBtn) {
+        editBtn.addEventListener('click', () => {
+            console.log('Edit button clicked for index:', index);
+            openModal(index);
+        });
+    } else {
+        console.error('Edit button not found in student card');
+    }
 
     const deleteBtn = card.querySelector('.delete-btn');
-    deleteBtn.addEventListener('click', () => deleteStudent(index));
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Delete button clicked for index:', index);
+            deleteStudent(index);
+        });
+    } else {
+        console.error('Delete button not found in student card');
+    }
 
     return card;
 }
@@ -715,11 +728,18 @@ function escapeHtml(text) {
 
 // Delete student
 function deleteStudent(index) {
+    console.log('deleteStudent called with index:', index);
+    console.log('Student to delete:', students[index]);
+
     if (confirm(`Are you sure you want to delete ${students[index].name}?`)) {
-        console.log('Deleting student at index:', index);
+        console.log('User confirmed deletion. Deleting student at index:', index);
         students.splice(index, 1);
         saveStudents();
         renderStudents();
+        updateUndoRedoButtons();
+        console.log('Student deleted successfully. Remaining students:', students.length);
+    } else {
+        console.log('User cancelled deletion');
     }
 }
 
