@@ -781,7 +781,8 @@ function restoreFromHistory(index) {
 
 // Auto-save to server
 async function autoSaveToServer() {
-    console.log('Attempting auto-save to server...');
+    console.log('🔵 [AUTO-SAVE] Starting auto-save process...');
+    console.log('🔵 [AUTO-SAVE] Current hostname:', window.location.hostname);
 
     // Determine the API endpoint based on environment
     const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -789,7 +790,13 @@ async function autoSaveToServer() {
         ? 'http://localhost:3000/api/save-students'
         : '/api/save-students'; // Vercel serverless function
 
+    console.log('🔵 [AUTO-SAVE] Using endpoint:', apiEndpoint);
+    console.log('🔵 [AUTO-SAVE] Number of students to save:', students.length);
+    console.log('🔵 [AUTO-SAVE] Students data preview:', students.map(s => ({ name: s.name, imageLength: s.image?.length })));
+
     try {
+        console.log('🔵 [AUTO-SAVE] Sending POST request...');
+
         const response = await fetch(apiEndpoint, {
             method: 'POST',
             headers: {
@@ -801,22 +808,39 @@ async function autoSaveToServer() {
             })
         });
 
+        console.log('🔵 [AUTO-SAVE] Response status:', response.status);
+        console.log('🔵 [AUTO-SAVE] Response ok:', response.ok);
+
+        if (!response.ok) {
+            console.error('❌ [AUTO-SAVE] Response not OK, status:', response.status);
+            const errorText = await response.text();
+            console.error('❌ [AUTO-SAVE] Error response:', errorText);
+            return false;
+        }
+
         const result = await response.json();
+        console.log('🔵 [AUTO-SAVE] Full response:', result);
 
         if (result.success) {
-            console.log('✅ Auto-save successful!');
-            console.log('Committed to Git:', result.committed);
+            console.log('✅ [AUTO-SAVE] Auto-save successful!');
+            console.log('✅ [AUTO-SAVE] Committed to Git:', result.committed);
+            if (result.commitSha) {
+                console.log('✅ [AUTO-SAVE] Commit SHA:', result.commitSha);
+            }
             if (result.deployInfo) {
-                console.log('📡', result.deployInfo);
+                console.log('📡 [AUTO-SAVE]', result.deployInfo);
             }
             showAutoSaveSuccess(result.committed);
             return true;
         } else {
-            console.error('❌ Auto-save failed:', result.error);
+            console.error('❌ [AUTO-SAVE] Save failed:', result.error);
             return false;
         }
     } catch (error) {
-        console.warn('⚠️ Auto-save not available:', error.message);
+        console.error('❌ [AUTO-SAVE] Exception occurred:', error);
+        console.error('❌ [AUTO-SAVE] Error name:', error.name);
+        console.error('❌ [AUTO-SAVE] Error message:', error.message);
+        console.error('❌ [AUTO-SAVE] Error stack:', error.stack);
         return false;
     }
 }
@@ -858,29 +882,36 @@ function showAutoSaveSuccess(committed) {
 
 // Show export modal
 async function showExportModal() {
-    console.log('Opening export modal');
+    console.log('🟢 [EXPORT] Starting export process...');
 
     // Try auto-save first
+    console.log('🟢 [EXPORT] Calling autoSaveToServer()...');
     const autoSaved = await autoSaveToServer();
+    console.log('🟢 [EXPORT] autoSaveToServer() returned:', autoSaved);
 
     if (autoSaved) {
         // Auto-save successful, show success message instead of modal
+        console.log('✅ [EXPORT] Auto-save successful! Modal will NOT be shown.');
         return;
     }
+
+    console.log('⚠️ [EXPORT] Auto-save failed or not available. Showing manual export modal...');
 
     // Auto-save not available, show manual export modal
     const exportModal = document.getElementById('exportModal');
     const exportCode = document.getElementById('exportCode');
 
     if (!exportModal || !exportCode) {
-        console.error('Export modal elements not found');
+        console.error('❌ [EXPORT] Export modal elements not found!');
         return;
     }
 
+    console.log('🟢 [EXPORT] Generating HTML code...');
     // Generate HTML code
     const htmlCode = generateStudentsHTML();
     exportCode.textContent = htmlCode;
 
+    console.log('🟢 [EXPORT] Opening export modal...');
     exportModal.classList.add('active');
 }
 
