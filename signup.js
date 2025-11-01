@@ -2,7 +2,7 @@
 // This handles the performance signup form and writes to Google Sheets
 
 const SPREADSHEET_ID = '1GSVqiWOL4mZTVuTaTuaskvX7zCzQrhJ7zL1Pvzl3F68';
-const SHEET_NAME = 'Sheet1';
+const SHEET_NAME = 'Performances';
 
 // This would be your Google Apps Script Web App URL
 // You'll need to create a Google Apps Script that handles POST requests
