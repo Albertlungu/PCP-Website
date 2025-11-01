@@ -783,8 +783,14 @@ function restoreFromHistory(index) {
 async function autoSaveToServer() {
     console.log('Attempting auto-save to server...');
 
+    // Determine the API endpoint based on environment
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const apiEndpoint = isLocalhost
+        ? 'http://localhost:3000/api/save-students'
+        : '/api/save-students'; // Vercel serverless function
+
     try {
-        const response = await fetch('http://localhost:3000/api/save-students', {
+        const response = await fetch(apiEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
