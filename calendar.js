@@ -3,7 +3,7 @@
 
 const SPREADSHEET_ID = '1GSVqiWOL4mZTVuTaTuaskvX7zCzQrhJ7zL1Pvzl3F68';
 const API_KEY = 'AIzaSyDYPaPDtcWQDMna_ZIFtofdnNcBSPYS2ys'; // I updated with my API key
-const SHEET_NAME = 'Sheet1';
+const SHEET_NAME = 'Performances';
 
 // Event data structure
 let allEvents = [];
