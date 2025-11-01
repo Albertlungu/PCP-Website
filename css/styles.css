@@ -24,6 +24,8 @@
 html {
     height: 100%;
     overflow: hidden;
+    overflow-x: hidden;
+    max-width: 100%;
     background:
         radial-gradient(circle at 12% 18%, rgba(243, 196, 156, 0.28), transparent 58%),
         radial-gradient(circle at 82% 14%, rgba(125, 36, 56, 0.22), transparent 52%),
@@ -54,6 +56,8 @@ body {
     animation: fadeIn 0.5s ease;
     padding-top: 5rem;
     overflow: auto;
+    overflow-x: hidden;
+    max-width: 100%;
 }
 
 body > *:not(.background-animations) {
@@ -113,7 +117,7 @@ body > *:not(.background-animations) {
 
 .background-notes span {
     position: absolute;
-    font-family: 'Playfair Display', serif;
+    font-family: 'Inter', sans-serif;
     color: rgba(212, 175, 55, 0.12);
     font-size: 2.75rem;
     opacity: 0;
@@ -142,7 +146,7 @@ body > *:not(.background-animations) {
 
 .floating-note {
     position: fixed;
-    font-family: 'Playfair Display', serif;
+    font-family: 'Inter', sans-serif;
     font-size: 2.4rem;
     color: rgba(212, 175, 55, 0.92);
     pointer-events: none;
@@ -1161,7 +1165,7 @@ body.dropdown-active .section-title {
 }
 
 .feature-quote p {
-    font-family: 'Playfair Display', 'Georgia', serif;
+    font-family: 'Inter', sans-serif;
     font-style: italic;
     font-size: 0.95rem;
     line-height: 1.6;
@@ -1423,10 +1427,17 @@ body.dropdown-active .page-header {
 /* Student Profiles */
 .students-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(360px, 575px));
+    grid-template-columns: repeat(2, minmax(360px, 575px));
     gap: 2.75rem;
     margin-top: 2rem;
     justify-content: center;
+}
+
+/* Responsive: 1 column on tablets and below */
+@media (max-width: 1200px) {
+    .students-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .student-card {

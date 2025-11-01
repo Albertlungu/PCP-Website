@@ -734,10 +734,20 @@
     
     .calendar-container {
         padding: 1.5rem;
+        overflow-x: hidden;
     }
-    
+
     .calendar-grid {
         gap: 0.25rem;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    .calendar-day {
+        min-width: 0;
+        font-size: 0.75rem;
+        padding: 0.4rem;
     }
     
     .calendar-day.has-event {
@@ -819,12 +829,26 @@
     }
     
     .calendar-container {
-        padding: 1rem;
+        padding: 0.75rem;
+        overflow-x: hidden;
     }
-    
+
+    .calendar-grid {
+        gap: 0.2rem;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    .calendar-day {
+        min-width: 0;
+        font-size: 0.7rem;
+        padding: 0.25rem;
+    }
+
     .calendar-day.has-event {
-        min-height: 50px;
-        padding: 0.35rem;
+        min-height: 45px;
+        padding: 0.25rem;
         font-size: 0.75rem;
         border: 3px solid rgba(212, 175, 55, 0.4);
     }
