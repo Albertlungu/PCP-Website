@@ -234,6 +234,7 @@ function initializeEventListeners() {
     // Clear all button
     const clearAllBtn = document.getElementById('clearAllBtn');
     if (clearAllBtn) {
+        console.log('Clear all button:', clearAllBtn);
         clearAllBtn.addEventListener('click', (e) => {
             e.preventDefault();
             if (confirm('Are you sure you want to delete ALL students? This action cannot be undone!')) {
