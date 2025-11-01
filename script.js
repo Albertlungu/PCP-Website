@@ -154,8 +154,9 @@ function spawnFloatingNote(x, y) {
     const note = document.createElement('div');
     note.className = 'floating-note';
     note.textContent = BACKGROUND_NOTE_SYMBOLS[Math.floor(Math.random() * BACKGROUND_NOTE_SYMBOLS.length)];
-    note.style.left = `${x}px`;
-    note.style.top = `${y}px`;
+    // Add scroll offset to position correctly
+    note.style.left = `${x + window.pageXOffset}px`;
+    note.style.top = `${y + window.pageYOffset}px`;
     note.style.setProperty('--floating-note-delay', '0.12s');
     document.body.appendChild(note);
     setTimeout(() => {
@@ -166,8 +167,9 @@ function spawnFloatingNote(x, y) {
 function spawnClickRipple(x, y) {
     const ripple = document.createElement('div');
     ripple.className = 'click-ripple';
-    ripple.style.left = `${x}px`;
-    ripple.style.top = `${y}px`;
+    // Add scroll offset to position correctly
+    ripple.style.left = `${x + window.pageXOffset}px`;
+    ripple.style.top = `${y + window.pageYOffset}px`;
     const size = 280;
     ripple.style.width = `${size}px`;
     ripple.style.height = `${size}px`;
@@ -502,12 +504,19 @@ document.addEventListener('DOMContentLoaded', function() {
         card.style.transform = 'none';
     });
     
-    // Observe content cards with scale effect
+    // Observe content cards with scale effect (skip on code of conduct page)
+    const isCodeOfConduct = window.location.pathname.includes('code-of-conduct');
     document.querySelectorAll('.content-card').forEach((card, index) => {
-        card.style.opacity = '0';
-        card.style.transform = 'scale(0.95)';
-        card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
-        observer.observe(card);
+        if (isCodeOfConduct) {
+            // No animations on code of conduct page
+            card.style.opacity = '1';
+            card.style.transform = 'none';
+        } else {
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.95)';
+            card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+            observer.observe(card);
+        }
     });
     
     // Parallax effect for hero section with mouse tracking

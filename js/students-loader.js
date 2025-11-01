@@ -257,6 +257,24 @@
         // Check if we have local data
         const hasLocalData = localStorage.getItem(CONFIG.localStorageKey) !== null;
 
+        // Check if students are already hardcoded in HTML
+        const container = document.getElementById('students-grid');
+        if (container) {
+            const existingCards = container.querySelectorAll('.student-card');
+
+            // If there are hardcoded students and no localStorage data, don't replace them
+            if (existingCards.length > 0 && !hasLocalData) {
+                console.log(`Using ${existingCards.length} hardcoded student(s) from HTML`);
+                return;
+            }
+        }
+
+        // Only load and render if we have localStorage data
+        if (!hasLocalData) {
+            console.log('No localStorage data and no hardcoded students, skipping loader');
+            return;
+        }
+
         const students = await loadStudents();
         renderStudents(students, hasLocalData);
         console.log(`Loaded ${students.length} student(s)`);
