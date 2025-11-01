@@ -154,9 +154,9 @@ function spawnFloatingNote(x, y) {
     const note = document.createElement('div');
     note.className = 'floating-note';
     note.textContent = BACKGROUND_NOTE_SYMBOLS[Math.floor(Math.random() * BACKGROUND_NOTE_SYMBOLS.length)];
-    // Add scroll offset to position correctly
-    note.style.left = `${x + window.pageXOffset}px`;
-    note.style.top = `${y + window.pageYOffset}px`;
+    // Use fixed positioning (viewport-relative, no scroll offset needed)
+    note.style.left = `${x}px`;
+    note.style.top = `${y}px`;
     note.style.setProperty('--floating-note-delay', '0.12s');
     document.body.appendChild(note);
     setTimeout(() => {
@@ -190,21 +190,9 @@ function initBackgroundNoteClicks() {
             return;
         }
 
+        // Spawn visual effects at click position
         spawnClickRipple(event.clientX, event.clientY);
         spawnFloatingNote(event.clientX, event.clientY);
-
-        const notesWrapper = container.querySelector('.background-notes');
-        if (notesWrapper) {
-            const note = document.createElement('span');
-            note.textContent = BACKGROUND_NOTE_SYMBOLS[Math.floor(Math.random() * BACKGROUND_NOTE_SYMBOLS.length)];
-            note.style.top = `${(event.clientY / window.innerHeight) * 100}%`;
-            note.style.left = `${(event.clientX / window.innerWidth) * 100}%`;
-            note.style.fontSize = `${2 + Math.random() * 1.5}rem`;
-            note.style.setProperty('--note-duration', `${12 + Math.random() * 8}s`);
-            note.style.setProperty('--note-delay', `${-Math.random() * 10}s`);
-            note.style.opacity = `${0.35 + Math.random() * 0.3}`;
-            notesWrapper.appendChild(note);
-        }
     });
 }
 
