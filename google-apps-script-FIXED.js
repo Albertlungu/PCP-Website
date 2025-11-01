@@ -3,7 +3,7 @@
 
 // Replace with your actual Google Sheets ID
 const SPREADSHEET_ID = '1GSVqiWOL4mZTVuTaTuaskvX7zCzQrhJ7zL1Pvzl3F68';
-const SHEET_NAME = 'Sheet1';
+const SHEET_NAME = 'Performance Schedule';
 
 function doGet(e) {
   try {
