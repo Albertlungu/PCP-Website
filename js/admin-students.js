@@ -278,6 +278,7 @@ function initializeEventListeners() {
     }
 
     // Form submission
+    const studentForm = document.getElementById('studentForm');
     if (studentForm) {
         studentForm.addEventListener('submit', handleFormSubmit);
         console.log('Form submit listener attached');
@@ -318,8 +319,7 @@ function initializeEventListeners() {
         console.log('Clipboard paste listener attached to image preview');
     }
 
-    // Also listen for paste on the whole modal body
-    const studentForm = document.getElementById('studentForm');
+    // Also listen for paste on the whole modal body (studentForm already declared above)
     if (studentForm) {
         studentForm.addEventListener('paste', handleImagePaste);
         console.log('Clipboard paste listener attached to form');
