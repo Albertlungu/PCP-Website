@@ -102,10 +102,35 @@
     }
 
     /**
+     * Parse date string in DD-MMM format and determine the correct year
+     */
+    function parseDateWithYear(dateStr) {
+        // Parse "DD-MMM" format (e.g., "08-Nov")
+        const [day, monthStr] = dateStr.split('-');
+        const monthMap = {
+            'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
+            'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+        };
+        const month = monthMap[monthStr];
+
+        // Determine year: Sep-Dec are 2025, Jan-May are 2026
+        let year;
+        if (month >= 8) { // Sep, Oct, Nov, Dec (months 8-11)
+            year = 2025;
+        } else { // Jan-May (months 0-4)
+            year = 2026;
+        }
+
+        const date = new Date(year, month, parseInt(day));
+        date.setHours(0, 0, 0, 0);
+        return date;
+    }
+
+    /**
      * Format date string to readable format
      */
     function formatDate(dateStr) {
-        const date = new Date(dateStr + 'T12:00:00');
+        const date = parseDateWithYear(dateStr);
         const options = { month: 'short', day: 'numeric', year: 'numeric' };
         return date.toLocaleDateString('en-US', options);
     }
@@ -115,9 +140,12 @@
      */
     function getTodaysAssignments() {
         const today = new Date();
-        const todayStr = today.toISOString().split('T')[0];
+        today.setHours(0, 0, 0, 0);
 
-        return ROOM_ASSIGNMENTS.find(assignment => assignment.date === todayStr);
+        return ROOM_ASSIGNMENTS.find(assignment => {
+            const assignmentDate = parseDateWithYear(assignment.date);
+            return assignmentDate.getTime() === today.getTime();
+        });
     }
 
     /**
@@ -144,7 +172,7 @@
 
         // Find assignments from today onward
         const upcoming = ROOM_ASSIGNMENTS.filter(assignment => {
-            const assignmentDate = new Date(assignment.date + 'T12:00:00');
+            const assignmentDate = parseDateWithYear(assignment.date);
             const isUpcoming = assignmentDate >= today;
             console.log(`[Chamber Rooms] ${assignment.date}: ${isUpcoming ? 'UPCOMING' : 'past'}`);
             return isUpcoming;
