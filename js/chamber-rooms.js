@@ -101,47 +101,65 @@
     }
 
     /**
+     * Get upcoming dates (current/next and up to 2 more)
+     */
+    function getUpcomingDates() {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Find assignments from today onward
+        const upcoming = ROOM_ASSIGNMENTS.filter(assignment => {
+            const assignmentDate = new Date(assignment.date + 'T12:00:00');
+            return assignmentDate >= today;
+        });
+
+        // Return first 3 upcoming dates (or less if not available)
+        return upcoming.slice(0, 3);
+    }
+
+    /**
      * Render chamber rooms table (for dedicated page)
      */
     function renderChamberRoomsTable() {
         const container = document.getElementById('chamber-rooms-table');
         if (!container) return;
 
-        let html = '<div class="chamber-rooms-table-wrapper">';
-        html += '<table class="chamber-rooms-table">';
+        const upcomingDates = getUpcomingDates();
 
-        // Header row with group info
-        html += '<thead><tr><th>Date</th>';
-        CHAMBER_GROUPS.forEach(group => {
-            html += `<th class="group-header" style="border-left: 4px solid ${group.color}">
-                        <div class="group-name">${group.name}</div>
-                        <div class="group-coach">Coach: ${group.coach}</div>
-                        <div class="group-members">${group.members}</div>
-                     </th>`;
-        });
-        html += '</tr></thead>';
+        if (upcomingDates.length === 0) {
+            container.innerHTML = '<div class="no-upcoming-dates">No upcoming chamber sessions scheduled.</div>';
+            return;
+        }
 
-        // Body with room assignments
-        html += '<tbody>';
-        ROOM_ASSIGNMENTS.forEach(assignment => {
+        let html = '<div class="chamber-rooms-cards">';
+
+        upcomingDates.forEach((assignment, dateIndex) => {
             const isSpecial = assignment.rooms[0] && !assignment.rooms[0].match(/^\d+$/);
-            html += `<tr class="${isSpecial ? 'special-date' : ''}">`;
-            html += `<td class="date-cell">${formatDate(assignment.date)}</td>`;
+            const dateLabel = dateIndex === 0 ? 'Next Session' : dateIndex === 1 ? 'Following' : 'Later';
+
+            html += `<div class="chamber-date-card">`;
+            html += `<div class="chamber-date-header">`;
+            html += `<span class="date-label">${dateLabel}</span>`;
+            html += `<span class="date-value">${formatDate(assignment.date)}</span>`;
+            html += `</div>`;
 
             if (isSpecial) {
-                html += `<td colspan="4" class="special-event">${assignment.rooms[0]}</td>`;
+                html += `<div class="special-event-card">${assignment.rooms[0]}</div>`;
             } else {
-                assignment.rooms.forEach((room, index) => {
-                    html += `<td class="room-cell" style="border-left: 4px solid ${CHAMBER_GROUPS[index].color}">
-                                <span class="room-number">Room ${room}</span>
-                             </td>`;
+                html += `<div class="chamber-groups-grid">`;
+                CHAMBER_GROUPS.forEach((group, index) => {
+                    const room = assignment.rooms[index];
+                    html += `<div class="chamber-group-assignment" style="border-left: 4px solid ${group.color}">
+                                <div class="group-name-mini">${group.name}</div>
+                                <div class="room-number-large">Room ${room}</div>
+                             </div>`;
                 });
+                html += `</div>`;
             }
-            html += '</tr>';
-        });
-        html += '</tbody>';
 
-        html += '</table>';
+            html += `</div>`;
+        });
+
         html += '</div>';
 
         container.innerHTML = html;
