@@ -3,6 +3,11 @@
 (function() {
     'use strict';
 
+    // Google Sheets API Configuration
+    const SPREADSHEET_ID = '1GSVqiWOL4mZTVuTaTuaskvX7zCzQrhJ7zL1Pvzl3F68';
+    const API_KEY = 'AIzaSyDYPaPDtcWQDMna_ZIFtofdnNcBSPYS2ys';
+    const SHEET_NAME = 'Chamber Rooms';
+
     // Chamber groups configuration
     const CHAMBER_GROUPS = [
         {
@@ -35,40 +40,66 @@
         }
     ];
 
-    // Room assignments by date
-    const ROOM_ASSIGNMENTS = [
-        { date: '2024-09-06', rooms: ['407', '410', '420', '421'] },
-        { date: '2024-09-13', rooms: ['421', '407', '410', '420'] },
-        { date: '2024-09-20', rooms: ['420', '421', '407', '410'] },
-        { date: '2024-09-27', rooms: ['410', '420', '421', '407'] },
-        { date: '2024-10-04', rooms: ['407', '410', '420', '421'] },
-        { date: '2024-10-11', rooms: ['Thanksgiving', '', '', ''] },
-        { date: '2024-10-18', rooms: ['421', '407', '410', '420'] },
-        { date: '2024-10-25', rooms: ['420', '421', '407', '410'] },
-        { date: '2024-11-01', rooms: ['410', '420', '421', '407'] },
-        { date: '2024-11-08', rooms: ['407', '410', '420', '421'] },
-        { date: '2024-11-15', rooms: ['421', '407', '410', '420'] },
-        { date: '2024-11-22', rooms: ['420', '421', '407', '410'] },
-        { date: '2024-11-29', rooms: ['410', '420', '421', '407'] },
-        { date: '2024-12-06', rooms: ['407', '410', '420', '421'] },
-        { date: '2025-01-10', rooms: ['420', '421', '407', '410'] },
-        { date: '2025-01-17', rooms: ['410', '420', '421', '407'] },
-        { date: '2025-01-24', rooms: ['407', '410', '420', '421'] },
-        { date: '2025-01-31', rooms: ['421', '407', '410', '420'] },
-        { date: '2025-02-07', rooms: ['420', '421', '407', '410'] },
-        { date: '2025-02-14', rooms: ['Family Day', '', '', ''] },
-        { date: '2025-02-21', rooms: ['AUDITION WEEK', '', '', ''] },
-        { date: '2025-02-28', rooms: ['407', '410', '420', '421'] },
-        { date: '2025-03-07', rooms: ['421', '407', '410', '420'] },
-        { date: '2025-03-14', rooms: ['407', '420', '407', '410'] },
-        { date: '2025-03-21', rooms: ['410', '420', '421', '407'] },
-        { date: '2025-03-28', rooms: ['407', '410', '420', '421'] },
-        { date: '2025-04-04', rooms: ['EASTER', '', '', ''] },
-        { date: '2025-04-11', rooms: ['421', '407', '410', '420'] },
-        { date: '2025-04-18', rooms: ['420', '421', '407', '410'] },
-        { date: '2025-04-25', rooms: ['410', '420', '421', '407'] },
-        { date: '2025-05-02', rooms: ['407', '410', '420', '421'] }
-    ];
+    // Room assignments will be populated from Google Sheets
+    let ROOM_ASSIGNMENTS = [];
+
+    /**
+     * Parse spreadsheet data into room assignments
+     */
+    function parseSheetData(data) {
+        const assignments = [];
+
+        // Skip header row (first row)
+        for (let i = 1; i < data.length; i++) {
+            const row = data[i];
+            const dateStr = row[0]; // Column A: Date (YYYY-MM-DD format)
+            const room1 = row[1];   // Column B: Augmented TRIAD room
+            const room2 = row[2];   // Column C: Opus Pocus room
+            const room3 = row[3];   // Column D: Spiegel room
+            const room4 = row[4];   // Column E: SHOEstring room
+
+            // Skip empty rows
+            if (!dateStr) continue;
+
+            assignments.push({
+                date: dateStr,
+                rooms: [room1 || '', room2 || '', room3 || '', room4 || '']
+            });
+        }
+
+        return assignments;
+    }
+
+    /**
+     * Fetch room assignments from Google Sheets
+     */
+    async function fetchRoomAssignments() {
+        try {
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${SHEET_NAME}?key=${API_KEY}`;
+
+            console.log('[Chamber Rooms] Fetching data from Google Sheets...');
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (!data.values) {
+                throw new Error('No data found in spreadsheet');
+            }
+
+            ROOM_ASSIGNMENTS = parseSheetData(data.values);
+            console.log(`[Chamber Rooms] Successfully loaded ${ROOM_ASSIGNMENTS.length} assignments from Google Sheets`);
+            return true;
+        } catch (error) {
+            console.error('[Chamber Rooms] Error fetching from Google Sheets:', error);
+            console.log('[Chamber Rooms] Using empty assignments array');
+            ROOM_ASSIGNMENTS = [];
+            return false;
+        }
+    }
 
     /**
      * Format date string to readable format
@@ -107,11 +138,19 @@
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
+        console.log('[Chamber Rooms] Getting upcoming dates...');
+        console.log('[Chamber Rooms] Today:', today.toISOString().split('T')[0]);
+        console.log('[Chamber Rooms] Total assignments in data:', ROOM_ASSIGNMENTS.length);
+
         // Find assignments from today onward
         const upcoming = ROOM_ASSIGNMENTS.filter(assignment => {
             const assignmentDate = new Date(assignment.date + 'T12:00:00');
-            return assignmentDate >= today;
+            const isUpcoming = assignmentDate >= today;
+            console.log(`[Chamber Rooms] ${assignment.date}: ${isUpcoming ? 'UPCOMING' : 'past'}`);
+            return isUpcoming;
         });
+
+        console.log('[Chamber Rooms] Found', upcoming.length, 'upcoming dates');
 
         // Return first 3 upcoming dates (or less if not available)
         return upcoming.slice(0, 3);
@@ -121,15 +160,22 @@
      * Render chamber rooms table (for dedicated page)
      */
     function renderChamberRoomsTable() {
+        console.log('[Chamber Rooms] Rendering chamber rooms table...');
         const container = document.getElementById('chamber-rooms-table');
-        if (!container) return;
+        if (!container) {
+            console.log('[Chamber Rooms] Container #chamber-rooms-table not found');
+            return;
+        }
 
         const upcomingDates = getUpcomingDates();
 
         if (upcomingDates.length === 0) {
+            console.log('[Chamber Rooms] No upcoming dates found - displaying message');
             container.innerHTML = '<div class="no-upcoming-dates">No upcoming chamber sessions scheduled.</div>';
             return;
         }
+
+        console.log('[Chamber Rooms] Rendering', upcomingDates.length, 'upcoming dates');
 
         let html = '<div class="chamber-rooms-cards">';
 
@@ -169,15 +215,22 @@
      * Render today's assignments banner (for home page)
      */
     function renderTodaysBanner() {
+        console.log('[Chamber Rooms] Checking if today\'s banner should be shown...');
+
         // Only show on Saturday afternoon
         if (!isSaturdayAfternoon()) {
+            console.log('[Chamber Rooms] Not Saturday afternoon - skipping banner');
             return;
         }
 
+        console.log('[Chamber Rooms] It\'s Saturday afternoon - checking for today\'s assignments');
         const todaysAssignments = getTodaysAssignments();
         if (!todaysAssignments) {
+            console.log('[Chamber Rooms] No assignments for today');
             return;
         }
+
+        console.log('[Chamber Rooms] Found today\'s assignments:', todaysAssignments);
 
         // Check if it's a special event
         const isSpecial = todaysAssignments.rooms[0] && !todaysAssignments.rooms[0].match(/^\d+$/);
@@ -219,13 +272,22 @@
     /**
      * Initialize chamber rooms functionality
      */
-    function init() {
+    async function init() {
+        console.log('[Chamber Rooms] Initializing...');
+        console.log('[Chamber Rooms] Current path:', window.location.pathname);
+
+        // Fetch room assignments from Google Sheets
+        await fetchRoomAssignments();
+
         // Render table if on chamber rooms page
         renderChamberRoomsTable();
 
         // Render today's banner if on home page and it's Saturday afternoon
         if (window.location.pathname === '/' || window.location.pathname.includes('index.html')) {
+            console.log('[Chamber Rooms] On home page - checking for banner');
             renderTodaysBanner();
+        } else {
+            console.log('[Chamber Rooms] Not on home page - skipping banner');
         }
     }
 
