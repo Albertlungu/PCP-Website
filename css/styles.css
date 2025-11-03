@@ -121,7 +121,7 @@ body > *:not(.background-animations) {
     color: rgba(212, 175, 55, 0.12);
     font-size: 2.75rem;
     opacity: 0;
-    animation: floatNotes var(--note-duration, 18s) ease-in-out infinite;
+    animation: floatNotes var(--note-duration, 18s) linear infinite;
     animation-delay: var(--note-delay, 0s);
     filter: blur(0.2px);
 }
@@ -152,7 +152,7 @@ body > *:not(.background-animations) {
     pointer-events: none;
     z-index: 60;
     transform: translate(-50%, 0);
-    animation: noteRise 2.3s ease-out forwards;
+    animation: noteRise 2.3s linear forwards;
     animation-delay: var(--floating-note-delay, 0.12s);
     filter: drop-shadow(0 12px 24px rgba(10, 16, 28, 0.45));
 }
@@ -208,25 +208,29 @@ body > *:not(.background-animations) {
 }
 
 @keyframes floatNotes {
-    0%, 100% {
+    0% {
         transform: translateY(0) translateX(0);
         opacity: 0;
     }
     20% {
         opacity: 0.35;
-        transform: translateY(-8px) translateX(50px);
+        transform: translateY(-8px) translateX(470px);
     }
     40% {
         opacity: 0.45;
-        transform: translateY(-20px) translateX(100px);
+        transform: translateY(-20px) translateX(940px);
     }
     60% {
         opacity: 0.5;
-        transform: translateY(-40px) translateX(150px);
+        transform: translateY(-40px) translateX(1410px);
     }
     80% {
         opacity: 0.3;
-        transform: translateY(-50px) translateX(200px);
+        transform: translateY(-50px) translateX(1880px);
+    }
+    100% {
+        transform: translateY(-60px) translateX(2348px);
+        opacity: 0;
     }
 }
 
@@ -235,17 +239,9 @@ body > *:not(.background-animations) {
         transform: translate(-50%, 0) translateX(0px) scale(0.95);
         opacity: 1;
     }
-    25% {
-        transform: translate(-50%, -40px) translateX(75px) scale(1.0);
-        opacity: 0.95;
-    }
-    50% {
-        transform: translate(-50%, -80px) translateX(150px) scale(1.05);
+    70% {
+        transform: translate(-50%, -80px) translateX(210px) scale(1.05);
         opacity: 0.85;
-    }
-    75% {
-        transform: translate(-50%, -115px) translateX(225px) scale(1.08);
-        opacity: 0.5;
     }
     100% {
         transform: translate(-50%, -150px) translateX(300px) scale(1.1);
