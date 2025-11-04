@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chamber Music - UOttawa Pre-College</title>
+    <meta name="description" content="Chamber music is a joy for any musician and a major component of the Pre-College Program.">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <h1>UOttawa Pre-College</h1>
+            </div>
+            <button class="mobile-menu-toggle" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-menu">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="description.html">About</a></li>
+                <li class="has-dropdown">
+                    <a href="#" class="dropdown-toggle">Program</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="chamber-music.html" class="active">Chamber Music</a></li>
+                        <li><a href="masterclasses.html">Masterclasses</a></li>
+                        <li><a href="performance-class.html">Performance Class</a></li>
+                        <li><a href="schedule.html">Schedule</a></li>
+                    </ul>
+                </li>
+                <li class="has-dropdown">
+                    <a href="#" class="dropdown-toggle">Participate</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="calendar.html">Calendar</a></li>
+                        <li><a href="chamber-rooms.html">Room Assignments</a></li>
+                        <li><a href="signup.html">Sign Up to Perform</a></li>
+                    </ul>
+                </li>
+                <li><a href="our-students.html">Our Students</a></li>
+                <li><a href="code-of-conduct.html">Conduct</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <div class="page-header-content">
+                <h1>Chamber Music</h1>
+            </div>
+        </div>
+    </section>
+
+    <!-- Content Section -->
+    <section class="content-section">
+        <div class="container">
+            <div class="content-card">
+                <h2>The Joy of Chamber Music</h2>
+                <p>
+                    Chamber music is a joy for any musician and a major component of the Pre-College Program. Chamber coaching will be offered weekly, with goals of performances at the end of each term and in the Kiwanis Music Festival.
+                </p>
+            </div>
+
+            <div class="features-grid" style="margin-top: 3rem;">
+                <div class="feature-card">
+                    <div class="feature-icon">♪</div>
+                    <h3>Weekly Coaching</h3>
+                    <p>Receive guidance in chamber music performance through weekly coachings.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">♫</div>
+                    <h3>Performance Goals</h3>
+                    <p>Work towards performances at the end of each term, showcasing your group's progress.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">♬</div>
+                    <h3>Festival Opportunities</h3>
+                    <p>Participate in the Kiwanis Music Festival, gaining valuable performance experience.</p>
+                </div>
+            </div>
+
+            <div class="content-card" style="margin-top: 3rem;">
+                <h2>Benefits of Chamber Music</h2>
+                <ul>
+                    <li>Get practice in collaborative skills and musical communication</li>
+                    <li>Learn to balance individual expression with group unity</li>
+                    <li>Explore repertoire from different musical periods</li>
+                    <li>Build lasting friendships with other musicians</li>
+                    <li>Prepare for ensemble performance</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>UOttawa Pre-College</h3>
+                    <p>Excellence in music education</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="description.html">Description</a></li>
+                        <li><a href="schedule.html">Schedule</a></li>
+                        <li><a href="code-of-conduct.html">Code of Conduct</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Program</h4>
+                    <ul>
+                        <li><a href="chamber-music.html">Chamber Music</a></li>
+                        <li><a href="masterclasses.html">Masterclasses</a></li>
+                        <li><a href="performance-class.html">Performance Class</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 University of Ottawa Pre-College Program. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/signup-auth.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
