@@ -155,6 +155,7 @@ function spawnFloatingNote(x, y) {
     const note = document.createElement('div');
     note.className = 'floating-note';
     note.textContent = BACKGROUND_NOTE_SYMBOLS[Math.floor(Math.random() * BACKGROUND_NOTE_SYMBOLS.length)];
+    // Use fixed positioning (viewport-relative, no scroll offset needed)
     note.style.left = `${x}px`;
     note.style.top = `${y}px`;
     note.style.setProperty('--floating-note-delay', '0.12s');
@@ -167,6 +168,7 @@ function spawnFloatingNote(x, y) {
 function spawnClickRipple(x, y) {
     const ripple = document.createElement('div');
     ripple.className = 'click-ripple';
+    // .click-ripple is position: fixed, so viewport coordinates are already correct
     ripple.style.left = `${x}px`;
     ripple.style.top = `${y}px`;
     const size = 280;
@@ -189,21 +191,9 @@ function initBackgroundNoteClicks() {
             return;
         }
 
+        // Spawn visual effects at click position
         spawnClickRipple(event.clientX, event.clientY);
         spawnFloatingNote(event.clientX, event.clientY);
-
-        const notesWrapper = container.querySelector('.background-notes');
-        if (notesWrapper) {
-            const note = document.createElement('span');
-            note.textContent = BACKGROUND_NOTE_SYMBOLS[Math.floor(Math.random() * BACKGROUND_NOTE_SYMBOLS.length)];
-            note.style.top = `${(event.clientY / window.innerHeight) * 100}%`;
-            note.style.left = `${(event.clientX / window.innerWidth) * 100}%`;
-            note.style.fontSize = `${2 + Math.random() * 1.5}rem`;
-            note.style.setProperty('--note-duration', `${12 + Math.random() * 8}s`);
-            note.style.setProperty('--note-delay', `${-Math.random() * 10}s`);
-            note.style.opacity = `${0.35 + Math.random() * 0.3}`;
-            notesWrapper.appendChild(note);
-        }
     });
 }
 
@@ -512,12 +502,19 @@ document.addEventListener('DOMContentLoaded', function() {
         card.style.transform = 'none';
     });
     
-    // Observe content cards with scale effect
+    // Observe content cards with scale effect (skip on code of conduct page)
+    const isCodeOfConduct = window.location.pathname.includes('code-of-conduct');
     document.querySelectorAll('.content-card').forEach((card, index) => {
-        card.style.opacity = '0';
-        card.style.transform = 'scale(0.95)';
-        card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
-        observer.observe(card);
+        if (isCodeOfConduct) {
+            // No animations on code of conduct page
+            card.style.opacity = '1';
+            card.style.transform = 'none';
+        } else {
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.95)';
+            card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+            observer.observe(card);
+        }
     });
     
     // Parallax effect for hero section with mouse tracking

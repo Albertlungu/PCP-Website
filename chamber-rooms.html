@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendar - UOttawa Pre-College</title>
-    <meta name="description" content="View upcoming performance classes, masterclasses, and events">
+    <title>Chamber Room Assignments - UOttawa Pre-College</title>
+    <meta name="description" content="View chamber music room assignments for all groups throughout the year.">
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/styles-calendar-signup.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="background-animations"></div>
-    
+
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container">
@@ -40,8 +39,8 @@
                 <li class="has-dropdown">
                     <a href="#" class="dropdown-toggle">Participate</a>
                     <ul class="dropdown-menu">
-                        <li><a href="calendar.html" class="active">Calendar</a></li>
-                        <li><a href="chamber-rooms.html">Room Assignments</a></li>
+                        <li><a href="calendar.html">Calendar</a></li>
+                        <li><a href="chamber-rooms.html" class="active">Room Assignments</a></li>
                         <li><a href="signup.html">Sign Up to Perform</a></li>
                     </ul>
                 </li>
@@ -55,60 +54,30 @@
     <section class="page-header">
         <div class="container">
             <div class="page-header-content">
-                <h1>Performance Calendar</h1>
+                <h1>Chamber Room Assignments</h1>
+                <p>Room assignments for all chamber groups throughout the year</p>
             </div>
         </div>
     </section>
 
-    <!-- Calendar Controls -->
+    <!-- Content Section -->
     <section class="content-section">
         <div class="container">
-            <div class="calendar-controls">
-                <button class="calendar-view-btn" data-view="calendar">
-                    Calendar View
-                </button>
-                <button class="calendar-view-btn active" data-view="list">
-                    List View
-                </button>
-                <div class="calendar-filters">
-                    <button class="filter-btn active" data-filter="all">All Events</button>
-                    <button class="filter-btn" data-filter="masterclass">Masterclasses</button>
-                    <button class="filter-btn" data-filter="performance">Performance Classes</button>
-                </div>
-            </div>
+            <!-- Room Assignments -->
+            <div id="chamber-rooms-table"></div>
 
-            <!-- Calendar View -->
-            <div id="calendar-view" class="calendar-container">
-                <div class="calendar-header">
-                    <button class="calendar-nav-btn" id="prev-month" aria-label="Previous month">‹</button>
-                    <h2 class="calendar-month-year" id="current-month-year"></h2>
-                    <button class="calendar-nav-btn" id="next-month" aria-label="Next month">›</button>
-                </div>
-                <div class="calendar-grid" id="calendar-grid">
-                    <!-- Calendar will be generated here -->
-                </div>
-                <div class="calendar-legend">
-                    <span><span class="event-indicator masterclass"></span> Masterclass</span>
-                    <span><span class="event-indicator performance"></span> Performance class</span>
-                    <span><span class="event-indicator special"></span> Other event</span>
-                </div>
+            <div class="content-card" style="margin-top: 3rem;">
+                <h3>Important Notes</h3>
+                <ul>
+                    <li>All sessions begin promptly at <strong>2:00 PM</strong></li>
+                    <li>Please arrive 5-10 minutes early to set up</li>
+                    <li>Bring all necessary music and materials</li>
+                    <li>Check this schedule regularly for any updates</li>
+                    <li>Room numbers refer to practice rooms in the Perez Hall</li>
+                </ul>
             </div>
-
-            <!-- List View -->
-            <div id="list-view" class="events-list" style="display: none;">
-                <!-- Events will be listed here -->
-            </div>
-
         </div>
     </section>
-
-    <!-- Event Details Modal (outside the section so its transform doesn't affect position: fixed) -->
-    <div class="event-modal" id="event-modal">
-        <div class="event-modal-content">
-            <button class="event-modal-close" id="modal-close" aria-label="Close">&times;</button>
-            <div id="event-details"></div>
-        </div>
-    </div>
 
     <!-- Footer -->
     <footer class="footer">
@@ -131,6 +100,7 @@
                     <h4>Program</h4>
                     <ul>
                         <li><a href="chamber-music.html">Chamber Music</a></li>
+                        <li><a href="chamber-rooms.html">Room Assignments</a></li>
                         <li><a href="masterclasses.html">Masterclasses</a></li>
                         <li><a href="performance-class.html">Performance Class</a></li>
                         <li><a href="signup.html">Sign Up to Perform</a></li>
@@ -138,7 +108,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2026 University of Ottawa Pre-College Program. All rights reserved.</p>
+                <p>&copy; 2025 University of Ottawa Pre-College Program. All rights reserved.</p>
                 <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.7;">Website designed and developed by <a href="https://github.com/albertlungu" target="_blank" style="color: var(--accent-light); text-decoration: none; transition: opacity 0.3s ease;">Albert Lungu</a></p>
             </div>
         </div>
@@ -146,6 +116,6 @@
 
     <script src="js/signup-auth.js"></script>
     <script src="script.js"></script>
-    <script src="calendar.js"></script>
+    <script src="js/chamber-rooms.js"></script>
 </body>
 </html>

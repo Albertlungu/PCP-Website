@@ -6,9 +6,11 @@
     <title>UOttawa Pre-College Program</title>
     <meta name="description" content="University of Ottawa Pre-College Program - Advanced music education for high school students">
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/admin.css" id="admin-css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <!-- <script src="js/admin.js" defer></script> -->
 </head>
 <body>
     <div class="background-animations"></div>
@@ -39,6 +41,7 @@
                     <a href="#" class="dropdown-toggle">Participate</a>
                     <ul class="dropdown-menu">
                         <li><a href="calendar.html">Calendar</a></li>
+                        <li><a href="chamber-rooms.html">Room Assignments</a></li>
                         <li><a href="signup.html">Sign Up to Perform</a></li>
                     </ul>
                 </li>
@@ -100,6 +103,30 @@
         </div>
     </section>
 
+    <!-- Quick Links Section -->
+    <section class="content-section" style="padding: 2rem 0;">
+        <div class="container">
+            <h2 class="section-title">Quick Links</h2>
+            <div class="features-grid">
+                <a href="calendar.html" class="feature-card" style="text-decoration: none; transition: transform 0.2s;">
+                    <div class="feature-icon">📅</div>
+                    <h3>Event Calendar</h3>
+                    <p>View all upcoming performances, masterclasses, and chamber sessions</p>
+                </a>
+                <a href="chamber-rooms.html" class="feature-card" style="text-decoration: none; transition: transform 0.2s;">
+                    <div class="feature-icon">🎵</div>
+                    <h3>Chamber Room Assignments</h3>
+                    <p>Check your chamber group's room assignments for upcoming sessions</p>
+                </a>
+                <a href="signup.html" class="feature-card" style="text-decoration: none; transition: transform 0.2s;">
+                    <div class="feature-icon">🎼</div>
+                    <h3>Sign Up to Perform</h3>
+                    <p>Register for performance class and masterclass opportunities</p>
+                </a>
+            </div>
+        </div>
+    </section>
+
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
@@ -129,10 +156,13 @@
             </div>
             <div class="footer-bottom">
                 <p>&copy; 2026 University of Ottawa Pre-College Program. All rights reserved.</p>
+                <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.7;">Website designed and developed by <a href="https://github.com/albertlungu" target="_blank" style="color: var(--accent-light); text-decoration: none; transition: opacity 0.3s ease;">Albert Lungu</a></p>
             </div>
         </div>
     </footer>
 
+    <script src="js/signup-auth.js"></script>
     <script src="script.js"></script>
+    <script src="js/chamber-rooms.js"></script>
 </body>
 </html>

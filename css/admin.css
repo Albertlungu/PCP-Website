@@ -1,7 +1,61 @@
+/**
+ * Admin Panel Styles
+ *
+ * @file admin.css
+ * @description Comprehensive styling for the admin panel interface.
+ * Features a modern, glassmorphism design with smooth animations,
+ * rounded corners, and a subtle red glow effect for "editing mode" awareness.
+ *
+ * @author UOttawa Pre-College Program
+ * @version 2.0.0
+ *
+ * Design Features:
+ * - Soft red glow around screen edges (inset box-shadows)
+ * - Glassmorphism effects with backdrop-filter
+ * - Consistent 16-28px border-radius for modern rounded look
+ * - Smooth transitions (0.3-0.4s cubic-bezier)
+ * - Gold accent color theme (#d4af37)
+ * - Dark gradient background
+ *
+ * Color Palette:
+ * - Primary Background: #0f1624 -> #2d1b2e (gradient)
+ * - Accent Color: #d4af37 (gold)
+ * - Text Color: #f5f6ff (light)
+ * - Red Glow: rgba(231, 76, 60, 0.15)
+ * - Danger Color: #e74c3c (red)
+ *
+ * Related Files:
+ * - /js/admin-students.js - Admin functionality
+ * - /admin.html - Admin interface markup
+ * - /server/admin-server.js - Backend server
+ */
+
+/* ============================================================================
+   BASE STYLES
+   ========================================================================= */
+
 /* Admin Mode Styles */
 
 body.admin-mode {
     background: linear-gradient(135deg, #0f1624 0%, #1d1b2e 50%, #2d1b2e 100%);
+    position: relative;
+}
+
+/* Soft red glow around screen edges */
+body.admin-mode::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 9999;
+    box-shadow:
+        inset 0 0 80px rgba(231, 76, 60, 0.15),
+        inset 0 0 120px rgba(231, 76, 60, 0.1),
+        inset 0 0 160px rgba(192, 57, 43, 0.08);
+    border-radius: 0;
 }
 
 /* Admin Header */
@@ -67,8 +121,8 @@ body.admin-mode {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.65rem 1.25rem;
-    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    border-radius: 16px;
     font-weight: 600;
     font-size: 0.9rem;
     border: none;
@@ -97,6 +151,18 @@ body.admin-mode {
     background: rgba(255, 255, 255, 0.08);
     color: #f5f6ff;
     border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.admin-btn-danger {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+}
+
+.admin-btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+    background: linear-gradient(135deg, #c0392b, #a93226);
 }
 
 .admin-btn-secondary:hover {
@@ -147,49 +213,55 @@ body.admin-mode {
 }
 
 /* Student Card in Admin */
-.student-card-admin {
-    background: rgba(255, 255, 255, 0.08);
+.student-card {
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.10) 0%,
+        rgba(255, 255, 255, 0.06) 100%
+    );
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     padding: 2rem;
-    border-radius: 20px;
+    border-radius: 24px;
     border: 1px solid rgba(255, 255, 255, 0.18);
-    box-shadow: 0 8px 32px rgba(10, 16, 28, 0.3);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+        0 8px 32px rgba(10, 16, 28, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
 }
 
-.student-card-admin:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 40px rgba(10, 16, 28, 0.4);
-    border-color: rgba(212, 175, 55, 0.35);
+.student-card:hover {
+    transform: translateY(-6px);
+    box-shadow:
+        0 16px 48px rgba(10, 16, 28, 0.5),
+        0 0 0 1px rgba(212, 175, 55, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    border-color: rgba(212, 175, 55, 0.5);
 }
 
-.student-card-actions {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
+.student-actions {
     display: flex;
-    gap: 0.5rem;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    justify-content: center;
 }
 
-.student-card-admin:hover .student-card-actions {
-    opacity: 1;
-}
-
-.card-action-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
+.action-btn {
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 1.1rem;
+    gap: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    border-radius: 14px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
     transition: all 0.3s ease;
+}
+
+.action-btn span {
+    font-size: 1rem;
 }
 
 .edit-btn {
@@ -200,7 +272,7 @@ body.admin-mode {
 
 .edit-btn:hover {
     background: rgba(212, 175, 55, 0.3);
-    transform: scale(1.1);
+    transform: translateY(-2px);
 }
 
 .delete-btn {
@@ -211,19 +283,19 @@ body.admin-mode {
 
 .delete-btn:hover {
     background: rgba(220, 53, 69, 0.3);
-    transform: scale(1.1);
+    transform: translateY(-2px);
 }
 
-.student-image-wrapper {
-    width: 120px;
-    height: 120px;
+.student-image {
+    width: 150px;
+    height: 150px;
     margin: 0 auto 1.5rem;
     border-radius: 50%;
     overflow: hidden;
     border: 3px solid rgba(212, 175, 55, 0.4);
 }
 
-.student-image-wrapper img {
+.student-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -235,7 +307,7 @@ body.admin-mode {
     color: #f5f6ff;
     margin-bottom: 1rem;
     text-align: center;
-    font-family: 'Playfair Display', serif;
+    /* font-family: 'Playfair Display', serif; */
 }
 
 .student-info p {
@@ -256,19 +328,19 @@ body.admin-mode {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 1.25rem 2.5rem;
+    padding: 1.5rem 3rem;
     background: linear-gradient(
         135deg,
         rgba(212, 175, 55, 0.15),
         rgba(212, 175, 55, 0.25)
     );
     border: 2px dashed rgba(212, 175, 55, 0.5);
-    border-radius: 16px;
+    border-radius: 20px;
     color: var(--accent-light);
     font-size: 1.1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .add-student-btn:hover {
@@ -288,25 +360,28 @@ body.admin-mode {
 
 /* Modal Styles */
 .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(10, 12, 22, 0.85);
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: rgba(10, 12, 22, 0.85) !important;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 11000;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 999999 !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    transition: opacity 0.3s ease, visibility 0.3s ease !important;
 }
 
 .modal-overlay.active {
-    display: flex;
-    opacity: 1;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
 }
 
 .modal-content {
@@ -314,22 +389,26 @@ body.admin-mode {
         135deg,
         rgba(25, 28, 38, 0.98) 0%,
         rgba(35, 32, 42, 0.98) 100%
-    );
+    ) !important;
     backdrop-filter: blur(40px) saturate(200%);
     -webkit-backdrop-filter: blur(40px) saturate(200%);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 24px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-    width: 90%;
-    max-width: 600px;
-    max-height: 90vh;
-    overflow-y: auto;
-    transform: scale(0.9);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 28px !important;
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    width: 90% !important;
+    max-width: 600px !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+    transform: scale(0.9) !important;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    position: relative !important;
+    z-index: 1000000 !important;
 }
 
 .modal-overlay.active .modal-content {
-    transform: scale(1);
+    transform: scale(1) !important;
 }
 
 .modal-wide {
@@ -392,10 +471,10 @@ body.admin-mode {
 .form-input,
 .form-textarea {
     width: 100%;
-    padding: 0.875rem 1.25rem;
+    padding: 1rem 1.5rem;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 12px;
+    border-radius: 16px;
     color: #f5f6ff;
     font-size: 1rem;
     font-family: 'Inter', sans-serif;
@@ -430,35 +509,96 @@ body.admin-mode {
     gap: 1rem;
 }
 
+.upload-button-container {
+    display: flex;
+    justify-content: center;
+}
+
+.upload-file-btn {
+    padding: 0.875rem 1.75rem;
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.3));
+    border: 2px solid rgba(212, 175, 55, 0.4);
+    border-radius: 16px;
+    color: var(--accent-light);
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.upload-file-btn:hover {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.3), rgba(212, 175, 55, 0.4));
+    border-color: var(--accent-light);
+    transform: translateY(-2px);
+}
+
+.or-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 0.5rem 0;
+}
+
+.or-divider::before,
+.or-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.or-divider span {
+    padding: 0 1rem;
+    color: rgba(245, 246, 255, 0.6);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
 .image-preview {
-    width: 150px;
+    width: 100%;
     height: 150px;
-    margin: 0 auto;
-    border-radius: 50%;
-    border: 3px solid rgba(212, 175, 55, 0.3);
+    margin: 0 auto 1rem;
+    border-radius: 16px;
+    border: 2px dashed rgba(212, 175, 55, 0.4);
     background: rgba(255, 255, 255, 0.05);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
     transition: all 0.3s ease;
+    position: relative;
+}
+
+.image-preview:hover {
+    border-color: rgba(212, 175, 55, 0.6);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.image-preview[contenteditable="true"]:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
 }
 
 .image-preview img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    max-width: 100%;
+    max-height: 100%;
+    height: 100px;
+    width: auto;
+    object-fit: contain;
 }
 
 .preview-placeholder {
-    font-size: 0.85rem;
-    color: rgba(245, 246, 255, 0.5);
+    font-size: 0.9rem;
+    color: rgba(245, 246, 255, 0.6);
     text-align: center;
     padding: 1rem;
+    user-select: none;
 }
 
 .image-preview.has-image {
+    border-style: solid;
     border-color: rgba(212, 175, 55, 0.6);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 /* Modal Actions */
@@ -484,6 +624,9 @@ body.admin-mode {
     border-radius: 12px;
     padding: 1.25rem;
     transition: all 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .history-item:hover {
@@ -491,35 +634,28 @@ body.admin-mode {
     border-color: rgba(212, 175, 55, 0.3);
 }
 
-.history-item-header {
+.history-item.active {
+    border-color: rgba(212, 175, 55, 0.5);
+    background: rgba(212, 175, 55, 0.1);
+}
+
+.history-info {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.75rem;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
-.history-timestamp {
-    font-size: 0.9rem;
-    color: rgba(245, 246, 255, 0.7);
-    font-weight: 600;
-}
-
-.history-action {
-    padding: 0.25rem 0.75rem;
-    background: rgba(212, 175, 55, 0.2);
-    color: var(--accent-light);
-    border-radius: 6px;
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-.history-description {
-    color: rgba(245, 246, 255, 0.85);
+.history-info strong {
+    color: #f5f6ff;
     font-size: 0.95rem;
 }
 
-.history-restore-btn {
-    margin-top: 0.75rem;
+.history-info span {
+    color: rgba(245, 246, 255, 0.7);
+    font-size: 0.85rem;
+}
+
+.restore-btn {
     padding: 0.5rem 1rem;
     background: rgba(212, 175, 55, 0.15);
     border: 1px solid rgba(212, 175, 55, 0.3);
@@ -530,9 +666,17 @@ body.admin-mode {
     transition: all 0.3s ease;
 }
 
-.history-restore-btn:hover {
+.restore-btn:hover {
     background: rgba(212, 175, 55, 0.25);
     border-color: var(--accent-color);
+    transform: translateY(-2px);
+}
+
+.no-history {
+    text-align: center;
+    color: rgba(245, 246, 255, 0.5);
+    padding: 2rem;
+    font-style: italic;
 }
 
 /* Export Instructions */
@@ -611,6 +755,74 @@ body.admin-mode {
     max-height: 400px;
     white-space: pre-wrap;
     word-wrap: break-word;
+}
+
+/* Save Notification */
+.save-notification,
+.auto-save-notification {
+    position: fixed;
+    top: 2rem;
+    left: 2rem;
+    max-width: 350px;
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    color: white;
+    padding: 0.875rem 1.25rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(46, 204, 113, 0.4);
+    z-index: 1000000;
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.auto-save-notification {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    box-shadow: 0 4px 20px rgba(243, 156, 18, 0.4);
+    padding: 1rem 1.5rem;
+}
+
+.save-notification.show,
+.auto-save-notification.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.auto-save-notification .notification-icon {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.notification-icon {
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+}
+
+.notification-text {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.notification-text a {
+    color: white;
+    text-decoration: underline;
+    margin-left: 0.5rem;
+    font-weight: 700;
+}
+
+.notification-text a:hover {
+    text-decoration: none;
 }
 
 /* Responsive */

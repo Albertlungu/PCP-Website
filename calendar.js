@@ -260,11 +260,16 @@ function renderCalendar(month, year) {
 function renderListView() {
     const listView = document.getElementById('list-view');
     listView.innerHTML = '';
-    
-    // Filter and sort events
-    const filteredEvents = allEvents.filter(event => 
-        currentFilter === 'all' || event.type === currentFilter
-    ).sort((a, b) => a.date - b.date);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to start of day for comparison
+
+    // Filter and sort events - show only future events
+    const filteredEvents = allEvents.filter(event => {
+        const isCorrectType = currentFilter === 'all' || event.type === currentFilter;
+        const isFuture = event.date >= today;
+        return isCorrectType && isFuture;
+    }).sort((a, b) => a.date - b.date);
     
     if (filteredEvents.length === 0) {
         listView.innerHTML = loadError
@@ -359,11 +364,16 @@ function showEventDetails(events) {
 // Initialize calendar
 document.addEventListener('DOMContentLoaded', async function() {
     if (!document.getElementById('calendar-grid')) return;
-    
+
     // Fetch events
     await fetchEvents();
-    
-    // Initial render
+
+    // Set default view to list and show it
+    document.getElementById('calendar-view').style.display = 'none';
+    document.getElementById('list-view').style.display = 'flex';
+    renderListView();
+
+    // Initial render (for when user switches to calendar view)
     renderCalendar(currentMonth, currentYear);
     
     // Calendar navigation

@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="css/styles-calendar-signup.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="background-animations"></div>
@@ -34,7 +34,6 @@
                         <li><a href="chamber-music.html">Chamber Music</a></li>
                         <li><a href="masterclasses.html">Masterclasses</a></li>
                         <li><a href="performance-class.html">Performance Class</a></li>
-                        <li><a href="schedule.html">Schedule</a></li>
                     </ul>
                 </li>
                 <li class="has-dropdown">
@@ -121,7 +120,7 @@
                         <div class="form-group">
                             <label for="duration">Estimated Duration *</label>
                             <input type="text" id="duration" name="duration" placeholder="e.g., 12' 30''" required>
-                            <small class="form-help">Minutes (e.g., 12) or minutes' seconds'' (e.g., 12' 30'')</small>
+                            <small class="form-help">Format: minutes' seconds''</small>
                         </div>
                     </div>
 
@@ -167,7 +166,6 @@
                     <h4>Quick Links</h4>
                     <ul>
                         <li><a href="description.html">Description</a></li>
-                        <li><a href="schedule.html">Schedule</a></li>
                         <li><a href="calendar.html">Calendar</a></li>
                         <li><a href="code-of-conduct.html">Code of Conduct</a></li>
                     </ul>
@@ -184,8 +182,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2026 University of Ottawa Pre-College Program. All rights reserved.</p>
-                <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.7;">Website designed and developed by <a href="https://github.com/albertlungu" target="_blank" style="color: var(--accent-light); text-decoration: none; transition: opacity 0.3s ease;">Albert Lungu</a></p>
+                <p>&copy; 2025 University of Ottawa Pre-College Program. All rights reserved.</p>
             </div>
         </div>
     </footer>
