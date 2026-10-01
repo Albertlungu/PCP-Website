@@ -5,9 +5,17 @@
 
     // Configuration
     const CONFIG = {
-        studentsDataPath: '/_data/students/',
-        fallbackImage: '/images/placeholder-student.jpg'
+        studentsDataPath: '/_data/students/'
     };
+
+    function escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
 
     /**
      * Fetch and parse a markdown file
@@ -30,7 +38,8 @@
      * Parse markdown frontmatter and content
      */
     function parseMarkdown(text) {
-        const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/;
+        // Closing --- may be the last line of the file (CMS output often has no trailing newline)
+        const frontmatterRegex = /^---\s*\r?\n([\s\S]*?)\r?\n---\s*(?:\r?\n([\s\S]*))?$/;
         const match = text.match(frontmatterRegex);
         
         if (!match) {
@@ -84,7 +93,7 @@
             
             // Filter for .md files only
             return files
-                .filter(file => file.name.endsWith('.md') && file.type === 'file')
+                .filter(file => file.name.endsWith('.md') && file.name !== 'README.md' && file.type === 'file')
                 .map(file => file.name);
         } catch (error) {
             console.error('Error fetching students list:', error);
@@ -103,16 +112,11 @@
             return [];
         }
 
-        const students = [];
-        
-        for (const filename of studentFiles) {
-            const url = `${CONFIG.studentsDataPath}${filename}`;
-            const studentData = await fetchMarkdownFile(url);
-            
-            if (studentData) {
-                students.push(studentData);
-            }
-        }
+        // Fetch profiles in parallel rather than one at a time
+        const results = await Promise.all(
+            studentFiles.map(filename => fetchMarkdownFile(`${CONFIG.studentsDataPath}${filename}`))
+        );
+        const students = results.filter(student => student && student.name);
 
         // Sort by order field (ascending)
         students.sort((a, b) => (a.order || 0) - (b.order || 0));
@@ -123,18 +127,23 @@
     /**
      * Create HTML for a student card
      */
+    function getInitials(name) {
+        return name.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0].toUpperCase()).join('');
+    }
+
     function createStudentCard(student) {
-        const imageSrc = student.image || CONFIG.fallbackImage;
+        // Markup matches the .placeholder-image / .has-image styles in css/styles.css.
+        // The photo sits on top of the initials, so a broken image just reveals them.
+        const image = student.image
+            ? `<img src="${escapeHtml(student.image)}" alt="${escapeHtml(student.name)}" onerror="this.remove();">`
+            : '';
         
         return `
-            <div class="student-card">
-                <div class="student-image-container">
-                    <img src="${imageSrc}" alt="${student.name}" class="student-image" 
-                         onerror="this.src='${CONFIG.fallbackImage}'">
-                </div>
+            <div class="student-card${student.image ? ' has-image' : ''}">
+                <div class="placeholder-image"><span class="student-initials">${escapeHtml(getInitials(student.name))}</span>${image}</div>
                 <div class="student-info">
-                    <h3 class="student-name">${student.name}</h3>
-                    <p class="student-description">${student.description}</p>
+                    <h3 class="student-name">${escapeHtml(student.name)}</h3>
+                    <p class="student-description">${escapeHtml(student.description || '')}</p>
                 </div>
             </div>
         `;
