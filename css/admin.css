@@ -105,9 +105,7 @@ body.admin-mode::before {
     border-radius: 999px;
     font-size: 0.75rem;
     font-weight: 600;
-    letter-spacing: 0.5px;
     border: 1px solid rgba(212, 175, 55, 0.4);
-    text-transform: uppercase;
 }
 
 .admin-controls {
@@ -942,4 +940,31 @@ body.admin-mode::before {
 
 .move-btn:hover:not(:disabled) {
     background: rgba(255, 255, 255, 0.16);
+}
+
+/* Same display type as the public site */
+.admin-logo h1,
+.admin-section-header h2,
+.modal-header h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+/* Center the cards so one or two don't hug the left edge */
+#studentsGrid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 340px));
+    justify-content: center;
+}
+
+/* Destructive but rarely needed: keep it quieter than Publish */
+#clearAllBtn {
+    background: transparent;
+    color: #ff8a80;
+    border: 1px solid rgba(255, 138, 128, 0.5);
+    box-shadow: none;
+}
+
+#clearAllBtn:hover {
+    background: rgba(255, 138, 128, 0.12);
 }

@@ -282,22 +282,7 @@ body > :where(:not(.background-animations)) {
     }
 }
 
-body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    background: rgba(10, 12, 22, 0.5);
-    backdrop-filter: blur(3px);
-    -webkit-backdrop-filter: blur(3px);
-    opacity: 0;
-    transition: opacity 0.4s ease;
-    z-index: 9998;
-}
 
-body.dropdown-active::after {
-    opacity: 1;
-}
 
 .container {
     max-width: 1200px;
@@ -350,16 +335,6 @@ body.dropdown-active::after {
     mask-composite: exclude;
     opacity: 1;
     pointer-events: none;
-    animation: borderShimmer 3s ease-in-out infinite;
-}
-
-@keyframes borderShimmer {
-    0%, 100% {
-        background-position: 0% 50%;
-    }
-    50% {
-        background-position: 100% 50%;
-    }
 }
 
 .navbar.scrolled {
@@ -380,7 +355,6 @@ body.dropdown-active::after {
 }
 
 .navbar:hover {
-    transform: translateX(-50%) scale(1.01);
     background: linear-gradient(
         135deg,
         rgba(255, 255, 255, 0.18) 0%,
@@ -406,9 +380,10 @@ body.dropdown-active::after {
 
 .nav-brand h1 {
     white-space: nowrap;
+    font-family: 'Playfair Display', Georgia, serif;
     font-size: 1.4rem;
-    font-weight: 800;
-    letter-spacing: 0.02em;
+    font-weight: 700;
+    letter-spacing: 0;
     line-height: 1.3;
     color: #f5f6ff;
     text-shadow: 0 2px 12px rgba(212, 175, 55, 0.4);
@@ -526,33 +501,6 @@ body.dropdown-active::after {
 }
 
 /* Add glass reflection effect to dropdown */
-.dropdown-menu::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-        135deg,
-        rgba(255, 255, 255, 0.25) 0%,
-        rgba(255, 255, 255, 0) 25%,
-        rgba(255, 255, 255, 0) 75%,
-        rgba(255, 255, 255, 0.25) 100%
-    );
-    pointer-events: none;
-    border-radius: 16px;
-    z-index: -1;
-    animation: glassReflection 4s ease-in-out infinite;
-}
-
-@keyframes glassReflection {
-    0%, 100% {
-        opacity: 0.3;
-        transform: translateX(-10%);
-    }
-    50% {
-        opacity: 0.6;
-        transform: translateX(10%);
-    }
-}
 
 /* Dropdown animation */
 @keyframes dropdownSlideIn {
@@ -850,7 +798,6 @@ body.dropdown-active::after {
 }
 
 .btn-primary:hover {
-    transform: scale(1.02);
     box-shadow: 
         0 12px 32px rgba(255, 255, 255, 0.4),
         0 2px 0 rgba(255, 255, 255, 0.5) inset,
@@ -879,7 +826,6 @@ body.dropdown-active::after {
 .btn-secondary:hover {
     background: rgba(255, 255, 255, 0.98);
     color: var(--primary-color);
-    transform: scale(1.02);
     box-shadow: 
         0 12px 32px rgba(255, 255, 255, 0.5),
         0 2px 0 rgba(255, 255, 255, 0.5) inset,
@@ -954,9 +900,6 @@ section:not(.hero):not(.page-header) {
     transition: opacity 0.4s ease, transform 0.4s ease, filter 0.4s ease;
 }
 
-body.dropdown-active .section-title {
-    filter: blur(0.5px) brightness(0.9);
-}
 
 .section-title::before {
     content: '';
@@ -980,7 +923,7 @@ body.dropdown-active .section-title {
     border-radius: 999px;
 }
 
-.features .section-title {
+.section-title {
     display: block;
     width: fit-content;
     margin: 0 auto 3rem;
@@ -1062,40 +1005,8 @@ body.dropdown-active .section-title {
     align-self: center;
 }
 
-.feature-card::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
-    opacity: 0;
-    transition: opacity 0.6s ease, transform 0.6s ease;
-    animation: liquidMove 8s ease-in-out infinite;
-}
-
-@keyframes liquidMove {
-    0%, 100% {
-        transform: translate(0, 0) rotate(0deg);
-    }
-    25% {
-        transform: translate(5%, 5%) rotate(90deg);
-    }
-    50% {
-        transform: translate(-5%, 5%) rotate(180deg);
-    }
-    75% {
-        transform: translate(-5%, -5%) rotate(270deg);
-    }
-}
-
-.feature-card:hover::after {
-    opacity: 1;
-}
 
 .feature-card:hover {
-    transform: translateY(-2px);
     background: linear-gradient(
         135deg,
         rgba(255, 255, 255, 0.15) 0%,
@@ -1135,11 +1046,6 @@ body.dropdown-active .section-title {
     border-radius: 50%;
 }
 
-.feature-card:hover .feature-icon {
-    transform: scale(1.1) rotate(5deg);
-    color: rgba(212, 175, 55, 1);
-    box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
-}
 
 
 .feature-card h3 {
@@ -1175,33 +1081,14 @@ body.dropdown-active .section-title {
     overflow: hidden;
 }
 
-.feature-quote::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.1),
-        transparent
-    );
-    transition: left 0.6s ease;
-}
 
 .feature-card:hover .feature-quote {
-    transform: translateY(-2px);
     box-shadow: 
         0 8px 24px rgba(212, 175, 55, 0.3),
         inset 0 1px 0 rgba(255, 255, 255, 0.15);
     border-left-color: rgba(212, 175, 55, 1);
 }
 
-.feature-card:hover .feature-quote::before {
-    left: 100%;
-}
 
 .quote-mark {
     position: absolute;
@@ -1304,10 +1191,6 @@ body.dropdown-active .section-title {
     transition: transform 0.4s ease, filter 0.4s ease;
 }
 
-body.dropdown-active .page-header {
-    transform: scale(0.98);
-    filter: blur(1px) brightness(0.8);
-}
 
 .page-header-content {
     display: inline-block;
@@ -1417,28 +1300,9 @@ body.dropdown-active .page-header {
     overflow: hidden;
 }
 
-.content-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.05),
-        transparent
-    );
-    transition: left 0.6s ease;
-}
 
-.content-card:hover::before {
-    left: 100%;
-}
 
 .content-card:hover {
-    transform: translateY(-3px);
     box-shadow: 
         0 12px 40px rgba(10, 16, 28, 0.4),
         inset 0 1px 0 rgba(255, 255, 255, 0.15),
@@ -1529,23 +1393,9 @@ body.dropdown-active .page-header {
     color: rgba(245, 246, 255, 0.85);
 }
 
-.student-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
-    transition: left 0.6s ease;
-}
 
-.student-card:hover::before {
-    left: 100%;
-}
 
 .student-card:hover {
-    transform: scale(1.03);
     background: rgba(255, 255, 255, 0.12);
     box-shadow: 
         0 18px 48px rgba(10, 16, 28, 0.4), 
@@ -1583,9 +1433,6 @@ body.dropdown-active .page-header {
     transition: transform 0.3s ease;
 }
 
-.student-card:hover .student-image img {
-    transform: scale(1.05);
-}
 
 /* Placeholder students */
 .student-card.placeholder-student {
@@ -2613,10 +2460,8 @@ body.dropdown-active .page-header {
 }
 
 .date-label {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
     color: rgba(245, 246, 255, 0.7);
 }
 
@@ -2807,4 +2652,266 @@ body.dropdown-active .page-header {
 
 .footer-credit a:hover {
     text-decoration: underline;
+}
+
+/* ========================================
+   TYPE AND PAGE TITLES
+   Headings are set in Playfair Display, the way a concert programme sets them;
+   Inter stays for navigation, body text, and controls.
+   ======================================== */
+
+.hero-title,
+.page-header-content h1,
+.section-title,
+.content-card h2,
+.feature-card h3,
+.student-info h3,
+.event-detail-header h3,
+.chamber-banner-header h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+.hero-title {
+    font-size: clamp(2.25rem, 5.5vw, 4.25rem);
+    line-height: 1.1;
+}
+
+.feature-card h3 {
+    font-size: 1.6rem;
+}
+
+/* Page titles: large serif type over a short gold rule, in place of a glass pill */
+.page-header {
+    /* Room for the rule below the title; .page-header clips overflow */
+    padding-bottom: 2.5rem;
+}
+
+.page-header-content {
+    padding: 0;
+    background: none;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.page-header-content::before {
+    display: none;
+}
+
+.page-header-content::after {
+    display: block;
+    top: auto;
+    right: auto;
+    bottom: -1.25rem;
+    left: 50%;
+    width: 56px;
+    height: 2px;
+    transform: translateX(-50%);
+    background: var(--accent-color);
+}
+
+.page-header-content h1 {
+    font-size: clamp(2.25rem, 5vw, 3.5rem);
+    line-height: 1.15;
+    text-shadow: none;
+}
+
+.page-header-content p {
+    margin-top: 0.75rem;
+    color: rgba(245, 246, 255, 0.75);
+}
+
+/* Section titles share the page-title treatment and no longer wait on a scroll reveal */
+.section-title {
+    padding: 0;
+    border-radius: 0;
+    overflow: visible;
+    opacity: 1;
+    transform: none;
+}
+
+.section-title::before {
+    display: none;
+}
+
+.section-title::after {
+    width: 56px;
+    height: 2px;
+    bottom: -1rem;
+    background: var(--accent-color);
+}
+
+/* Keyboard focus is always visible */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+    outline: 2px solid var(--accent-light);
+    outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Sign-up password dialog (js/signup-auth.js) */
+.gate-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10003;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(10, 12, 22, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    visibility: visible; /* the page body is hidden while locked */
+}
+
+.gate-dialog {
+    width: 100%;
+    max-width: 420px;
+    padding: 2rem;
+    border-radius: 20px;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    background: linear-gradient(135deg, rgba(48, 38, 60, 0.97), rgba(30, 30, 46, 0.97));
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    color: #f5f6ff;
+}
+
+.gate-dialog h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.gate-dialog p {
+    color: rgba(245, 246, 255, 0.75);
+    margin-bottom: 1.5rem;
+}
+
+.gate-label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--accent-light);
+    margin-bottom: 0.4rem;
+}
+
+.gate-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font: inherit;
+    color: #f5f6ff;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+}
+
+.gate-input:focus {
+    border-color: var(--accent-color);
+    outline: none;
+}
+
+.gate-error {
+    min-height: 1.4rem;
+    margin: 0.5rem 0 1rem;
+    font-size: 0.875rem;
+    color: #ff8a80;
+}
+
+.gate-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+.gate-btn {
+    padding: 0.7rem 1.25rem;
+    font: inherit;
+    font-weight: 600;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.gate-btn-secondary {
+    color: #f5f6ff;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.gate-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.gate-btn-primary {
+    color: #1a1a2e;
+    background: var(--accent-light);
+    border: 1px solid var(--accent-light);
+}
+
+.gate-btn-primary:hover {
+    background: var(--accent-color);
+}
+
+.content-section .section-title {
+    color: #f5f6ff;
+}
+
+/* Cards that are links: no underline, and the title answers the pointer */
+a.feature-card {
+    text-decoration: none;
+    color: inherit;
+}
+
+a.feature-card h3 {
+    transition: color 0.2s ease;
+}
+
+a.feature-card:hover h3,
+a.feature-card:focus-visible h3 {
+    color: var(--accent-light);
+}
+
+.footer-section h3 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.35rem;
+}
+
+/* Keep long display headings from leaving one word on the last line */
+.hero-title,
+.page-header-content h1,
+.section-title,
+.feature-card h3,
+.content-card h2 {
+    text-wrap: balance;
+}
+
+.nowrap {
+    white-space: nowrap;
+}
+
+/* Keep long-form text at a readable measure inside full-width cards */
+.content-card p,
+.content-card li {
+    max-width: 75ch;
+}
+
+.content-card p.no-slots {
+    max-width: none;
 }

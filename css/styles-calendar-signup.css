@@ -574,14 +574,27 @@
 }
 
 .slot-icon {
-    font-size: 2rem;
-    width: 50px;
-    height: 50px;
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
     background: rgba(212, 175, 55, 0.15);
     border-radius: 12px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    line-height: 1.1;
+}
+
+.slot-day {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--accent-light);
+}
+
+.slot-month {
+    font-size: 0.75rem;
+    color: rgba(245, 246, 255, 0.75);
 }
 
 .slot-info {
@@ -972,4 +985,11 @@
         padding: 0.875rem 1.5rem;
         font-size: 1rem;
     }
+}
+
+/* Make the unavailable state unmistakable: muted labels and fields */
+.performance-form.is-disabled {
+    opacity: 0.45;
+    filter: grayscale(0.6);
+    pointer-events: none;
 }
