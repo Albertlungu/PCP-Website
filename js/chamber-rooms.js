@@ -18,6 +18,48 @@
     let ROOM_ASSIGNMENTS = [];
     let loadSucceeded = false;
 
+    // The visitor's own group, remembered on this device; keyed by the member list so a new year starts fresh
+    const MY_GROUP_KEY = 'pcp-my-group';
+
+    function getMyGroup() {
+        try {
+            return localStorage.getItem(MY_GROUP_KEY) || '';
+        } catch (error) {
+            return '';
+        }
+    }
+
+    function setMyGroup(members) {
+        try {
+            if (members) localStorage.setItem(MY_GROUP_KEY, members);
+            else localStorage.removeItem(MY_GROUP_KEY);
+        } catch (error) {
+            // Storage blocked (private mode): the highlight just won't be remembered
+        }
+    }
+
+    function isMine(group) {
+        return group.members === getMyGroup();
+    }
+
+    function groupPicker() {
+        const mine = getMyGroup();
+        let html = '<label class="group-picker">Highlight my group <select data-group-picker><option value="">None</option>';
+        CHAMBER_GROUPS.forEach(group => {
+            html += `<option value="${escapeHtml(group.members)}"${group.members === mine ? ' selected' : ''}>${escapeHtml(group.members)}</option>`;
+        });
+        return html + '</select></label>';
+    }
+
+    // One row of the room list, shared by the home page and the room assignments page
+    function roomRow(group, room) {
+        const mine = isMine(group);
+        return `<li class="${mine ? 'is-mine' : ''}" style="border-left-color: ${group.color}">` +
+            `<span class="week-room">${room ? escapeHtml(room) : 'TBA'}</span>` +
+            `<span class="week-group">${escapeHtml(group.members)}${mine ? '<span class="sr-only"> (your group)</span>' : ''}` +
+            `<span class="week-coach">${escapeHtml(group.coach)}</span></span></li>`;
+    }
+
     function escapeHtml(value) {
         return String(value ?? '')
             .replace(/&/g, '&amp;')
@@ -189,7 +231,8 @@
             html += `<div class="chamber-date-card">`;
             html += `<div class="chamber-date-header">`;
             html += `<span class="date-value">${formatDate(assignment.date)}</span>`;
-            if (dateIndex === 0) html += `<span class="date-label">Next session</span>`;
+            const relative = relativeDay(assignment.date);
+            if (relative || dateIndex === 0) html += `<span class="date-label">${relative || 'Next session'}</span>`;
             html += `</div>`;
 
             if (note) {
@@ -200,9 +243,7 @@
                 // Same layout as the home page list; the stripe keeps each group's colour from week to week
                 html += '<ul class="week-rooms-list chamber-rooms-list">';
                 CHAMBER_GROUPS.forEach((group, index) => {
-                    const room = assignment.rooms[index];
-                    html += `<li style="border-left-color: ${group.color}"><span class="week-room">${room ? escapeHtml(room) : 'TBA'}</span>` +
-                        `<span class="week-group">${escapeHtml(group.members)}<span class="week-coach">${escapeHtml(group.coach)}</span></span></li>`;
+                    html += roomRow(group, assignment.rooms[index]);
                 });
                 html += '</ul>';
             }
@@ -212,7 +253,7 @@
 
         html += '</div>';
 
-        container.innerHTML = html;
+        container.innerHTML = groupPicker() + html;
     }
 
     /**
@@ -227,7 +268,7 @@
         }
         let html = '<table class="season-table"><thead><tr><th scope="col">Group</th><th scope="col">Coach</th></tr></thead><tbody>';
         CHAMBER_GROUPS.forEach(group => {
-            html += `<tr><td>${escapeHtml(group.members)}</td><td>${escapeHtml(group.coach)}</td></tr>`;
+            html += `<tr${isMine(group) ? ' class="is-mine"' : ''}><td>${escapeHtml(group.members)}</td><td>${escapeHtml(group.coach)}</td></tr>`;
         });
         container.innerHTML = html + '</tbody></table>';
     }
@@ -250,7 +291,9 @@
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const isToday = next.date.getTime() === today.getTime();
-        html += `<p class="week-rooms-date">${isToday ? 'Today, ' : ''}${escapeHtml(formatDate(next.date))}</p>`;
+        const relative = relativeDay(next.date);
+        html += `<p class="week-rooms-date">${isToday ? 'Today, ' : ''}${escapeHtml(formatDate(next.date))}` +
+            `${relative && !isToday ? ` <span class="relative-day">${relative}</span>` : ''}</p>`;
 
         const note = getSpecialNote(next);
         if (note) {
@@ -258,13 +301,18 @@
         } else {
             html += '<ul class="week-rooms-list">';
             CHAMBER_GROUPS.forEach((group, index) => {
-                const room = next.rooms[index];
-                html += `<li><span class="week-room">${room ? escapeHtml(room) : 'TBA'}</span>` +
-                    `<span class="week-group">${escapeHtml(group.members)}<span class="week-coach">${escapeHtml(group.coach)}</span></span></li>`;
+                html += roomRow(group, next.rooms[index]);
             });
             html += '</ul>';
         }
-        container.innerHTML = html + '<p class="week-rooms-more"><a href="chamber-rooms.html">All weeks</a></p>';
+        container.innerHTML = html + '<div class="week-rooms-more"><a href="chamber-rooms.html">All weeks</a>' +
+            (note ? '' : groupPicker()) + '</div>';
+    }
+
+    function renderAll() {
+        renderChamberRoomsTable();
+        renderChamberGroups();
+        renderWeekRooms();
     }
 
     /**
@@ -277,11 +325,15 @@
         // Fetch room assignments from Google Sheets
         loadSucceeded = await fetchRoomAssignments();
 
-        // Render table if on chamber rooms page
-        renderChamberRoomsTable();
-        renderChamberGroups();
+        renderAll();
 
-        renderWeekRooms();
+        // Choosing a group re-renders every list on the page with that group highlighted
+        document.addEventListener('change', event => {
+            if (!event.target.matches('[data-group-picker]')) return;
+            setMyGroup(event.target.value);
+            renderAll();
+            document.querySelector('[data-group-picker]')?.focus();
+        });
     }
 
     // Auto-initialize when DOM is ready

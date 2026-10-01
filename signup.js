@@ -166,8 +166,8 @@ async function submitPerformance(formData) {
     };
 }
 
-// Accepts plain minutes ("12", "9.5") or minutes' seconds'' ("12' 30''", "12'30\"")
-const DURATION_PATTERN = /^(\d+(\.\d+)?|\d+'\s*(\d{1,2}\s*(''|"|')?)?)$/;
+// Accepts plain minutes ("12", "9.5"), minutes' seconds'' ("12' 30''", "12'30\"", "12′ 30″"), or "12:30"
+const DURATION_PATTERN = /^(\d+(\.\d+)?|\d+\s*['′:]\s*(\d{1,2}\s*(''|"|'|″)?)?)$/;
 
 // Form validation
 function validateForm(formData) {

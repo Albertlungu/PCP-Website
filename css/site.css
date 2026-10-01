@@ -57,6 +57,8 @@ body {
     font-variant-numeric: oldstyle-nums;
     -webkit-font-smoothing: antialiased;
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
     background: var(--bg);
     color: var(--text);
     font-family: var(--serif);
@@ -237,13 +239,15 @@ li::marker {
     box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
     visibility: hidden;
     opacity: 0;
-    transition: opacity 0.12s ease, visibility 0.12s;
+    transform: translateY(-4px);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
 }
 
 .has-dropdown:hover .dropdown-menu,
 .has-dropdown:focus-within .dropdown-menu {
     visibility: visible;
     opacity: 1;
+    transform: none;
 }
 
 .dropdown-menu a {
@@ -376,12 +380,13 @@ li::marker {
 }
 
 .week-rooms-list li {
+    border-left: 3px solid transparent;
     display: grid;
     grid-template-columns: 3.5rem minmax(0, 1fr);
     gap: 1rem;
     align-items: baseline;
     margin: 0;
-    padding: 0.55rem 0;
+    padding: 0.55rem 0 0.55rem 0.85rem;
     border-bottom: 1px solid var(--rule);
 }
 
@@ -545,12 +550,23 @@ li::marker {
     margin-top: 0.5rem;
 }
 
-.conduct-note {
-    margin-top: 2rem !important;
-    padding-left: 1rem;
-    border-left: 2px solid var(--accent);
-    font-style: italic;
+.conduct-list {
+    margin-top: 2rem;
+    padding-left: 2.25rem;
+}
+
+.conduct-list li {
+    margin-bottom: 1.75rem;
+    padding-left: 0.25rem;
+}
+
+.conduct-list li::marker {
+    font-size: var(--step-1);
     color: var(--muted);
+}
+
+.content-card .conduct-list h3 {
+    margin: 0 0 0.35rem;
 }
 
 /* Program components and similar lists: ruled rows, name on the left */
@@ -908,8 +924,22 @@ a.feature-card:hover h3 {
     color: var(--muted);
 }
 
+.performer-note {
+    font-style: italic;
+    font-size: var(--ui-small);
+    color: var(--muted);
+}
+
+.performer-note::before {
+    content: '(';
+}
+
+.performer-note::after {
+    content: ')';
+}
+
 .duration {
-    margin-left: 0.5rem;
+    margin-left: 0.25rem;
     font-family: var(--serif);
     font-size: var(--ui-small);
     color: var(--muted);
@@ -1014,6 +1044,8 @@ a.feature-card:hover h3 {
 
 .chamber-date-header {
     display: flex;
+    flex-wrap: wrap;
+    row-gap: 0.15rem;
     align-items: baseline;
     gap: 1rem;
     padding-bottom: 0.75rem;
@@ -1026,6 +1058,7 @@ a.feature-card:hover h3 {
 }
 
 .date-label {
+    white-space: nowrap;
     font-family: var(--serif);
     font-size: var(--ui-small);
     font-weight: 600;
@@ -1040,10 +1073,6 @@ a.feature-card:hover h3 {
     border-top: 0;
 }
 
-.chamber-rooms-list li {
-    padding-left: 0.85rem;
-    border-left: 3px solid transparent;
-}
 
 .special-event-card {
     padding: 1.25rem 0;
@@ -1148,7 +1177,7 @@ a.feature-card:hover h3 {
 
 .form-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1.25rem;
 }
 
@@ -1457,7 +1486,7 @@ a.feature-card:hover h3 {
     }
 
     .hero-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         grid-template-areas:
             "rooms"
             "intro"
@@ -1652,12 +1681,15 @@ a.feature-card:hover h3 {
     font-variant-numeric: lining-nums;
 }
 
+/* Drawn as line, gap, line so the double rule stays crisp at any zoom */
 .page-header {
-    border-bottom: 3px double var(--rule-strong);
+    border-bottom: 1px solid var(--rule-strong);
+    box-shadow: 0 3px 0 var(--bg), 0 4px 0 var(--rule-strong);
 }
 
 .footer {
-    border-top: 3px double var(--rule-strong);
+    border-top: 1px solid var(--rule-strong);
+    box-shadow: 0 -3px 0 var(--bg), 0 -4px 0 var(--rule-strong);
 }
 
 .nav-menu {
@@ -1733,5 +1765,237 @@ a.feature-card:hover h3 {
 
     .next-event-more {
         grid-column: 2;
+    }
+}
+
+/* Keep the footer at the bottom on short pages */
+.footer {
+    margin-top: auto;
+}
+
+@media (max-width: 700px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .hero-title {
+        font-size: 2.6rem;
+    }
+}
+
+/* ---------- Interaction ---------- */
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* "in 3 days" beside a date */
+.relative-day,
+.next-label {
+    margin-left: 0.4rem;
+    font-style: italic;
+    font-size: var(--ui-small);
+    color: var(--muted);
+}
+
+/* Your chamber group, remembered on this device */
+.week-rooms-list li {
+    transition: background-color 0.2s ease;
+}
+
+.week-rooms-list li.is-mine,
+.season-table tr.is-mine td {
+    background: var(--accent-soft);
+}
+
+.week-rooms-list li.is-mine .week-room {
+    color: var(--accent);
+}
+
+.group-picker {
+    min-width: 0;
+    max-width: 100%;
+    display: flex;
+    align-items: baseline;
+    white-space: nowrap;
+    gap: 0.5rem;
+    font-style: italic;
+    font-size: var(--ui-small);
+    color: var(--muted);
+}
+
+.group-picker select {
+    flex: 1 1 0;
+    width: 100%;
+    max-width: 15rem;
+    min-width: 0;
+    padding: 0.15rem 0.25rem;
+    font: inherit;
+    font-style: normal;
+    color: var(--text);
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--rule-strong);
+    border-radius: 0;
+    cursor: pointer;
+}
+
+.group-picker select option {
+    background: var(--surface);
+}
+
+.week-rooms-more {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.5rem 1.5rem;
+}
+
+#chamber-rooms-table .group-picker {
+    margin-bottom: 2rem;
+}
+
+/* Season tables: the next date is marked, and a row opens to show its programme */
+.season-table tr.is-next td:first-child {
+    box-shadow: inset 2px 0 0 var(--accent);
+    padding-left: 0.75rem;
+}
+
+.season-table tr.has-programme {
+    cursor: pointer;
+}
+
+.season-table tr.has-programme td {
+    transition: background-color 0.15s ease;
+}
+
+.season-table tr.has-programme:hover td,
+.season-table tr.is-open td {
+    background: var(--surface);
+}
+
+.programme-toggle {
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    background: none;
+    border: 0;
+    cursor: pointer;
+}
+
+/* Same chevron as the nav dropdowns, turning when the programme opens */
+.programme-toggle::after {
+    content: '';
+    display: inline-block;
+    width: 0.4em;
+    height: 0.4em;
+    margin-left: 0.5em;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: translateY(-0.2em) rotate(45deg);
+    transition: transform 0.2s ease;
+    opacity: 0.6;
+}
+
+.programme-toggle[aria-expanded="true"]::after {
+    transform: translateY(0.05em) rotate(225deg);
+}
+
+.season-table .programme-row td {
+    padding: 0.25rem 0 1.25rem;
+    background: var(--surface);
+}
+
+.programme {
+    margin: 0;
+    padding: 0 1.25rem;
+    list-style: none;
+    counter-reset: player;
+    animation: unfold 0.22s ease-out;
+}
+
+.programme li {
+    counter-increment: player;
+    display: grid;
+    grid-template-columns: 1.5rem minmax(0, 1fr) minmax(0, 1.4fr);
+    gap: 0.25rem 1.5rem;
+    margin: 0;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid var(--rule);
+}
+
+.programme li:last-child {
+    border-bottom: 0;
+}
+
+.programme li::before {
+    content: counter(player) '.';
+    color: var(--muted);
+}
+
+.programme-piece {
+    font-style: italic;
+}
+
+@keyframes unfold {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+}
+
+/* The event dialog settles into place rather than appearing at once */
+.event-modal-content {
+    animation: unfold 0.2s ease-out;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 0.18s;
+}
+
+@media (max-width: 640px) {
+    .season-table,
+    .season-table th {
+        font-size: var(--ui-small);
+    }
+
+    .season-table th,
+    .season-table td {
+        padding-right: 0.6rem;
+    }
+
+    .programme {
+        padding: 0 0.75rem;
+    }
+
+    .programme li {
+        grid-template-columns: 1.5rem minmax(0, 1fr);
+    }
+
+    .programme-piece {
+        grid-column: 2;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .programme,
+    .event-modal-content {
+        animation: none;
+    }
+}
+
+/* On the narrowest phones the count gives way; opening a row still lists the players */
+@media (max-width: 400px) {
+    .season-table th.num,
+    .season-table td.num {
+        display: none;
     }
 }

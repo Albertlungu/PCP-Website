@@ -85,7 +85,7 @@ function parseSheetData(data) {
             guestArtist: isBlank(guestArtist) || eventType === 'special' ? '' : guestArtist.replace(/\s+(Room\s+\w+)$/i, ' ($1)'),
             performers: [],
             type: eventType,
-            remarks: remarks
+            remarks: toSentenceCase(remarks)
         };
         
         // Performers are on this row and on the following rows until the next date
@@ -94,8 +94,11 @@ function parseSheetData(data) {
             const performerRow = data[j] || [];
             const name = (performerRow[3] || '').trim();
             if (!isBlank(name)) {
+                // "Hayato sone (waiting list)": the bracketed status is shown apart from the name
+                const note = name.match(/\s*\(([^)]*)\)\s*$/);
                 event.performers.push({
-                    name: name,
+                    name: capitalizeName(note ? name.slice(0, note.index) : name),
+                    note: note ? note[1].trim().toLowerCase() : '',
                     instrument: (performerRow[4] || '').trim(),
                     piece: (performerRow[5] || '').trim(),
                     duration: formatDuration(performerRow[6])
@@ -116,6 +119,28 @@ function parseSheetData(data) {
     }
     
     return events;
+}
+
+// The sheet uses Title Case ("Violin Masterclass", "Happy Thanksgiving (No Classes)"); the site uses sentence case
+const SENTENCE_CASE_WORDS = new Set(['masterclass', 'masterclasses', 'master', 'class', 'classes', 'performance', 'performances',
+    'recital', 'concert', 'chamber', 'music', 'no', 'and', 'of', 'the', 'day', 'orientation', 'rehearsal', 'final']);
+
+function toSentenceCase(text) {
+    return text.split(' ').map((word, index) => {
+        const bare = word.replace(/^\W+|\W+$/g, '').toLowerCase();
+        return index > 0 && SENTENCE_CASE_WORDS.has(bare) ? word.toLowerCase() : word;
+    }).join(' ');
+}
+
+// Capitalize surnames typed in lowercase ("sone"); short particles like "van" and "der" are left alone
+function capitalizeName(name) {
+    return name.trim().split(/\s+/).map(word =>
+        word.length > 3 && word === word.toLowerCase() ? word[0].toUpperCase() + word.slice(1) : word
+    ).join(' ');
+}
+
+function performerNote(performer) {
+    return performer.note ? ` <span class="performer-note">${escapeHtml(performer.note)}</span>` : '';
 }
 
 // Durations are entered as plain minutes ("10", "9.5") or as 12' 30''
@@ -309,9 +334,8 @@ function renderListView() {
             event.performers.forEach(performer => {
                 performersHTML += `
                     <div class="performer-item">
-                        <strong>${escapeHtml(performer.name)}</strong>${performer.instrument ? ` &ndash; ${escapeHtml(performer.instrument)}` : ''}
-                        ${performer.piece ? `<br><em>${escapeHtml(performer.piece)}</em>` : ''}
-                        ${performer.duration ? `<span class="duration">${escapeHtml(performer.duration)}</span>` : ''}
+                        <strong>${escapeHtml(performer.name)}</strong>${performer.instrument ? ` &ndash; ${escapeHtml(performer.instrument)}` : ''}${performerNote(performer)}
+                        ${performer.piece ? `<br><em>${escapeHtml(performer.piece)}</em>` : ''}${performer.duration ? `&nbsp;<span class="duration">${escapeHtml(performer.duration)}</span>` : ''}
                     </div>
                 `;
             });
@@ -320,7 +344,7 @@ function renderListView() {
         
         eventInfo.innerHTML = `
             <div class="event-title">${escapeHtml(event.remarks)}</div>
-            ${event.guestArtist ? `<div class="event-guest">${event.type === 'masterclass' ? 'Guest: ' : ''}${escapeHtml(event.guestArtist)}</div>` : ''}
+            ${event.guestArtist ? `<div class="event-guest">${event.type === 'masterclass' ? 'Guest artist: ' : ''}${escapeHtml(event.guestArtist)}</div>` : ''}
             ${performersHTML}
         `;
         
@@ -356,9 +380,8 @@ function showEventDetails(events) {
             event.performers.forEach(performer => {
                 detailsHTML += `
                     <li>
-                        <strong>${escapeHtml(performer.name)}</strong>${performer.instrument ? ` &ndash; ${escapeHtml(performer.instrument)}` : ''}
-                        ${performer.piece ? `<br><span class="piece-title">${escapeHtml(performer.piece)}</span>` : ''}
-                        ${performer.duration ? `<span class="duration">${escapeHtml(performer.duration)}</span>` : ''}
+                        <strong>${escapeHtml(performer.name)}</strong>${performer.instrument ? ` &ndash; ${escapeHtml(performer.instrument)}` : ''}${performerNote(performer)}
+                        ${performer.piece ? `<br><span class="piece-title">${escapeHtml(performer.piece)}</span>` : ''}${performer.duration ? `&nbsp;<span class="duration">${escapeHtml(performer.duration)}</span>` : ''}
                     </li>
                 `;
             });
@@ -393,13 +416,14 @@ function renderNextEvent(container) {
     }
 
     const date = formatLongDate(next.date);
-    html += `<p class="next-event-date">${escapeHtml(date)}</p>`;
+    const relative = relativeDay(next.date);
+    html += `<p class="next-event-date">${escapeHtml(date)}${relative ? ` <span class="relative-day">${relative}</span>` : ''}</p>`;
     html += `<p class="next-event-title">${escapeHtml(next.remarks)}${next.guestArtist && next.type === 'masterclass' ? ` with ${escapeHtml(next.guestArtist)}` : ''}</p>`;
 
     if (next.performers.length) {
         html += '<ul class="next-event-performers">';
         next.performers.slice(0, MAX_PERFORMERS).forEach(performer => {
-            html += `<li><span>${escapeHtml(performer.name)}</span><span>${escapeHtml(performer.instrument)}</span></li>`;
+            html += `<li><span>${escapeHtml(performer.name)}${performerNote(performer)}</span><span>${escapeHtml(performer.instrument)}</span></li>`;
         });
         html += '</ul>';
     }
@@ -426,20 +450,54 @@ function renderSeasonTable(container) {
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const next = events.find(event => event.date >= today);
     const showGuest = kind !== 'performance';
+    const columns = showGuest ? 4 : 3;
     let html = '<table class="season-table"><thead><tr><th scope="col">Date</th><th scope="col">' +
         (kind === 'all' ? 'What is on' : 'Class') + '</th>' +
         (showGuest ? '<th scope="col">Guest artist</th>' : '') +
         '<th scope="col" class="num">Performers</th></tr></thead><tbody>';
-    events.forEach(event => {
-        const past = event.date < today ? ' class="past"' : '';
-        html += `<tr${past}><td>${escapeHtml(formatLongDate(event.date))}</td>` +
-            `<td>${escapeHtml(event.remarks)}</td>` +
+    events.forEach((event, index) => {
+        const classes = [];
+        if (event.date < today) classes.push('past');
+        if (event === next) classes.push('is-next');
+        const programmeId = `programme-${kind}-${index}`;
+        const hasProgramme = event.performers.length > 0;
+        if (hasProgramme) classes.push('has-programme');
+
+        const relative = event === next ? relativeDay(event.date) : '';
+        const title = hasProgramme
+            ? `<button type="button" class="programme-toggle" aria-expanded="false" aria-controls="${programmeId}">${escapeHtml(event.remarks)}</button>`
+            : escapeHtml(event.remarks);
+        html += `<tr${classes.length ? ` class="${classes.join(' ')}"` : ''}>` +
+            `<td>${escapeHtml(formatLongDate(event.date))}${event === next ? ` <span class="next-label">${relative || 'next'}</span>` : ''}</td>` +
+            `<td>${title}</td>` +
             (showGuest ? `<td>${escapeHtml(event.guestArtist || '')}</td>` : '') +
             `<td class="num">${event.performers.length || ''}</td></tr>`;
+
+        if (hasProgramme) {
+            html += `<tr class="programme-row" id="${programmeId}" hidden><td colspan="${columns}"><ol class="programme">`;
+            event.performers.forEach(performer => {
+                html += `<li><span class="programme-player">${escapeHtml(performer.name)}${performer.instrument ? `, ${escapeHtml(performer.instrument.toLowerCase())}` : ''}${performerNote(performer)}</span>` +
+                    `<span class="programme-piece">${escapeHtml(performer.piece)}${performer.duration ? `&nbsp;<span class="duration">${escapeHtml(performer.duration)}</span>` : ''}</span></li>`;
+            });
+            html += '</ol></td></tr>';
+        }
     });
     html += '</tbody></table>';
     container.innerHTML = html;
+
+    // A click anywhere on a row opens its programme; the button inside keeps it keyboard accessible
+    container.querySelectorAll('tr.has-programme').forEach(row => {
+        const toggle = row.querySelector('.programme-toggle');
+        const programme = document.getElementById(toggle.getAttribute('aria-controls'));
+        row.addEventListener('click', () => {
+            const open = toggle.getAttribute('aria-expanded') !== 'true';
+            toggle.setAttribute('aria-expanded', String(open));
+            row.classList.toggle('is-open', open);
+            programme.hidden = !open;
+        });
+    });
 }
 
 document.addEventListener('DOMContentLoaded', async function() {
@@ -495,14 +553,16 @@ document.addEventListener('DOMContentLoaded', async function() {
             this.classList.add('active');
             
             const view = this.dataset.view;
-            if (view === 'calendar') {
-                document.getElementById('calendar-view').style.display = 'block';
-                document.getElementById('list-view').style.display = 'none';
-            } else {
-                document.getElementById('calendar-view').style.display = 'none';
-                document.getElementById('list-view').style.display = 'flex';
-                renderListView();
-            }
+            withViewTransition(() => {
+                if (view === 'calendar') {
+                    document.getElementById('calendar-view').style.display = 'block';
+                    document.getElementById('list-view').style.display = 'none';
+                } else {
+                    document.getElementById('calendar-view').style.display = 'none';
+                    document.getElementById('list-view').style.display = 'flex';
+                    renderListView();
+                }
+            });
         });
     });
     
@@ -517,11 +577,13 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             // Re-render current view
             const activeView = document.querySelector('.calendar-view-btn.active').dataset.view;
-            if (activeView === 'calendar') {
-                renderCalendar(currentMonth, currentYear);
-            } else {
-                renderListView();
-            }
+            withViewTransition(() => {
+                if (activeView === 'calendar') {
+                    renderCalendar(currentMonth, currentYear);
+                } else {
+                    renderListView();
+                }
+            });
         });
     });
     

@@ -54,6 +54,7 @@ function showLoginModal(message = '') {
     const modal = document.getElementById('loginModal');
     document.getElementById('loginError').textContent = message;
     modal.classList.add('active');
+    document.body.classList.add('signed-out');
     setTimeout(() => document.getElementById('adminPassword').focus(), 50);
 }
 
@@ -65,7 +66,7 @@ async function handleLoginSubmit(event) {
     if (!password) return;
 
     button.disabled = true;
-    button.textContent = 'Checking...';
+    button.textContent = 'Checking…';
     try {
         const response = await fetch(API_URL, {
             method: 'POST',
@@ -76,6 +77,7 @@ async function handleLoginSubmit(event) {
         if (response.ok && result.success) {
             sessionStorage.setItem(PASSWORD_SESSION_KEY, password);
             document.getElementById('loginModal').classList.remove('active');
+            document.body.classList.remove('signed-out');
             input.value = '';
             await loadData();
         } else {
@@ -86,7 +88,7 @@ async function handleLoginSubmit(event) {
             'Could not reach the server. The admin panel only works on the deployed site (or with "vercel dev").';
     } finally {
         button.disabled = false;
-        button.textContent = 'Sign In';
+        button.textContent = 'Sign in';
     }
 }
 
@@ -244,7 +246,7 @@ async function publish() {
     const button = document.getElementById('publishBtn');
     isPublishing = true;
     button.disabled = true;
-    button.textContent = 'Publishing...';
+    button.textContent = 'Publishing…';
 
     try {
         const response = await fetch(API_URL, {

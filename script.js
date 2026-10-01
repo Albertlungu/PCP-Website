@@ -63,3 +63,23 @@ document.addEventListener('DOMContentLoaded', function() {
         link.closest('.has-dropdown').querySelector('.dropdown-toggle').classList.add('active');
     });
 });
+
+// "today", "tomorrow", "in 3 days" for dates in the next two weeks; empty otherwise
+function relativeDay(date) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const days = Math.round((date - today) / 86400000);
+    if (days === 0) return 'today';
+    if (days === 1) return 'tomorrow';
+    return days > 1 && days < 14 ? `in ${days} days` : '';
+}
+
+// Cross-fades a DOM update where the browser supports view transitions and motion is welcome
+function withViewTransition(update) {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (document.startViewTransition && !reduceMotion) {
+        document.startViewTransition(update);
+    } else {
+        update();
+    }
+}

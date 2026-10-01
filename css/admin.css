@@ -39,8 +39,8 @@
 }
 
 .admin-badge.dirty {
-    color: var(--brass);
-    border-color: var(--brass);
+    color: var(--accent);
+    border-color: var(--accent);
 }
 
 .admin-controls {
@@ -84,14 +84,14 @@
 }
 
 .admin-btn-primary {
-    background: var(--brass);
-    border-color: var(--brass);
+    background: var(--accent);
+    border-color: var(--accent);
     color: #1d1418;
     font-weight: 600;
 }
 
 .admin-btn-primary:hover {
-    background: #e2bd6a;
+    background: var(--accent-hover);
     color: #1d1418;
 }
 
@@ -183,15 +183,15 @@
     font-family: var(--serif);
     font-size: var(--ui);
     font-weight: 600;
-    color: var(--brass);
+    color: var(--accent);
     background: transparent;
-    border: 1px dashed var(--brass);
+    border: 1px dashed var(--accent);
     border-radius: var(--radius);
     cursor: pointer;
 }
 
 .add-student-btn:hover {
-    background: var(--brass-soft);
+    background: var(--accent-soft);
 }
 
 .add-icon {
@@ -288,7 +288,7 @@
 .form-input:focus,
 .form-textarea:focus {
     outline: none;
-    border-color: var(--brass);
+    border-color: var(--accent);
 }
 
 .image-upload-area {
@@ -309,8 +309,8 @@
 }
 
 .image-preview.dragging {
-    border-color: var(--brass);
-    background: var(--brass-soft);
+    border-color: var(--accent);
+    background: var(--accent-soft);
 }
 
 .image-preview img {
@@ -367,7 +367,7 @@
 }
 
 .history-item.active strong {
-    color: var(--brass);
+    color: var(--accent);
 }
 
 .history-info {
@@ -412,7 +412,7 @@
     color: var(--text);
     background: var(--surface-2);
     border: 1px solid var(--rule-strong);
-    border-left: 3px solid var(--brass);
+    border-left: 3px solid var(--accent);
     border-radius: var(--radius);
     opacity: 0;
     transform: translateY(8px);
@@ -426,4 +426,11 @@
 
 .save-notification.error {
     border-left-color: var(--danger);
+}
+
+/* Nothing to act on until the password is accepted */
+.signed-out .admin-controls,
+.signed-out .admin-badge,
+.signed-out .admin-content {
+    visibility: hidden;
 }
