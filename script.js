@@ -142,7 +142,8 @@ function createBackgroundDecor() {
         note.style.fontSize = `${size}rem`;
         note.style.setProperty('--note-duration', `${duration}s`);
         note.style.setProperty('--note-delay', `${delay}s`);
-        note.style.opacity = `${0.25 + Math.random() * 0.35}`;
+        // Kept faint so the notes don't compete with page text
+        note.style.opacity = `${0.15 + Math.random() * 0.2}`;
 
         notesWrapper.appendChild(note);
     }
@@ -225,7 +226,7 @@ function createScrollProgress() {
     
     window.addEventListener('scroll', function() {
         const windowHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-        const scrolled = (window.pageYOffset / windowHeight) * 100;
+        const scrolled = windowHeight > 0 ? (window.pageYOffset / windowHeight) * 100 : 0;
         progressBar.style.width = scrolled + '%';
     });
 }
@@ -461,17 +462,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Add active class to current page in navigation
-    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    // Compare without ".html" so clean URLs (e.g. /calendar) still match
+    const currentPage = (window.location.pathname.split('/').pop() || 'index.html').replace(/\.html$/, '');
     const allNavLinks = document.querySelectorAll('.nav-menu a');
     allNavLinks.forEach(link => {
-        const linkPage = link.getAttribute('href');
+        const linkPage = link.getAttribute('href').replace(/\.html$/, '');
         if (linkPage === currentPage) {
             link.classList.add('active');
         } else {
             link.classList.remove('active');
         }
     });
-    
+
+    // Highlight the dropdown parent (e.g. "Program") when the current page is inside it
+    document.querySelectorAll('.dropdown-menu a.active').forEach(link => {
+        link.closest('.has-dropdown').querySelector('.dropdown-toggle').classList.add('active');
+    });
+
     // Intersection Observer for fade-in animations with stagger effect
     const observerOptions = {
         threshold: 0.1,
@@ -496,6 +503,9 @@ document.addEventListener('DOMContentLoaded', function() {
         observer.observe(card);
     });
     
+    // Section titles start hidden in CSS until they get the 'animated' class
+    document.querySelectorAll('.section-title').forEach(title => observer.observe(title));
+
     // Student cards without animation
     document.querySelectorAll('.student-card').forEach((card) => {
         card.style.opacity = '1';
@@ -518,6 +528,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const parallaxSpeed = 0.5;
             if (scrolled < hero.offsetHeight) {
                 hero.style.transform = `translateY(${scrolled * parallaxSpeed}px)`;
+                // Fade out while sliding so the hero never shows through the section below it
+                hero.style.opacity = Math.max(0, 1 - scrolled / (hero.offsetHeight * 0.6));
+            } else {
+                hero.style.opacity = 0;
             }
         });
         
@@ -573,7 +587,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add typing effect to hero title (only on home page)
     const heroTitle = document.querySelector('.hero-title');
-    if (heroTitle && window.location.pathname.endsWith('index.html') || window.location.pathname === '/') {
+    if (heroTitle) {
         const text = heroTitle.innerHTML;
         heroTitle.innerHTML = '';
         heroTitle.style.opacity = '1';

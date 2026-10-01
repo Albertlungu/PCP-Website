@@ -22,8 +22,9 @@
 }
 
 html {
-    height: 100%;
-    overflow: hidden;
+    min-height: 100%;
+    /* No rubber-band bounce past the top/bottom of the page */
+    overscroll-behavior: none;
     background:
         radial-gradient(circle at 12% 18%, rgba(243, 196, 156, 0.28), transparent 58%),
         radial-gradient(circle at 82% 14%, rgba(125, 36, 56, 0.22), transparent 52%),
@@ -34,6 +35,8 @@ html {
     background-attachment: fixed;
     background-size: 100% 100%;
     background-position: center top;
+    /* After the shorthand (which would reset it): solid base so any overscroll area isn't white */
+    background-color: #0b101d;
 }
 
 html {
@@ -48,15 +51,14 @@ body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     line-height: 1.6;
     color: #f5f6ff;
-    height: 100%;
     background: transparent;
     position: relative;
     animation: fadeIn 0.5s ease;
     padding-top: 5rem;
-    overflow: auto;
 }
 
-body > *:not(.background-animations) {
+/* :where() keeps specificity low so fixed elements (.navbar, modals) keep their own positioning */
+body > :where(:not(.background-animations)) {
     position: relative;
     z-index: 1;
 }
@@ -319,7 +321,7 @@ body.dropdown-active::after {
     content: '';
     position: absolute;
     inset: -1px;
-    border-radius: 999px;
+    border-radius: inherit;
     padding: 1px;
     background: linear-gradient(
         135deg,
@@ -346,11 +348,12 @@ body.dropdown-active::after {
 }
 
 .navbar.scrolled {
+    /* Mostly opaque: the nested backdrop blur is weak, so a lighter glass lets page text show through */
     background: linear-gradient(
         135deg,
-        rgba(255, 255, 255, 0.15) 0%,
-        rgba(255, 255, 255, 0.1) 50%,
-        rgba(255, 255, 255, 0.15) 100%
+        rgba(62, 50, 72, 0.92) 0%,
+        rgba(48, 42, 62, 0.92) 50%,
+        rgba(62, 50, 72, 0.92) 100%
     );
     backdrop-filter: blur(40px) saturate(200%);
     -webkit-backdrop-filter: blur(40px) saturate(200%);
@@ -386,11 +389,8 @@ body.dropdown-active::after {
     pointer-events: auto !important;
 }
 
-.nav-brand {
-    max-width: 220px;
-}
-
 .nav-brand h1 {
+    white-space: nowrap;
     font-size: 1.4rem;
     font-weight: 800;
     letter-spacing: 0.02em;
@@ -468,11 +468,13 @@ body.dropdown-active::after {
     position: absolute;
     top: calc(100% + 10px);
     left: 0;
+    /* Near-opaque: nested inside the navbar's backdrop-filter, this panel's own blur
+       can't see the page, so a translucent background lets page text show through */
     background: linear-gradient(
         135deg,
-        rgba(255, 255, 255, 0.15) 0%,
-        rgba(255, 255, 255, 0.1) 50%,
-        rgba(255, 255, 255, 0.15) 100%
+        rgba(38, 36, 52, 0.97) 0%,
+        rgba(30, 32, 46, 0.97) 50%,
+        rgba(44, 34, 52, 0.97) 100%
     );
     backdrop-filter: blur(40px) saturate(200%);
     -webkit-backdrop-filter: blur(40px) saturate(200%);
@@ -723,7 +725,7 @@ body.dropdown-active::after {
 /* Hero Section */
 .hero {
     position: relative;
-    height: 650px;
+    height: min(600px, 72vh);
     background: transparent;
     display: flex;
     align-items: center;
@@ -768,7 +770,17 @@ body.dropdown-active::after {
     animation: fadeInUp 0.8s ease 0.2s backwards;
 }
 
+.hero-subtitle {
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+    color: rgba(245, 246, 255, 0.85);
+}
+
 .hero-buttons {
+    /* .hero disables pointer events for its decorative layers */
+    pointer-events: auto;
+    flex-wrap: wrap;
     display: flex;
     gap: 1rem;
     justify-content: center;
@@ -935,7 +947,9 @@ body.dropdown-active .section-title {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(15, 22, 36, 0.92), rgba(45, 27, 46, 0.85));
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(212, 175, 55, 0.18);
+    border-radius: inherit;
     z-index: -2;
 }
 
@@ -949,6 +963,12 @@ body.dropdown-active .section-title {
     height: 3px;
     background: linear-gradient(90deg, rgba(212, 175, 55, 0), rgba(212, 175, 55, 0.9), rgba(212, 175, 55, 0));
     border-radius: 999px;
+}
+
+.features .section-title {
+    display: block;
+    width: fit-content;
+    margin: 0 auto 3rem;
 }
 
 .section-title.animated {
@@ -1007,6 +1027,24 @@ body.dropdown-active .section-title {
     position: relative;
     overflow: hidden;
     transform: translateY(0);
+    display: flex;
+    flex-direction: column;
+}
+
+.feature-card .feature-quote {
+    flex: 1 0 auto;
+}
+
+/* In the 3-up row, reserve the same description height so quote boxes line up */
+@media (min-width: 1025px) {
+    .feature-card:has(.feature-quote) > p {
+        min-height: 6.4em;
+    }
+}
+
+/* Flex items ignore text-align, so center the inline-sized icon explicitly */
+.feature-card .feature-icon {
+    align-self: center;
 }
 
 .feature-card::after {
@@ -1152,7 +1190,7 @@ body.dropdown-active .section-title {
 
 .quote-mark {
     position: absolute;
-    top: -8px;
+    top: 4px;
     left: 12px;
     font-size: 3rem;
     line-height: 1;
@@ -1243,7 +1281,7 @@ body.dropdown-active .section-title {
 .page-header {
     background: transparent;
     color: var(--white);
-    padding: 5.5rem 0 4.5rem;
+    padding: 4.5rem 0 1.5rem;
     text-align: center;
     position: relative;
     overflow: hidden;
@@ -1407,6 +1445,10 @@ body.dropdown-active .page-header {
     letter-spacing: 0.01em;
 }
 
+.content-card h3:first-child {
+    margin-top: 0;
+}
+
 .content-card p,
 .content-card ul {
     color: rgba(245, 246, 255, 0.85);
@@ -1423,7 +1465,9 @@ body.dropdown-active .page-header {
 /* Student Profiles */
 .students-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    /* Fixed-width tracks, centered, so one or two cards don't stretch or hug the left edge */
+    grid-template-columns: repeat(auto-fit, minmax(320px, 380px));
+    justify-content: center;
     gap: 2.75rem;
     margin-top: 2rem;
 }
@@ -1534,9 +1578,27 @@ body.dropdown-active .page-header {
 }
 
 .student-card.has-image .placeholder-image img {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+.student-info {
+    text-align: center;
+}
+
+/* Students without a photo show their initials instead of the "+" placeholder */
+.placeholder-image:has(.student-initials)::before {
+    display: none;
+}
+
+.student-initials {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--accent-light);
 }
 
 .placeholder-student h3 {
@@ -1871,8 +1933,8 @@ body.dropdown-active .page-header {
         flex-direction: column;
         background: linear-gradient(
             135deg,
-            rgba(15, 22, 36, 0.98) 0%,
-            rgba(25, 28, 38, 0.98) 100%
+            rgb(15, 22, 36) 0%,
+            rgb(25, 28, 38) 100%
         );
         backdrop-filter: blur(40px) saturate(200%);
         -webkit-backdrop-filter: blur(40px) saturate(200%);
@@ -1972,9 +2034,11 @@ body.dropdown-active .page-header {
         transform: rotate(180deg);
     }
     
-    /* Hero Section */
+    /* Hero Section: size to content so the title doesn't crowd the floating nav */
     .hero {
-        height: 450px;
+        height: auto;
+        min-height: 450px;
+        padding: 4rem 0 3rem;
     }
     
     .hero-title {
@@ -1990,6 +2054,7 @@ body.dropdown-active .page-header {
     
     .hero-buttons {
         flex-direction: column;
+        align-items: center;
         gap: 0.75rem;
         padding: 0 1rem;
     }
@@ -2028,7 +2093,7 @@ body.dropdown-active .page-header {
     
     /* Page Header */
     .page-header {
-        padding: 4rem 0 3rem;
+        padding: 3.5rem 0 1rem;
     }
     
     .page-header-content {
@@ -2096,7 +2161,7 @@ body.dropdown-active .page-header {
     }
     
     .hero {
-        height: 400px;
+        min-height: 400px;
     }
     
     .hero-title {
@@ -2141,5 +2206,23 @@ body.dropdown-active .page-header {
     
     .placeholder-image::before {
         font-size: 2.5rem;
+    }
+}
+
+/* Smaller back-to-top button on phones so it covers less text (inline styles set in script.js) */
+@media (max-width: 768px) {
+    .back-to-top {
+        width: 40px !important;
+        height: 40px !important;
+        right: 14px !important;
+        bottom: 14px !important;
+        font-size: 18px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .content-card h2 {
+        font-size: 1.5rem;
+        line-height: 1.3;
     }
 }
