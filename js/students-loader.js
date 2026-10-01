@@ -71,7 +71,7 @@
     }
 
     function showMessage(container, text) {
-        container.innerHTML = `<p class="no-students" style="grid-column: 1/-1; text-align: center; padding: 3rem; color: rgba(245, 246, 255, 0.7);">${text}</p>`;
+        container.innerHTML = `<p class="no-students">${text}</p>`;
     }
 
     async function init() {
@@ -95,7 +95,7 @@
         }
 
         if (students.length === 0) {
-            showMessage(container, 'Student profiles are coming soon.');
+            showMessage(container, 'Profiles of this year\'s students will be posted here.');
             return;
         }
 

@@ -57,9 +57,8 @@ PCP-Website/
 │   └── ...
 │
 ├── 🎨 css/                     # Stylesheets
-│   ├── styles.css             # Main public styles
-│   ├── admin.css              # Admin panel styles
-│   └── styles-calendar-signup.css
+│   ├── site.css               # Public site styles
+│   └── admin.css              # Admin panel additions
 │
 ├── 📜 js/                      # JavaScript files
 │   ├── admin-students.js      # Admin panel logic

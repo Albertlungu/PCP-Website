@@ -127,33 +127,13 @@
     }
 
     function formatDate(date) {
-        return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+        // Same format as the calendar: "Saturday, October 3"
+        return date.toLocaleDateString('en-CA', { weekday: 'long', month: 'long', day: 'numeric' });
     }
 
     /** Rows like "Thanksgiving" or "NO CLASSES" have text instead of a room number */
     function getSpecialNote(assignment) {
         return assignment.note && !/^\d+$/.test(assignment.note) ? assignment.note : '';
-    }
-
-    /**
-     * Get today's room assignments
-     */
-    function getTodaysAssignments() {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        return ROOM_ASSIGNMENTS.find(assignment => assignment.date.getTime() === today.getTime());
-    }
-
-    /**
-     * Check if it's Saturday between 12pm and 6pm
-     */
-    function isSaturdayAfternoon() {
-        const now = new Date();
-        const day = now.getDay(); // 0 = Sunday, 6 = Saturday
-        const hour = now.getHours();
-
-        return day === 6 && hour >= 12 && hour < 18;
     }
 
     /**
@@ -217,16 +197,14 @@
             } else if (!hasRooms) {
                 html += `<div class="special-event-card">Rooms to be announced</div>`;
             } else {
-                html += `<div class="chamber-groups-grid">`;
+                // Same layout as the home page list; the stripe keeps each group's colour from week to week
+                html += '<ul class="week-rooms-list chamber-rooms-list">';
                 CHAMBER_GROUPS.forEach((group, index) => {
                     const room = assignment.rooms[index];
-                    html += `<div class="chamber-group-assignment" style="border-left: 4px solid ${group.color}">
-                                <div class="group-name-mini">${escapeHtml(group.members)}</div>
-                                <div class="group-coach">Coach: ${escapeHtml(group.coach)}</div>
-                                <div class="room-number-large">${room ? `Room ${escapeHtml(room)}` : 'TBA'}</div>
-                             </div>`;
+                    html += `<li style="border-left-color: ${group.color}"><span class="week-room">${room ? escapeHtml(room) : 'TBA'}</span>` +
+                        `<span class="week-group">${escapeHtml(group.members)}<span class="week-coach">${escapeHtml(group.coach)}</span></span></li>`;
                 });
-                html += `</div>`;
+                html += '</ul>';
             }
 
             html += `</div>`;
@@ -238,59 +216,55 @@
     }
 
     /**
-     * Render today's assignments banner (for home page)
+     * This year's groups and coaches (Chamber music page)
      */
-    function renderTodaysBanner() {
-        console.log('[Chamber Rooms] Checking if today\'s banner should be shown...');
+    function renderChamberGroups() {
+        const container = document.getElementById('chamber-groups');
+        if (!container) return;
+        if (!loadSucceeded || !CHAMBER_GROUPS.length) {
+            container.innerHTML = '<p class="no-events">The group list could not be loaded right now.</p>';
+            return;
+        }
+        let html = '<table class="season-table"><thead><tr><th scope="col">Group</th><th scope="col">Coach</th></tr></thead><tbody>';
+        CHAMBER_GROUPS.forEach(group => {
+            html += `<tr><td>${escapeHtml(group.members)}</td><td>${escapeHtml(group.coach)}</td></tr>`;
+        });
+        container.innerHTML = html + '</tbody></table>';
+    }
 
-        // Only show on Saturday afternoon
-        if (!isSaturdayAfternoon()) {
-            console.log('[Chamber Rooms] Not Saturday afternoon - skipping banner');
+    /**
+     * Home page: rooms for the next session (today, if it is a Saturday with chamber)
+     */
+    function renderWeekRooms() {
+        const container = document.getElementById('week-rooms');
+        if (!container) return;
+
+        let html = '<h2 class="week-rooms-heading">Chamber rooms</h2>';
+        const next = getUpcomingDates()[0];
+        if (!loadSucceeded || !next) {
+            html += `<p class="week-rooms-note">${loadSucceeded ? 'No sessions are scheduled.' : 'Room assignments could not be loaded right now.'}</p>`;
+            container.innerHTML = html + '<p class="week-rooms-more"><a href="chamber-rooms.html">Room assignments</a></p>';
             return;
         }
 
-        console.log('[Chamber Rooms] It\'s Saturday afternoon - checking for today\'s assignments');
-        const todaysAssignments = getTodaysAssignments();
-        if (!todaysAssignments) {
-            console.log('[Chamber Rooms] No assignments for today');
-            return;
-        }
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const isToday = next.date.getTime() === today.getTime();
+        html += `<p class="week-rooms-date">${isToday ? 'Today, ' : ''}${escapeHtml(formatDate(next.date))}</p>`;
 
-        console.log('[Chamber Rooms] Found today\'s assignments:', todaysAssignments);
-
-        const note = getSpecialNote(todaysAssignments);
-
-        let html = '<div class="chamber-banner" id="chamber-today-banner">';
-        html += '<div class="chamber-banner-content">';
-        html += '<div class="chamber-banner-header">';
-        html += '<h2>Chamber Music Today</h2>';
-        html += '<button class="chamber-banner-close" aria-label="Close" onclick="document.getElementById(\'chamber-today-banner\').style.display=\'none\'">&times;</button>';
-        html += '</div>';
-
+        const note = getSpecialNote(next);
         if (note) {
-            html += `<div class="chamber-special-notice">${escapeHtml(note)}</div>`;
+            html += `<p class="week-rooms-note">${escapeHtml(note)}: no chamber coaching.</p>`;
         } else {
-            html += '<div class="chamber-groups-today">';
+            html += '<ul class="week-rooms-list">';
             CHAMBER_GROUPS.forEach((group, index) => {
-                const room = todaysAssignments.rooms[index];
-                html += `<div class="chamber-group-card" style="border-left: 5px solid ${group.color}">
-                            <div class="group-name-today">${escapeHtml(group.members)}</div>
-                            <div class="room-number-today">${room ? `Room ${escapeHtml(room)}` : 'TBA'}</div>
-                            <div class="group-members-today">Coach: ${escapeHtml(group.coach)}</div>
-                         </div>`;
+                const room = next.rooms[index];
+                html += `<li><span class="week-room">${room ? escapeHtml(room) : 'TBA'}</span>` +
+                    `<span class="week-group">${escapeHtml(group.members)}<span class="week-coach">${escapeHtml(group.coach)}</span></span></li>`;
             });
-            html += '</div>';
+            html += '</ul>';
         }
-
-        html += '<a href="chamber-rooms.html" class="chamber-banner-link">View full schedule</a>';
-        html += '</div>';
-        html += '</div>';
-
-        // Insert banner after hero section on home page
-        const heroSection = document.querySelector('.hero');
-        if (heroSection) {
-            heroSection.insertAdjacentHTML('afterend', html);
-        }
+        container.innerHTML = html + '<p class="week-rooms-more"><a href="chamber-rooms.html">All weeks</a></p>';
     }
 
     /**
@@ -305,14 +279,9 @@
 
         // Render table if on chamber rooms page
         renderChamberRoomsTable();
+        renderChamberGroups();
 
-        // Render today's banner if on home page and it's Saturday afternoon
-        if (window.location.pathname === '/' || window.location.pathname.includes('index.html')) {
-            console.log('[Chamber Rooms] On home page - checking for banner');
-            renderTodaysBanner();
-        } else {
-            console.log('[Chamber Rooms] Not on home page - skipping banner');
-        }
+        renderWeekRooms();
     }
 
     // Auto-initialize when DOM is ready
@@ -322,9 +291,4 @@
         init();
     }
 
-    // Expose functions globally if needed
-    window.chamberRooms = {
-        getTodaysAssignments,
-        isSaturdayAfternoon
-    };
 })();

@@ -12,6 +12,11 @@ let currentYear = new Date().getFullYear();
 let currentFilter = 'all';
 let loadError = false;
 
+// One date format everywhere on the site: "Saturday, October 3"
+function formatLongDate(date) {
+    return date.toLocaleDateString('en-CA', { weekday: 'long', month: 'long', day: 'numeric' });
+}
+
 // Month names
 const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'];
@@ -76,7 +81,8 @@ function parseSheetData(data) {
             date: date,
             dateStr: dateStr,
             // Non-class rows (holidays, orientation) reuse this column for notes
-            guestArtist: isBlank(guestArtist) || eventType === 'special' ? '' : guestArtist,
+            // A room typed after the name ("Jessica Linnebach Room 109") reads better in brackets
+            guestArtist: isBlank(guestArtist) || eventType === 'special' ? '' : guestArtist.replace(/\s+(Room\s+\w+)$/i, ' ($1)'),
             performers: [],
             type: eventType,
             remarks: remarks
@@ -254,6 +260,14 @@ function renderCalendar(month, year) {
         
         calendarGrid.appendChild(dayCell);
     }
+
+    // Fill out the last week so the grid's rules close evenly
+    const trailing = (7 - ((firstDay + daysInMonth) % 7)) % 7;
+    for (let i = 0; i < trailing; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'calendar-day empty';
+        calendarGrid.appendChild(emptyCell);
+    }
 }
 
 // Render list view
@@ -284,10 +298,7 @@ function renderListView() {
         
         const eventDate = document.createElement('div');
         eventDate.className = 'event-date';
-        eventDate.innerHTML = `
-            <div class="event-day">${event.date.getDate()}</div>
-            <div class="event-month">${monthNames[event.date.getMonth()].slice(0, 3)}</div>
-        `;
+        eventDate.textContent = formatLongDate(event.date);
         
         const eventInfo = document.createElement('div');
         eventInfo.className = 'event-info';
@@ -329,25 +340,25 @@ function showEventDetails(events) {
     let detailsHTML = '';
     
     events.forEach(event => {
-        const dateStr = `${monthNames[event.date.getMonth()]} ${event.date.getDate()}, ${event.date.getFullYear()}`;
+        const dateStr = formatLongDate(event.date);
         
         detailsHTML += `
             <div class="event-detail-card ${event.type}">
                 <div class="event-detail-header">
                     <h3>${escapeHtml(event.remarks)}</h3>
                     <p class="event-detail-date">${dateStr}</p>
-                    ${event.guestArtist ? `<p class="event-detail-guest">${event.type === 'masterclass' ? '<strong>Guest Artist: </strong>' : ''}${escapeHtml(event.guestArtist)}</p>` : ''}
+                    ${event.guestArtist ? `<p class="event-detail-guest">${event.type === 'masterclass' ? 'Guest artist: ' : ''}${escapeHtml(event.guestArtist)}</p>` : ''}
                 </div>
         `;
         
         if (event.performers.length > 0) {
-            detailsHTML += '<div class="event-detail-performers"><h4>Performers:</h4><ul>';
+            detailsHTML += '<div class="event-detail-performers"><h4>Performers</h4><ul>';
             event.performers.forEach(performer => {
                 detailsHTML += `
                     <li>
                         <strong>${escapeHtml(performer.name)}</strong>${performer.instrument ? ` &ndash; ${escapeHtml(performer.instrument)}` : ''}
                         ${performer.piece ? `<br><span class="piece-title">${escapeHtml(performer.piece)}</span>` : ''}
-                        ${performer.duration ? `<br><span class="duration">Duration: ${escapeHtml(performer.duration)}</span>` : ''}
+                        ${performer.duration ? `<span class="duration">${escapeHtml(performer.duration)}</span>` : ''}
                     </li>
                 `;
             });
@@ -362,7 +373,88 @@ function showEventDetails(events) {
 }
 
 // Initialize calendar
+// Home page: the next upcoming event, with its performers
+function renderNextEvent(container) {
+    const MAX_PERFORMERS = 6;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const next = allEvents
+        .filter(event => event.date >= today)
+        .sort((a, b) => a.date - b.date)[0];
+
+    let html = '<h2 class="next-event-heading">Coming up</h2>';
+    if (loadError) {
+        container.innerHTML = html + '<p class="next-event-more">The schedule could not be loaded right now. <a href="calendar.html">Open the calendar</a></p>';
+        return;
+    }
+    if (!next) {
+        container.innerHTML = html + '<p class="next-event-more">Nothing scheduled yet. <a href="calendar.html">Open the calendar</a></p>';
+        return;
+    }
+
+    const date = formatLongDate(next.date);
+    html += `<p class="next-event-date">${escapeHtml(date)}</p>`;
+    html += `<p class="next-event-title">${escapeHtml(next.remarks)}${next.guestArtist && next.type === 'masterclass' ? ` with ${escapeHtml(next.guestArtist)}` : ''}</p>`;
+
+    if (next.performers.length) {
+        html += '<ul class="next-event-performers">';
+        next.performers.slice(0, MAX_PERFORMERS).forEach(performer => {
+            html += `<li><span>${escapeHtml(performer.name)}</span><span>${escapeHtml(performer.instrument)}</span></li>`;
+        });
+        html += '</ul>';
+    }
+
+    const remaining = next.performers.length - MAX_PERFORMERS;
+    html += `<p class="next-event-more">${remaining > 0 ? `and ${remaining} more. ` : ''}<a href="calendar.html">Full program in the calendar</a></p>`;
+    container.innerHTML = html;
+}
+
+// A table of this year's dates, optionally limited to one event type (data-season on the container)
+function renderSeasonTable(container) {
+    if (loadError) {
+        container.innerHTML = '<p class="no-events">The schedule could not be loaded right now. <a href="calendar.html">Try the calendar</a>.</p>';
+        return;
+    }
+    const kind = container.dataset.season;
+    const events = allEvents
+        .filter(event => kind === 'all' || event.type === kind)
+        .sort((a, b) => a.date - b.date);
+    if (!events.length) {
+        container.innerHTML = '<p class="no-events">No dates have been scheduled yet.</p>';
+        return;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const showGuest = kind !== 'performance';
+    let html = '<table class="season-table"><thead><tr><th scope="col">Date</th><th scope="col">' +
+        (kind === 'all' ? 'What is on' : 'Class') + '</th>' +
+        (showGuest ? '<th scope="col">Guest artist</th>' : '') +
+        '<th scope="col" class="num">Performers</th></tr></thead><tbody>';
+    events.forEach(event => {
+        const past = event.date < today ? ' class="past"' : '';
+        html += `<tr${past}><td>${escapeHtml(formatLongDate(event.date))}</td>` +
+            `<td>${escapeHtml(event.remarks)}</td>` +
+            (showGuest ? `<td>${escapeHtml(event.guestArtist || '')}</td>` : '') +
+            `<td class="num">${event.performers.length || ''}</td></tr>`;
+    });
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
 document.addEventListener('DOMContentLoaded', async function() {
+    const seasonTables = document.querySelectorAll('[data-season]');
+    if (seasonTables.length) {
+        await fetchEvents();
+        seasonTables.forEach(renderSeasonTable);
+    }
+
+    const nextEvent = document.getElementById('next-event');
+    if (nextEvent) {
+        await fetchEvents();
+        renderNextEvent(nextEvent);
+    }
+
     if (!document.getElementById('calendar-grid')) return;
 
     // Fetch events

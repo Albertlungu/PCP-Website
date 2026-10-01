@@ -4,15 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - uOttawa Pre-College</title>
-    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/site.css">
     <link rel="stylesheet" href="../css/admin.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <meta name="robots" content="noindex, nofollow">
 </head>
 <body class="admin-mode">
-    <div class="background-animations"></div>
 
     <!-- Admin Header -->
     <div class="admin-header">
@@ -24,10 +23,10 @@
                 </div>
                 <div class="admin-controls">
                     <button id="undoBtn" class="admin-btn admin-btn-secondary" disabled>
-                        <span>↶</span> Undo
+                        Undo
                     </button>
                     <button id="redoBtn" class="admin-btn admin-btn-secondary" disabled>
-                        <span>↷</span> Redo
+                        Redo
                     </button>
                     <button id="historyBtn" class="admin-btn admin-btn-secondary">
                         History
@@ -50,7 +49,7 @@
     <section class="admin-content">
         <div class="container">
             <div class="admin-section-header">
-                <h2>Manage Students</h2>
+                <h2>Student profiles</h2>
                 <p>Add, edit, reorder, or remove student profiles. Changes stay in this browser as a draft until you click Publish.</p>
                 <div class="admin-section-actions">
                     <button id="discardBtn" class="admin-btn admin-btn-secondary" hidden>

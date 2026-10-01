@@ -5,18 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>uOttawa Pre-College Program</title>
     <meta name="description" content="University of Ottawa Pre-College Program - Advanced music education for high school students">
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/site.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="background-animations"></div>
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container">
             <div class="nav-brand">
-                <h1>uOttawa Pre-College</h1>
+                <a href="index.html">uOttawa Pre-College</a>
             </div>
             <button class="mobile-menu-toggle" aria-label="Toggle menu">
                 <span></span>
@@ -24,14 +23,14 @@
                 <span></span>
             </button>
             <ul class="nav-menu">
-                <li><a href="index.html" class="active">Home</a></li>
+                <li><a href="index.html">Home</a></li>
                 <li><a href="description.html">About</a></li>
                 <li class="has-dropdown">
                     <a href="#" class="dropdown-toggle">Program</a>
                     <ul class="dropdown-menu">
-                        <li><a href="chamber-music.html">Chamber Music</a></li>
+                        <li><a href="chamber-music.html">Chamber music</a></li>
                         <li><a href="masterclasses.html">Masterclasses</a></li>
-                        <li><a href="performance-class.html">Performance Class</a></li>
+                        <li><a href="performance-class.html">Performance class</a></li>
                         <li><a href="schedule.html">Schedule</a></li>
                     </ul>
                 </li>
@@ -39,81 +38,74 @@
                     <a href="#" class="dropdown-toggle">Participate</a>
                     <ul class="dropdown-menu">
                         <li><a href="calendar.html">Calendar</a></li>
-                        <li><a href="chamber-rooms.html">Room Assignments</a></li>
-                        <li><a href="signup.html">Sign Up to Perform</a></li>
+                        <li><a href="chamber-rooms.html">Room assignments</a></li>
+                        <li><a href="signup.html">Sign up to perform</a></li>
                     </ul>
                 </li>
-                <li><a href="our-students.html">Our Students</a></li>
-                <li><a href="code-of-conduct.html">Conduct</a></li>
+                <li><a href="our-students.html">Our students</a></li>
+                <li><a href="code-of-conduct.html">Code of conduct</a></li>
             </ul>
         </div>
     </nav>
 
-    <!-- Hero Section -->
     <section class="hero">
-        <div class="hero-overlay"></div>
-        <div class="container hero-content">
-            <h1 class="hero-title">University of Ottawa <span class="nowrap">Pre-College</span> Program</h1>
-            <p class="hero-subtitle">Chamber music, masterclasses, and performance classes for advanced high school musicians in the Ottawa/Gatineau area.</p>
-            <div class="hero-buttons">
-                <a href="signup.html" class="btn btn-primary">Sign Up to Perform</a>
-                <a href="calendar.html" class="btn btn-secondary">View Calendar</a>
+        <div class="container hero-grid">
+            <!-- Filled from the room assignments sheet by js/chamber-rooms.js -->
+            <aside class="week-rooms" id="week-rooms" aria-live="polite">
+                <h2 class="week-rooms-heading">Chamber rooms</h2>
+                <p class="week-rooms-note">Loading this week&rsquo;s rooms&hellip;</p>
+            </aside>
+            <div class="hero-intro">
+                <h1 class="hero-title">University of Ottawa <span class="nowrap">Pre-College</span> Program</h1>
+                <p class="hero-lead">Saturday chamber music, masterclasses, and performance classes for advanced high school musicians in <span class="nowrap">Ottawa&ndash;Gatineau</span>. Students join at RCM Grade&nbsp;9 or above, alongside their regular private lessons.</p>
+                <div class="hero-actions">
+                    <a href="signup.html" class="btn btn-primary">Sign up to perform</a>
+                    <a href="calendar.html" class="text-link">See the full calendar</a>
+                </div>
             </div>
+            <!-- Filled from the schedule sheet by calendar.js -->
+            <aside class="next-event" id="next-event" aria-live="polite">
+                <h2 class="next-event-heading">Coming up</h2>
+                <p class="next-event-more">Loading the schedule&hellip;</p>
+            </aside>
         </div>
     </section>
 
-    <!-- Features Section -->
     <section class="features">
         <div class="container">
-            <h2 class="section-title">The Program</h2>
+            <h2 class="section-title">The program</h2>
             <div class="features-grid">
                 <div class="feature-card">
-                    <h3>Chamber Music</h3>
-                    <p>Weekly coaching sessions with performance opportunities. Work with University of Ottawa faculty in small groups.</p>
-                    <div class="feature-quote">
-                        <span class="quote-mark">&ldquo;</span>
-                        <p>In chamber music, the pleasure lies in the dialogue between instruments.</p>
-                        <span class="quote-author">— Pablo Casals</span>
-                    </div>
+                    <h3><a href="chamber-music.html">Chamber music</a></h3>
+                    <p>Weekly coaching in small groups with University of Ottawa faculty, working toward a performance at the end of each term and at the Kiwanis Music Festival.</p>
                 </div>
                 <div class="feature-card">
-                    <h3>Masterclasses</h3>
-                    <p>Learn from experienced musicians and uOttawa faculty. Get expert guidance and performance feedback.</p>
-                    <div class="feature-quote">
-                        <span class="quote-mark">&ldquo;</span>
-                        <p>A student is not a container you have to fill, but a torch you have to light up.</p>
-                        <span class="quote-author">— Albert Einstein</span>
-                    </div>
+                    <h3><a href="masterclasses.html">Masterclasses</a></h3>
+                    <p>Sixteen a year with guest artists from the University and the region: eight for violin, four for viola, and four for cello.</p>
                 </div>
                 <div class="feature-card">
-                    <h3>Performance Class</h3>
-                    <p>Perform regularly in a supportive setting. Build confidence and get helpful feedback from peers.</p>
-                    <div class="feature-quote">
-                        <span class="quote-mark">&ldquo;</span>
-                        <p>Music is the shorthand of emotion.</p>
-                        <span class="quote-author">— Leo Tolstoy</span>
-                    </div>
+                    <h3><a href="performance-class.html">Performance class</a></h3>
+                    <p>Regular chances to play for the other students in the program and to give each other feedback.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Quick Links Section -->
-    <section class="content-section" style="padding: 2rem 0;">
+    <section class="features">
         <div class="container">
-            <h2 class="section-title">For Current Students</h2>
+            <h2 class="section-title">For current students</h2>
             <div class="features-grid">
                 <a href="calendar.html" class="feature-card">
-                    <h3>Event Calendar</h3>
-                    <p>View all upcoming performances, masterclasses, and chamber sessions</p>
+                    <h3>Calendar</h3>
+                    <p>Every masterclass and performance class this year, with who is playing what.</p>
                 </a>
                 <a href="chamber-rooms.html" class="feature-card">
-                    <h3>Chamber Room Assignments</h3>
-                    <p>Check your chamber group's room assignments for upcoming sessions</p>
+                    <h3>Room assignments</h3>
+                    <p>Which room your chamber group is in each Saturday.</p>
                 </a>
                 <a href="signup.html" class="feature-card">
-                    <h3>Sign Up to Perform</h3>
-                    <p>Register for performance class and masterclass opportunities</p>
+                    <h3>Sign up to perform</h3>
+                    <p>Claim a slot in an upcoming performance class or masterclass.</p>
                 </a>
             </div>
         </div>
@@ -125,37 +117,44 @@
             <div class="footer-content">
                 <div class="footer-section">
                     <h3>uOttawa Pre-College</h3>
-                    <p>Advanced training for high school musicians at the University of Ottawa.</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Quick Links</h4>
-                    <ul>
-                        <li><a href="description.html">Description</a></li>
-                        <li><a href="schedule.html">Schedule</a></li>
-                        <li><a href="calendar.html">Calendar</a></li>
-                        <li><a href="code-of-conduct.html">Code of Conduct</a></li>
-                    </ul>
+                    <p>Saturdays at the University of Ottawa, September to May.</p>
                 </div>
                 <div class="footer-section">
                     <h4>Program</h4>
                     <ul>
-                        <li><a href="chamber-music.html">Chamber Music</a></li>
-                        <li><a href="chamber-rooms.html">Room Assignments</a></li>
+                        <li><a href="chamber-music.html">Chamber music</a></li>
                         <li><a href="masterclasses.html">Masterclasses</a></li>
-                        <li><a href="performance-class.html">Performance Class</a></li>
-                        <li><a href="signup.html">Sign Up to Perform</a></li>
+                        <li><a href="performance-class.html">Performance class</a></li>
+                        <li><a href="schedule.html">Schedule</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Participate</h4>
+                    <ul>
+                        <li><a href="calendar.html">Calendar</a></li>
+                        <li><a href="chamber-rooms.html">Room assignments</a></li>
+                        <li><a href="signup.html">Sign up to perform</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>About</h4>
+                    <ul>
+                        <li><a href="description.html">About the program</a></li>
+                        <li><a href="our-students.html">Our students</a></li>
+                        <li><a href="code-of-conduct.html">Code of conduct</a></li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2026 University of Ottawa Pre-College Program. All rights reserved.</p>
-                <p class="footer-credit">Website designed and developed by <a href="https://github.com/albertlungu" target="_blank" rel="noopener">Albert Lungu</a></p>
+                <p>&copy; 2026 University of Ottawa Pre-College Program</p>
+                <p class="footer-credit">Website by <a href="https://github.com/albertlungu" target="_blank" rel="noopener">Albert Lungu</a></p>
             </div>
         </div>
     </footer>
 
     <script src="js/signup-auth.js"></script>
     <script src="script.js"></script>
+    <script src="calendar.js"></script>
     <script src="js/chamber-rooms.js"></script>
 </body>
 </html>

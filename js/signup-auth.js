@@ -55,18 +55,21 @@
         return /\/signup(\.html)?$/.test(window.location.pathname);
     }
 
-    function showPasswordModal() {
+    // inline: render in place of the sign-up form (on signup.html) instead of as a dialog
+    function showPasswordModal(inline = false) {
         if (document.getElementById('password-modal-overlay')) return;
 
-        // Styles live in css/styles.css (.gate-*)
-        const overlay = document.createElement('div');
+        // Styles live in css/site.css (.gate-*)
+        const overlay = document.createElement(inline ? 'section' : 'div');
         overlay.id = 'password-modal-overlay';
-        overlay.className = 'gate-overlay';
+        overlay.className = inline ? 'gate-inline' : 'gate-overlay';
 
         const modal = document.createElement('div');
         modal.className = 'gate-dialog';
-        modal.setAttribute('role', 'dialog');
-        modal.setAttribute('aria-modal', 'true');
+        if (!inline) {
+            modal.setAttribute('role', 'dialog');
+            modal.setAttribute('aria-modal', 'true');
+        }
         modal.setAttribute('aria-labelledby', 'gate-title');
         modal.innerHTML = `
             <h2 id="gate-title">Performance sign-up</h2>
@@ -82,8 +85,16 @@
             </form>
         `;
 
-        overlay.appendChild(modal);
-        document.body.appendChild(overlay);
+        if (inline) {
+            const container = document.createElement('div');
+            container.className = 'container';
+            container.appendChild(modal);
+            overlay.appendChild(container);
+            document.querySelector('.page-header').after(overlay);
+        } else {
+            overlay.appendChild(modal);
+            document.body.appendChild(overlay);
+        }
 
         const cancelBtn = modal.querySelector('#cancel-btn');
         const passwordInput = modal.querySelector('#password-input');
@@ -101,6 +112,7 @@
             if (enteredPassword === CORRECT_PASSWORD) {
                 setAuthenticated();
                 overlay.remove();
+                document.querySelectorAll('.content-section').forEach(section => { section.hidden = false; });
                 // If we're not on the signup page, redirect to it
                 if (!isSignupPage()) {
                     window.location.href = 'signup.html';
@@ -128,22 +140,9 @@
     function initSignupPageAuth() {
         if (isSignupPage()) {
             if (!isAuthenticated()) {
-                // Hide page content
-                document.body.style.visibility = 'hidden';
-
-                // Show password modal
-                showPasswordModal();
-
-                // After modal is shown, prevent back navigation
-                const observer = new MutationObserver(() => {
-                    if (!document.getElementById('password-modal-overlay')) {
-                        if (isAuthenticated()) {
-                            document.body.style.visibility = 'visible';
-                            observer.disconnect();
-                        }
-                    }
-                });
-                observer.observe(document.body, { childList: true });
+                // Keep the page (nav, title, footer); hold back only the form
+                document.querySelectorAll('.content-section').forEach(section => { section.hidden = true; });
+                showPasswordModal(true);
             }
         }
     }

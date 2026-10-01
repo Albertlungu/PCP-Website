@@ -90,6 +90,9 @@ async function displayAvailableSlots() {
     if (dates === null) {
         availableDates = [];
         slotsContainer.innerHTML = '<p class="no-slots unavailable"><strong>Sign-ups are temporarily unavailable.</strong> Please try again later or contact the program coordinator.</p>';
+        // No dates to list, so the "Open dates" heading would describe nothing
+        const slotsHeading = slotsContainer.parentElement.querySelector('h3');
+        if (slotsHeading) slotsHeading.hidden = true;
         formControls.forEach(control => { control.disabled = true; });
         form.classList.add('is-disabled');
         return;
@@ -133,7 +136,7 @@ async function displayAvailableSlots() {
     
     // Populate date dropdown
     const dateSelect = document.getElementById('date');
-    dateSelect.innerHTML = '<option value="">Select a date...</option>';
+    dateSelect.innerHTML = '<option value="">Choose a date</option>';
     availableDates.forEach(slot => {
         const option = document.createElement('option');
         option.value = slot.date;
