@@ -6,7 +6,7 @@ const SHEET_NAME = 'Performances';
 
 // This would be your Google Apps Script Web App URL
 // You'll need to create a Google Apps Script that handles POST requests
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxHnrO6qMQeGDAYySA4xDP22APgutMoXSb4vtviOO3GIvKnRX8PhP6lv9hPGGnULjib/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby_pxBtk8K4ve-M8njmefLSGUptBIwmRoWTbAONrFVOvsn9EZqifCvGWYVrtDqUCLC_/exec';
 
 // Available dates for signup (dates that have HOST or available slots)
 let availableDates = [];
