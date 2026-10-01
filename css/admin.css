@@ -874,3 +874,72 @@ body.admin-mode::before {
         justify-content: center;
     }
 }
+
+/* Publish workflow additions */
+.admin-section-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.admin-badge.dirty {
+    background: rgba(243, 156, 18, 0.25);
+    border-color: rgba(243, 156, 18, 0.6);
+    color: #f8c471;
+}
+
+.save-notification.error {
+    background: linear-gradient(135deg, #c0392b, #a93226);
+    box-shadow: 0 4px 20px rgba(192, 57, 43, 0.4);
+}
+
+.save-notification.info {
+    background: linear-gradient(135deg, #34495e, #2c3e50);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.login-error {
+    color: #ff8a80;
+    min-height: 1.2em;
+}
+
+.image-preview.dragging {
+    border-color: var(--accent-color);
+    background: rgba(212, 175, 55, 0.12);
+}
+
+.action-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+.restore-btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+/* .admin-btn sets display, which would otherwise override the hidden attribute */
+.admin-btn[hidden] {
+    display: none;
+}
+
+.admin-section-actions {
+    justify-content: center;
+}
+
+#studentsGrid > .no-history {
+    grid-column: 1 / -1;
+    text-align: center;
+}
+
+.move-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #f5f6ff;
+    min-width: 2.25rem;
+}
+
+.move-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.16);
+}
