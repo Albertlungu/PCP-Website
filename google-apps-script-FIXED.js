@@ -1,267 +1,452 @@
 // Google Apps Script for PCP Website Performance Signups
 // This script receives form submissions and writes them to Google Sheets
-//
-// Sheet layout (tab "Performances"):
-//   Row 1: title, e.g. "uOttawa PCP 2026-27 Performance Class/Master Class Schedule"
-//   Row 2: column headers
-//   Columns: A Date, B Guest Artist, C Remarks, D Student Name, E Instrument, F Piece, G Duration
-// A row under a date with an empty Student Name is an open slot.
-//
-// After editing, redeploy: Deploy > Manage deployments > Edit > New version,
-// with "Execute as: Me" and "Who has access: Anyone".
 
+// Replace with your actual Google Sheets ID
 const SPREADSHEET_ID = '1GSVqiWOL4mZTVuTaTuaskvX7zCzQrhJ7zL1Pvzl3F68';
 const SHEET_NAME = 'Performances';
-const HEADER_ROWS = 2;
-
-// Column indexes (0-based) within a row
-const COL_DATE = 0;
-const COL_GUEST = 1;
-const COL_REMARKS = 2;
-const COL_NAME = 3;
-const COL_INSTRUMENT = 4;
-const COL_PIECE = 5;
-
-// TextOutput has no setHeader(); Apps Script web apps add the CORS header themselves
-function jsonOutput(payload, callback) {
-  if (callback) {
-    // Only allow plain identifiers as JSONP callback names
-    if (!/^[A-Za-z_$][\w$]*$/.test(callback)) {
-      callback = 'callback';
-    }
-    return ContentService
-      .createTextOutput(callback + '(' + JSON.stringify(payload) + ')')
-      .setMimeType(ContentService.MimeType.JAVASCRIPT);
-  }
-  return ContentService
-    .createTextOutput(JSON.stringify(payload))
-    .setMimeType(ContentService.MimeType.JSON);
-}
 
 function doGet(e) {
-  const callback = e.parameter.callback; // JSONP callback name (optional)
   try {
-    if (e.parameter.action === 'getAvailableDates') {
-      return jsonOutput(getAvailableDatesPayload(), callback);
+    const action = e.parameter.action;
+    const callback = e.parameter.callback; // JSONP callback name (optional)
+
+    if (action === 'getAvailableDates') {
+      const payload = getAvailableDatesPayload();
+
+      // If callback provided, return JSONP (application/javascript)
+      if (callback) {
+        const jsonp = `${callback}(${JSON.stringify(payload)})`;
+        return ContentService
+          .createTextOutput(jsonp)
+          .setMimeType(ContentService.MimeType.JAVASCRIPT);
+      }
+
+      // Otherwise return normal JSON with CORS headers
+      return ContentService
+        .createTextOutput(JSON.stringify(payload))
+        .setMimeType(ContentService.MimeType.JSON)
+        .setHeader('Access-Control-Allow-Origin', '*')
+        .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        .setHeader('Access-Control-Allow-Headers', 'Content-Type');
     }
-    return jsonOutput({ success: false, message: 'Invalid action parameter' }, callback);
+
+    const errorPayload = { success: false, message: 'Invalid action parameter' };
+    return ContentService
+      .createTextOutput(JSON.stringify(errorPayload))
+      .setMimeType(ContentService.MimeType.JSON)
+      .setHeader('Access-Control-Allow-Origin', '*')
+      .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+      .setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
   } catch (error) {
     Logger.log('Error in doGet: ' + error.message);
-    return jsonOutput({ success: false, message: 'An error occurred while fetching data' }, callback);
+    const errorPayload = { success: false, message: 'An error occurred while fetching data' };
+    return ContentService
+      .createTextOutput(JSON.stringify(errorPayload))
+      .setMimeType(ContentService.MimeType.JSON)
+      .setHeader('Access-Control-Allow-Origin', '*')
+      .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+      .setHeader('Access-Control-Allow-Headers', 'Content-Type');
   }
-}
-
-function getSheet() {
-  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
-  if (!sheet) {
-    throw new Error('Sheet "' + SHEET_NAME + '" not found');
-  }
-  return sheet;
-}
-
-function cellToString(value) {
-  return value === null || value === undefined ? '' : value.toString().trim();
-}
-
-function isNA(value) {
-  return cellToString(value).toUpperCase() === 'N/A';
-}
-
-// Normalize a date cell to a string like "Oct 18"
-function dateCellToString(value) {
-  if (value instanceof Date) {
-    return Utilities.formatDate(value, Session.getScriptTimeZone(), 'MMM d');
-  }
-  return cellToString(value);
-}
-
-// The schedule runs Sept-June; read the start year from the title row ("2026-27"),
-// otherwise assume the academic year containing today.
-function getAcademicStartYear(data) {
-  const title = cellToString(data[0] && data[0][0]);
-  const match = title.match(/(\d{4})\s*[-–\/]\s*\d{2,4}/);
-  if (match) return parseInt(match[1], 10);
-  const today = new Date();
-  return today.getMonth() >= 7 ? today.getFullYear() : today.getFullYear() - 1;
 }
 
 function getAvailableDatesPayload() {
   try {
-    const data = getSheet().getDataRange().getValues();
-    const startYear = getAcademicStartYear(data);
-    const rows = data.slice(HEADER_ROWS);
+    const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = spreadsheet.getSheetByName(SHEET_NAME);
 
-    // Group rows by date (forward-filling blank date cells) and count open vs occupied slots
+    // If sheet doesn't exist, create it with headers
+    if (!sheet) {
+      const newSheet = spreadsheet.insertSheet(SHEET_NAME);
+      newSheet.appendRow(['Date', 'Guest Artist', 'Name', 'Instrument', 'Piece', 'Duration', 'Remarks']);
+      Logger.log('Created new sheet, returning fallback dates');
+      return { success: true, dates: [] };
+    }
+
+    // Get all data
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0]; // First row is headers
+    const rows = data.slice(1); // Skip headers
+
+    Logger.log('Total rows in sheet: ' + rows.length);
+
+    // Group rows by date and count total vs occupied slots
     const dateAvailability = {};
-    const dateOrder = [];
-    let currentDate = '';
-
-    rows.forEach(row => {
-      const dateValue = dateCellToString(row[COL_DATE]);
-      if (dateValue) {
-        currentDate = dateValue;
-        if (!dateAvailability[currentDate]) {
-          dateAvailability[currentDate] = {
-            openSlots: 0,
-            occupiedSlots: 0,
-            guestArtist: cellToString(row[COL_GUEST]),
-            remarks: cellToString(row[COL_REMARKS])
-          };
-          dateOrder.push(currentDate);
+    let currentDate = ''; // Track the current date for forward-filling
+    let currentGuest = ''; // Track the current guest artist
+    
+    rows.forEach((row, index) => {
+      const dateValue = row[0]; // Date column
+      const guestValue = row[1]; // Guest Artist column
+      
+      // Update current date if this row has a date value
+      if (dateValue && dateValue !== '') {
+        // Convert date to string format (handle both Date objects and strings)
+        if (typeof dateValue === 'object' && dateValue instanceof Date) {
+          currentDate = Utilities.formatDate(dateValue, Session.getScriptTimeZone(), 'MMM d');
+        } else {
+          currentDate = String(dateValue).trim();
         }
+        
+        Logger.log('Row ' + (index + 2) + ': New date found: "' + currentDate + '"');
       }
-      if (!currentDate) return;
+      
+      // Update current guest if this row has a guest value
+      if (guestValue && guestValue !== '') {
+        currentGuest = String(guestValue).trim();
+        Logger.log('  Guest artist: "' + currentGuest + '"');
+      }
+      
+      // Skip rows with no current date (happens at the start before first date)
+      if (!currentDate || currentDate === '') {
+        return;
+      }
 
-      const name = cellToString(row[COL_NAME]);
-      if (isNA(name)) return; // "N/A" means no performers that day, not a free slot
-      if (name === '') {
-        dateAvailability[currentDate].openSlots++;
-      } else {
+      // Initialize date entry if first time seeing it
+      if (!dateAvailability[currentDate]) {
+        dateAvailability[currentDate] = {
+          totalSlots: 0,
+          occupiedSlots: 0,
+          guestArtist: currentGuest
+        };
+      }
+      
+      // Count this as a slot
+      dateAvailability[currentDate].totalSlots++;
+
+      // Check if this slot is occupied
+      // A slot is occupied if Name column has content (and it's not "N/A")
+      const name = row[2] || ''; // Column C: Name
+      const nameStr = name.toString().trim();
+      
+      // Skip N/A entries and empty - they're not real occupied slots
+      if (nameStr !== '' && nameStr.toUpperCase() !== 'N/A') {
         dateAvailability[currentDate].occupiedSlots++;
+        Logger.log('  Row ' + (index + 2) + ': Occupied by "' + nameStr + '"');
+      } else {
+        Logger.log('  Row ' + (index + 2) + ': Available slot');
       }
     });
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    Logger.log('==== Date Availability Summary ====');
+    Object.keys(dateAvailability).forEach(dateStr => {
+      const avail = dateAvailability[dateStr];
+      Logger.log(dateStr + ': Total=' + avail.totalSlots + ', Occupied=' + avail.occupiedSlots + ', Available=' + (avail.totalSlots - avail.occupiedSlots) + ', Guest="' + avail.guestArtist + '"');
+    });
 
+    // Check each date for availability and future status
     const availableDates = [];
-    dateOrder.forEach(dateStr => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to start of today
+
+    Object.keys(dateAvailability).forEach(dateStr => {
+      const date = parseDate(dateStr);
+      
+      if (!date) {
+        Logger.log('Could not parse date: "' + dateStr + '"');
+        return;
+      }
+
+      // Only show future dates (or today)
+      if (date < today) {
+        Logger.log('Date in past, skipping: "' + dateStr + '"');
+        return;
+      }
+
       const availability = dateAvailability[dateStr];
-      const date = parseDate(dateStr, startYear);
-      if (!date || date < today) return;
+      const hasAvailableSlots = availability.occupiedSlots < availability.totalSlots;
 
-      // Skip days without classes, e.g. "NO CLASSES (OYO Concert)"
-      const notes = (availability.remarks + ' ' + availability.guestArtist).toLowerCase();
-      if (/no class/.test(notes)) return;
-
-      if (availability.openSlots > 0) {
+      if (hasAvailableSlots) {
+        // Create a readable label
+        const label = createDateLabel(date, dateStr, availability.guestArtist);
+        
         availableDates.push({
           date: dateStr,
-          label: createDateLabel(date, availability.remarks, availability.guestArtist),
+          label: label,
           available: true,
           rawDate: dateStr,
-          totalSlots: availability.openSlots + availability.occupiedSlots,
+          totalSlots: availability.totalSlots,
           occupiedSlots: availability.occupiedSlots,
-          availableSlots: availability.openSlots,
-          time: date.getTime()
+          availableSlots: availability.totalSlots - availability.occupiedSlots
         });
+        
+        Logger.log('✓ Added available date: "' + dateStr + '" - ' + label);
+      } else {
+        Logger.log('✗ Date fully booked: "' + dateStr + '"');
       }
     });
 
-    availableDates.sort((a, b) => a.time - b.time);
-    availableDates.forEach(d => delete d.time);
+    // Sort dates chronologically
+    availableDates.sort((a, b) => {
+      const dateA = parseDate(a.date);
+      const dateB = parseDate(b.date);
+      return dateA - dateB;
+    });
+
+    Logger.log('==== Final Result ====');
+    Logger.log('Total available dates: ' + availableDates.length);
 
     return { success: true, dates: availableDates };
 
   } catch (error) {
     Logger.log('ERROR in getAvailableDatesPayload: ' + error.message);
+    Logger.log('Stack trace: ' + error.stack);
     return {
       success: false,
-      message: 'Error fetching available dates',
+      message: 'Error fetching available dates: ' + error.message,
       dates: []
     };
   }
 }
 
-// Parse a date string like "Sept 13" into a Date within the academic year
-function parseDate(dateStr, startYear) {
-  const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun',
-                  'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-  const match = cellToString(dateStr).toLowerCase().match(/^([a-z]+)\.?\s+(\d{1,2})\b/);
-  if (!match) return null;
-
-  const month = months.indexOf(match[1].slice(0, 3));
-  if (month === -1) return null;
-
-  // August-December belong to the start year, January-July to the next
-  const year = month >= 7 ? startYear : startYear + 1;
-  return new Date(year, month, parseInt(match[2], 10));
+// Handle CORS preflight requests
+function doOptions(e) {
+  return ContentService.createTextOutput('')
+    .setMimeType(ContentService.MimeType.TEXT)
+    .setHeader('Access-Control-Allow-Origin', '*')
+    .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+    .setHeader('Access-Control-Allow-Headers', 'Content-Type');
 }
 
-// Readable label like "October 17, 2026 - Cello Masterclass"
-function createDateLabel(dateObj, remarks, guestArtist) {
-  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                      'July', 'August', 'September', 'October', 'November', 'December'];
-  let label = monthNames[dateObj.getMonth()] + ' ' + dateObj.getDate() + ', ' + dateObj.getFullYear();
+// Parse date string into Date object
+function parseDate(dateStr) {
+  try {
+    // Handle various date formats
+    if (typeof dateStr === 'object' && dateStr instanceof Date) {
+      return dateStr;
+    }
 
-  if (remarks) {
-    label += ' - ' + remarks;
-  } else if (guestArtist && !isNA(guestArtist)) {
-    label += ' - Masterclass with ' + guestArtist;
+    const strDate = dateStr.toString().trim();
+
+    // Try parsing formats like "Oct 18", "Nov 8", "Nov 29", "Dec 6", "Sept 13"
+    const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun',
+                       'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    const upperDateStr = strDate.toLowerCase();
+    
+    // Check for September first (special case - can be "Sept" or "Sep")
+    if (upperDateStr.includes('sept') || upperDateStr.startsWith('sep ')) {
+      const parts = upperDateStr.match(/(\w+)\s+(\d{1,2})(?:.*?(\d{4}))?/);
+      if (parts) {
+        const month = 8; // September is month 8 (0-indexed)
+        const day = parseInt(parts[2]);
+        const year = parts[3] ? parseInt(parts[3]) : 2025;
+        return new Date(year, month, day);
+      }
+    }
+
+    // Check other months
+    for (let i = 0; i < monthNames.length; i++) {
+      if (upperDateStr.includes(monthNames[i])) {
+        // Match patterns like "Oct 18", "Nov 8" (single or double digit days)
+        const parts = upperDateStr.match(/(\w+)\s+(\d{1,2})(?:.*?(\d{4}))?/);
+        if (parts) {
+          const month = i;
+          const day = parseInt(parts[2]);
+          const year = parts[3] ? parseInt(parts[3]) : 2025; // Default to 2025
+          return new Date(year, month, day);
+        }
+      }
+    }
+
+    // Try direct Date parse as fallback
+    const date = new Date(strDate);
+    if (!isNaN(date.getTime())) {
+      return date;
+    }
+
+    return null;
+  } catch (error) {
+    Logger.log('Error parsing date: ' + dateStr + ' - ' + error.message);
+    return null;
+  }
+}
+
+// Helper function to create readable labels
+function createDateLabel(dateObj, dateStr, guestArtist) {
+  // Format date as "Month Day, Year"
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                     'July', 'August', 'September', 'October', 'November', 'December'];
+  const month = monthNames[dateObj.getMonth()];
+  const day = dateObj.getDate();
+  const year = dateObj.getFullYear();
+  
+  let label = `${month} ${day}, ${year}`;
+  
+  // Add class type based on guest artist
+  if (guestArtist && guestArtist.trim() !== '') {
+    const guest = guestArtist.toString().trim().toLowerCase();
+    
+    // Check for HOST - indicates Performance Class
+    if (guest === 'host') {
+      label += ' - Performance Class';
+    }
+    // Check for masterclass indicators
+    else if (guest.includes('mercer')) {
+      label += ' - Cello Masterclass';
+    }
+    else if (guest.includes('chooi') || guest.includes('kim') || guest.includes('roseman')) {
+      label += ' - Violin Masterclass';
+    }
+    else if (guest.includes('thies')) {
+      label += ' - Viola Masterclass';
+    }
+    else if (guest.includes('harrison')) {
+      label += ' - Cello Masterclass';
+    }
+    else if (guest.includes('van der sloot') || guest.includes('sloot')) {
+      label += ' - Violin/Viola Masterclass';
+    }
+    else if (guest.toLowerCase() !== 'n/a') {
+      // Default to including guest artist name (if not N/A)
+      label += ` - Masterclass with ${guestArtist}`;
+    }
+    else {
+      label += ' - Performance Class';
+    }
   } else {
     label += ' - Performance Class';
   }
+  
   return label;
 }
 
 function doPost(e) {
-  // Serialize sign-ups so two students can't claim the same slot
-  const lock = LockService.getScriptLock();
   try {
+    // Parse the JSON data from the request
     const data = JSON.parse(e.postData.contents);
 
-    if (!data.date || !data.name || !data.email || !data.instrument || !data.piece || !data.duration) {
-      return jsonOutput({ success: false, message: 'Missing required fields' });
+    // Validate required fields
+    if (!data.date || !data.name || !data.instrument || !data.piece || !data.duration) {
+      return ContentService.createTextOutput(JSON.stringify({
+        success: false,
+        message: 'Missing required fields'
+      }))
+      .setMimeType(ContentService.MimeType.JSON)
+      .setHeader('Access-Control-Allow-Origin', '*')
+      .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+      .setHeader('Access-Control-Allow-Headers', 'Content-Type');
     }
 
-    lock.waitLock(20000);
-    const result = findAndFillAvailableSlot(getSheet(), data);
+    // Get the spreadsheet and sheet
+    const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = spreadsheet.getSheetByName(SHEET_NAME);
+
+    // If sheet doesn't exist, create it with headers
+    if (!sheet) {
+      const newSheet = spreadsheet.insertSheet(SHEET_NAME);
+      newSheet.appendRow(['Date', 'Guest Artist', 'Name', 'Instrument', 'Piece', 'Duration', 'Remarks']);
+      sheet = newSheet;
+    }
+
+    // Find and fill the first available slot for the selected date
+    const result = findAndFillAvailableSlot(sheet, data);
 
     if (result.success) {
-      return jsonOutput({ success: true, message: 'Registration submitted successfully!' });
+      return ContentService.createTextOutput(JSON.stringify({
+        success: true,
+        message: 'Registration submitted successfully!'
+      }))
+      .setMimeType(ContentService.MimeType.JSON)
+      .setHeader('Access-Control-Allow-Origin', '*')
+      .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+      .setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    } else {
+      return ContentService.createTextOutput(JSON.stringify({
+        success: false,
+        message: result.message
+      }))
+      .setMimeType(ContentService.MimeType.JSON)
+      .setHeader('Access-Control-Allow-Origin', '*')
+      .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+      .setHeader('Access-Control-Allow-Headers', 'Content-Type');
     }
-    return jsonOutput({ success: false, message: result.message });
 
   } catch (error) {
     Logger.log('Error in doPost: ' + error.message);
-    return jsonOutput({
+
+    return ContentService.createTextOutput(JSON.stringify({
       success: false,
       message: 'An error occurred while processing your registration. Please try again.'
-    });
-  } finally {
-    lock.releaseLock();
+    }))
+    .setMimeType(ContentService.MimeType.JSON)
+    .setHeader('Access-Control-Allow-Origin', '*')
+    .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+    .setHeader('Access-Control-Allow-Headers', 'Content-Type');
   }
 }
 
 // Find and fill the first available slot for a given date
 function findAndFillAvailableSlot(sheet, registrationData) {
   try {
+    Logger.log('Finding available slot for date: "' + registrationData.date + '"');
+    
+    // Get all data
     const data = sheet.getDataRange().getValues();
-    const rows = data.slice(HEADER_ROWS);
-    const targetDate = cellToString(registrationData.date);
-
+    const rows = data.slice(1); // Skip headers
+    
     let currentDate = '';
-    for (let index = 0; index < rows.length; index++) {
-      const row = rows[index];
-      const dateValue = dateCellToString(row[COL_DATE]);
-      if (dateValue) currentDate = dateValue;
-      if (currentDate !== targetDate) continue;
+    const matchingRows = [];
 
-      const name = cellToString(row[COL_NAME]);
-      const instrument = cellToString(row[COL_INSTRUMENT]);
-      const piece = cellToString(row[COL_PIECE]);
+    // Find all rows that belong to the requested date (using forward-fill logic)
+    rows.forEach((row, index) => {
+      const dateValue = row[0];
+      
+      // Update current date if this row has a date value
+      if (dateValue && dateValue !== '') {
+        if (typeof dateValue === 'object' && dateValue instanceof Date) {
+          currentDate = Utilities.formatDate(dateValue, Session.getScriptTimeZone(), 'MMM d');
+        } else {
+          currentDate = String(dateValue).trim();
+        }
+      }
+      
+      // If this row belongs to our target date, add it
+      if (currentDate === registrationData.date) {
+        matchingRows.push({ row: row, rowIndex: index + 2 }); // +2 for header and 0-index
+      }
+    });
+    
+    Logger.log('Found ' + matchingRows.length + ' rows for date "' + registrationData.date + '"');
 
-      if (name === '' && instrument === '' && piece === '') {
-        const rowNumber = index + HEADER_ROWS + 1; // 1-based sheet row
+    // Look for the first available slot (empty Name, Instrument, Piece columns)
+    for (let item of matchingRows) {
+      const row = item.row;
+      const name = row[2] || ''; // Column C
+      const instrument = row[3] || ''; // Column D
+      const piece = row[4] || ''; // Column E
 
-        // Columns D-G: Name, Instrument, Piece, Duration
-        sheet.getRange(rowNumber, COL_NAME + 1, 1, 4).setValues([[
-          registrationData.name,
-          registrationData.instrument,
-          registrationData.piece,
-          registrationData.duration
+      const nameStr = name.toString().trim();
+      const instrumentStr = instrument.toString().trim();
+      const pieceStr = piece.toString().trim();
+
+      // Check if this slot is available (name is empty or N/A, and no instrument/piece)
+      if ((nameStr === '' || nameStr.toUpperCase() === 'N/A') && instrumentStr === '' && pieceStr === '') {
+        Logger.log('Found available slot at row ' + item.rowIndex);
+        
+        // Fill in the available slot
+        sheet.getRange(item.rowIndex, 3, 1, 4).setValues([[
+          registrationData.name,       // Column C: Name
+          registrationData.instrument, // Column D: Instrument
+          registrationData.piece,      // Column E: Piece
+          registrationData.duration    // Column F: Duration
         ]]);
 
-        // Column C holds the event label, so keep student remarks as a note on their name
+        // Also fill in remarks if provided
         if (registrationData.remarks) {
-          sheet.getRange(rowNumber, COL_NAME + 1).setNote(registrationData.remarks);
+          sheet.getRange(item.rowIndex, 7).setValue(registrationData.remarks); // Column G: Remarks
         }
 
+        Logger.log('Successfully filled slot');
+
+        // Send confirmation email
         sendConfirmationEmail(registrationData);
+
         return { success: true };
       }
     }
 
+    // No available slot found
+    Logger.log('No available slots found');
     return {
       success: false,
       message: 'No available slots for the selected date. Please choose a different date.'
@@ -276,15 +461,6 @@ function findAndFillAvailableSlot(sheet, registrationData) {
   }
 }
 
-function escapeHtml(value) {
-  return cellToString(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-
 // Send confirmation email to the student
 function sendConfirmationEmail(registrationData) {
   try {
@@ -295,19 +471,19 @@ function sendConfirmationEmail(registrationData) {
     const piece = registrationData.piece;
     const duration = registrationData.duration;
 
-    const subject = 'Performance Registration Confirmation - uOttawa Pre-College Program';
+    const subject = 'Performance Registration Confirmation - UOttawa Pre-College Program';
 
     const htmlBody = `
       <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f8f9fa; padding: 20px;">
         <div style="background: linear-gradient(135deg, #6d0a2e, #d4af37); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-          <h1 style="color: white; margin: 0; font-size: 28px;">uOttawa Pre-College Program</h1>
+          <h1 style="color: white; margin: 0; font-size: 28px;">UOttawa Pre-College Program</h1>
           <p style="color: #f5f6ff; margin: 10px 0 0 0; font-size: 16px;">Excellence in Music Education</p>
         </div>
 
         <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
           <h2 style="color: #6d0a2e; margin-bottom: 20px; text-align: center;">Registration Confirmed!</h2>
 
-          <p style="color: #333; font-size: 16px; margin-bottom: 20px;">Dear ${escapeHtml(studentName)},</p>
+          <p style="color: #333; font-size: 16px; margin-bottom: 20px;">Dear ${studentName},</p>
 
           <p style="color: #333; font-size: 16px; margin-bottom: 20px;">
             Thank you for registering for a performance class! Your registration has been successfully processed.
@@ -315,10 +491,10 @@ function sendConfirmationEmail(registrationData) {
 
           <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #d4af37;">
             <h3 style="color: #6d0a2e; margin: 0 0 15px 0; font-size: 18px;">Performance Details:</h3>
-            <p style="margin: 8px 0; color: #333;"><strong>Date:</strong> ${escapeHtml(performanceDate)}</p>
-            <p style="margin: 8px 0; color: #333;"><strong>Instrument:</strong> ${escapeHtml(instrument)}</p>
-            <p style="margin: 8px 0; color: #333;"><strong>Piece:</strong> ${escapeHtml(piece)}</p>
-            <p style="margin: 8px 0; color: #333;"><strong>Duration:</strong> ${escapeHtml(duration)}</p>
+            <p style="margin: 8px 0; color: #333;"><strong>Date:</strong> ${performanceDate}</p>
+            <p style="margin: 8px 0; color: #333;"><strong>Instrument:</strong> ${instrument}</p>
+            <p style="margin: 8px 0; color: #333;"><strong>Piece:</strong> ${piece}</p>
+            <p style="margin: 8px 0; color: #333;"><strong>Duration:</strong> ${duration}</p>
           </div>
 
           <p style="color: #333; font-size: 16px; margin-bottom: 20px;">
@@ -342,7 +518,7 @@ function sendConfirmationEmail(registrationData) {
     `;
 
     const textBody = `
-      uOttawa Pre-College Program - Registration Confirmation
+      UOttawa Pre-College Program - Registration Confirmation
 
       Dear ${studentName},
 
@@ -374,5 +550,19 @@ function sendConfirmationEmail(registrationData) {
   } catch (error) {
     Logger.log('Error sending confirmation email: ' + error.message);
     // Don't fail the registration if email fails
+  }
+}
+
+// Function to set up the sheet (run this once manually)
+function setupSheet() {
+  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = spreadsheet.getSheetByName(SHEET_NAME);
+
+  if (!sheet) {
+    const newSheet = spreadsheet.insertSheet(SHEET_NAME);
+    newSheet.appendRow(['Date', 'Guest Artist', 'Name', 'Instrument', 'Piece', 'Duration', 'Remarks']);
+    Logger.log('Sheet setup complete');
+  } else {
+    Logger.log('Sheet already exists');
   }
 }

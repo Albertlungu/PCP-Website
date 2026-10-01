@@ -142,23 +142,163 @@ function createBackgroundDecor() {
         note.style.fontSize = `${size}rem`;
         note.style.setProperty('--note-duration', `${duration}s`);
         note.style.setProperty('--note-delay', `${delay}s`);
-        // Kept faint so the notes don't compete with page text
-        note.style.opacity = `${0.15 + Math.random() * 0.2}`;
+        note.style.opacity = `${0.25 + Math.random() * 0.35}`;
 
         notesWrapper.appendChild(note);
     }
 }
 
+const BACKGROUND_NOTE_SYMBOLS = ['♪', '♫', '♬', '♩', '♭', '♯'];
+
+function spawnFloatingNote(x, y) {
+    const note = document.createElement('div');
+    note.className = 'floating-note';
+    note.textContent = BACKGROUND_NOTE_SYMBOLS[Math.floor(Math.random() * BACKGROUND_NOTE_SYMBOLS.length)];
+    // Use fixed positioning (viewport-relative, no scroll offset needed)
+    note.style.left = `${x}px`;
+    note.style.top = `${y}px`;
+    note.style.setProperty('--floating-note-delay', '0.12s');
+    document.body.appendChild(note);
+    setTimeout(() => {
+        note.remove();
+    }, 2200);
+}
+
+function spawnClickRipple(x, y) {
+    const ripple = document.createElement('div');
+    ripple.className = 'click-ripple';
+    // Add scroll offset to position correctly
+    ripple.style.left = `${x + window.pageXOffset}px`;
+    ripple.style.top = `${y + window.pageYOffset}px`;
+    const size = 280;
+    ripple.style.width = `${size}px`;
+    ripple.style.height = `${size}px`;
+    document.body.appendChild(ripple);
+    setTimeout(() => {
+        ripple.remove();
+    }, 900);
+}
+
+function initBackgroundNoteClicks() {
+    const container = document.querySelector('.background-animations');
+    if (!container) return;
+
+    const interactiveSelector = 'a, button, input, textarea, select, label, .btn, .nav-menu, [data-ignore-note]';
+
+    document.addEventListener('click', (event) => {
+        if (event.target.closest(interactiveSelector)) {
+            return;
+        }
+
+        // Spawn visual effects at click position
+        spawnClickRipple(event.clientX, event.clientY);
+        spawnFloatingNote(event.clientX, event.clientY);
+    });
+}
+
+// Create scroll progress indicator
+function createScrollProgress() {
+    const progressBar = document.createElement('div');
+    progressBar.className = 'scroll-progress';
+    progressBar.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+        width: 0%;
+        z-index: 9999;
+        transition: width 0.1s ease;
+        box-shadow: 0 2px 10px rgba(139, 21, 56, 0.5);
+    `;
+    document.body.appendChild(progressBar);
+    
+    window.addEventListener('scroll', function() {
+        const windowHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const scrolled = (window.pageYOffset / windowHeight) * 100;
+        progressBar.style.width = scrolled + '%';
+    });
+}
+
+// Scroll-reactive depth effect
+function initScrollDepth() {
+    const sections = document.querySelectorAll('.features, .cta, .content-section');
+    
+    window.addEventListener('scroll', function() {
+        const scrolled = window.pageYOffset;
+        
+        sections.forEach((section, index) => {
+            const rect = section.getBoundingClientRect();
+            const sectionTop = rect.top + scrolled;
+            const sectionHeight = rect.height;
+            
+            // Calculate parallax offset
+            const offset = (scrolled - sectionTop + window.innerHeight) / (sectionHeight + window.innerHeight);
+            
+            if (offset > 0 && offset < 1) {
+                const translateY = (offset - 0.5) * 50;
+                section.style.transform = `translateY(${translateY}px)`;
+                section.style.opacity = 0.5 + (1 - Math.abs(offset - 0.5)) * 0.5;
+            }
+        });
+    });
+}
+
+// Magnetic button effect
+function initMagneticButtons() {
+    const buttons = document.querySelectorAll('.btn');
+    
+    buttons.forEach(button => {
+        button.addEventListener('mousemove', function(e) {
+            const rect = button.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+            
+            button.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+        });
+        
+        button.addEventListener('mouseleave', function() {
+            button.style.transform = 'translate(0, 0)';
+        });
+    });
+}
 
 // Mobile Menu Toggle
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize interactive effects
+    initScrollDepth();
+    initMagneticButtons();
     createBackgroundDecor();
+    initBackgroundNoteClicks();
+    
+    // Dropdown overlay effect
+    const dropdowns = document.querySelectorAll('.has-dropdown');
+    let dropdownTimeout;
+    
+    dropdowns.forEach(dropdown => {
+        dropdown.addEventListener('mouseenter', function() {
+            clearTimeout(dropdownTimeout);
+            document.body.classList.add('dropdown-active');
+        });
+        
+        dropdown.addEventListener('mouseleave', function() {
+            dropdownTimeout = setTimeout(() => {
+                // Check if mouse is over any dropdown
+                const anyDropdownHovered = Array.from(dropdowns).some(dd => dd.matches(':hover'));
+                if (!anyDropdownHovered) {
+                    document.body.classList.remove('dropdown-active');
+                }
+            }, 100);
+        });
+    });
+    
+    // Create scroll progress indicator
+    createScrollProgress();
     
     // Create back to top button
     const backToTop = document.createElement('button');
     backToTop.innerHTML = '↑';
     backToTop.className = 'back-to-top';
-    backToTop.setAttribute('aria-label', 'Back to top');
     backToTop.style.cssText = `
         position: fixed;
         bottom: 30px;
@@ -194,6 +334,14 @@ document.addEventListener('DOMContentLoaded', function() {
             top: 0,
             behavior: 'smooth'
         });
+    });
+    
+    backToTop.addEventListener('mouseenter', function() {
+        this.style.transform = 'scale(1.1) rotate(360deg)';
+    });
+    
+    backToTop.addEventListener('mouseleave', function() {
+        this.style.transform = 'scale(1) rotate(0deg)';
     });
     
     
@@ -303,20 +451,139 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Add active class to current page in navigation
-    // Compare without ".html" so clean URLs (e.g. /calendar) still match
-    const currentPage = (window.location.pathname.split('/').pop() || 'index.html').replace(/\.html$/, '');
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
     const allNavLinks = document.querySelectorAll('.nav-menu a');
     allNavLinks.forEach(link => {
-        const linkPage = link.getAttribute('href').replace(/\.html$/, '');
+        const linkPage = link.getAttribute('href');
         if (linkPage === currentPage) {
             link.classList.add('active');
         } else {
             link.classList.remove('active');
         }
     });
-
-    // Highlight the dropdown parent (e.g. "Program") when the current page is inside it
-    document.querySelectorAll('.dropdown-menu a.active').forEach(link => {
-        link.closest('.has-dropdown').querySelector('.dropdown-toggle').classList.add('active');
+    
+    // Intersection Observer for fade-in animations with stagger effect
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+                entry.target.classList.add('animated');
+            }
+        });
+    }, observerOptions);
+    
+    // Observe feature cards with staggered animation
+    document.querySelectorAll('.feature-card').forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px)';
+        card.style.transition = `opacity 0.6s ease ${index * 0.15}s, transform 0.6s ease ${index * 0.15}s`;
+        observer.observe(card);
     });
+    
+    // Student cards without animation
+    document.querySelectorAll('.student-card').forEach((card) => {
+        card.style.opacity = '1';
+        card.style.transform = 'none';
+    });
+    
+    // Observe content cards with scale effect (skip on code of conduct page)
+    const isCodeOfConduct = window.location.pathname.includes('code-of-conduct');
+    document.querySelectorAll('.content-card').forEach((card, index) => {
+        if (isCodeOfConduct) {
+            // No animations on code of conduct page
+            card.style.opacity = '1';
+            card.style.transform = 'none';
+        } else {
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.95)';
+            card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+            observer.observe(card);
+        }
+    });
+    
+    // Parallax effect for hero section with mouse tracking
+    const hero = document.querySelector('.hero');
+    if (hero) {
+        window.addEventListener('scroll', function() {
+            const scrolled = window.pageYOffset;
+            const parallaxSpeed = 0.5;
+            if (scrolled < hero.offsetHeight) {
+                hero.style.transform = `translateY(${scrolled * parallaxSpeed}px)`;
+            }
+        });
+        
+        // Mouse movement effect on hero
+        hero.addEventListener('mousemove', function(e) {
+            const rect = hero.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / rect.width;
+            const y = (e.clientY - rect.top) / rect.height;
+            
+            const moveX = (x - 0.5) * 30;
+            const moveY = (y - 0.5) * 30;
+            
+            const heroContent = hero.querySelector('.hero-content');
+            if (heroContent) {
+                heroContent.style.transform = `translate(${moveX}px, ${moveY}px)`;
+            }
+            
+            // Move particles container
+            const particles = hero.querySelector('.particles');
+            if (particles) {
+                particles.style.transform = `translate(${moveX * 0.5}px, ${moveY * 0.5}px)`;
+            }
+        });
+        
+        hero.addEventListener('mouseleave', function() {
+            const heroContent = hero.querySelector('.hero-content');
+            if (heroContent) {
+                heroContent.style.transform = 'translate(0, 0)';
+            }
+            const particles = hero.querySelector('.particles');
+            if (particles) {
+                particles.style.transform = 'translate(0, 0)';
+            }
+        });
+    }
+    
+    // Add hover sound effect simulation (visual feedback)
+    document.querySelectorAll('.btn, .feature-card, .student-card').forEach(element => {
+        element.addEventListener('mouseenter', function() {
+            this.style.transition = 'all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+        });
+    });
+    
+    // Animate navigation links on hover
+    document.querySelectorAll('.nav-menu a').forEach(link => {
+        link.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+        });
+        link.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+    
+    // Add typing effect to hero title (only on home page)
+    const heroTitle = document.querySelector('.hero-title');
+    if (heroTitle && window.location.pathname.endsWith('index.html') || window.location.pathname === '/') {
+        const text = heroTitle.innerHTML;
+        heroTitle.innerHTML = '';
+        heroTitle.style.opacity = '1';
+        let i = 0;
+        
+        function typeWriter() {
+            if (i < text.length) {
+                heroTitle.innerHTML += text.charAt(i);
+                i++;
+                setTimeout(typeWriter, 50);
+            }
+        }
+        
+        setTimeout(typeWriter, 500);
+    }
 });

@@ -24,7 +24,7 @@ This is a modern, responsive website for the UOttawa Pre-College Program featuri
 - **Public Website**: Informational pages about the program, events, and students
 - **Admin Panel**: Easy-to-use interface for managing student profiles
 - **Auto-Deployment**: Automatic deployment to Vercel via Git integration
-- **Password Protection**: Admin publishing is checked server-side
+- **Password Protection**: Secure admin area with session-based authentication
 
 ## ✨ Features
 
@@ -37,12 +37,23 @@ This is a modern, responsive website for the UOttawa Pre-College Program featuri
 - 📝 Sign-up forms for performances
 
 ### Admin Panel
-- Add, edit, reorder, and delete student profiles at `/admin`
-- Drafts stay in the browser until published
-- Publishing commits `data/students.json` and photos to GitHub; Vercel redeploys automatically
-- Password checked server-side by the Vercel function
+- ✏️ Add, edit, and delete student profiles
+- 🖼️ Image upload (base64) or URL input
+- 🔄 Undo/Redo functionality (50-item history)
+- 💾 Auto-save with Git integration
+- 📤 One-click deployment to Vercel
+- 🔒 Password-protected admin area
+- 🎨 Modern UI with soft red glow effect
+- 📱 Responsive design for all devices
 
-See [ADMIN_SETUP.md](ADMIN_SETUP.md) for setup and usage.
+### Technical Features
+- ⚡ Vanilla JavaScript (no framework dependencies)
+- 🎯 LocalStorage for offline editing
+- 🔄 Auto-commit and push to GitHub
+- 🚀 Automatic Vercel deployment
+- 🔐 SHA-256 password hashing
+- 📦 Modular code structure
+- 📚 Comprehensive documentation
 
 ## 📁 Project Structure
 
@@ -66,15 +77,25 @@ PCP-Website/
 │   ├── students-loader.js     # Dynamic student loading
 │   └── ...
 │
-├── 🖼️ images/students/         # Student photos (written by the admin panel)
+├── 🖼️ images/                  # Image assets
 │
-├── 📊 data/students.json       # Published student profiles
+├── 🔐 admin/                   # Password-protected admin area
+│   ├── index.html             # Admin panel
+│   ├── our-students.html      # Admin preview
+│   └── password-protection.js # Auth system
 │
-├── 🔐 admin/index.html         # Admin panel (password checked by the API)
+├── 🖥️ server/                  # Server-side scripts
+│   ├── admin-server.js        # Local development server
+│   └── START_ADMIN.command    # Mac startup script
 │
-├── ⚡ api/save-students.js     # Vercel function that publishes student profiles
+├── 📚 docs/                    # Documentation
+│   ├── admin/                 # Admin guides
+│   ├── setup/                 # Setup instructions
+│   ├── deployment/            # Deployment guides
+│   └── QUICK_START.md
 │
-├── 📚 docs/                    # Setup and deployment notes
+├── 📊 _data/                   # Data files
+│   └── students/              # Student markdown files
 │
 ├── ⚙️ vercel.json              # Vercel configuration
 └── 📖 README.md                # This file
@@ -87,22 +108,73 @@ PCP-Website/
 - Git
 - A text editor (VS Code recommended)
 
-### For Content Editors
+### For Content Editors (Non-Coders)
 
-Go to `/admin` on the live site, sign in, edit, and click **Publish**. See [ADMIN_SETUP.md](ADMIN_SETUP.md).
+1. **Start the admin server:**
+   ```bash
+   # On Mac: Double-click
+   server/START_ADMIN.command
+   
+   # On Windows/Linux:
+   cd server
+   node admin-server.js
+   ```
+
+2. **Open admin panel:**
+   ```
+   http://localhost:3000/admin.html
+   ```
+
+3. **Edit students:**
+   - Click "Add New Student"
+   - Upload image or enter URL
+   - Fill in name and bio
+   - Click "Save Student"
+
+4. **Deploy changes:**
+   - Click "Export HTML"
+   - Wait for "Success! Changes deployed" message
+   - Changes will be live on Vercel in ~2 minutes
 
 ### For Developers
 
-The site is static HTML, CSS, and JavaScript with one Vercel function in `api/`.
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/yourusername/pcp-website.git
+   cd pcp-website
+   ```
 
-1. Clone the repository.
-2. Preview the public pages with any static server (for example `python3 -m http.server`), or run `vercel dev` to also run the admin API locally.
-3. Commit and push to `main`; Vercel deploys automatically.
+2. **Start development server:**
+   ```bash
+   node server/admin-server.js
+   ```
+
+3. **Make changes and test locally**
+
+4. **Commit and deploy:**
+   ```bash
+   git add .
+   git commit -m "Your message"
+   git push
+   ```
 
 ## 📚 Documentation
 
-- [Admin Panel Setup and Usage](ADMIN_SETUP.md)
-- [Google Sheets Setup](docs/setup/GOOGLE_SHEETS_SETUP.md) - Calendar and sign-up integration
+Comprehensive documentation is available in the `/docs` folder:
+
+### Admin Guides
+- [Admin Workflow Guide](docs/admin/ADMIN_WORKFLOW_GUIDE.md) - Complete workflow
+- [Important Admin Note](docs/admin/IMPORTANT_ADMIN_NOTE.md) - Quick reference
+- [Password Setup](docs/admin/PASSWORD_SETUP.md) - Security configuration
+- [Admin Guide](docs/admin/ADMIN_GUIDE.md) - Detailed admin instructions
+
+### Deployment
+- [Vercel Deployment Guide](docs/deployment/VERCEL_DEPLOYMENT_GUIDE.md) - Auto-deployment
+- [Quick Start](docs/QUICK_START.md) - Get started quickly
+
+### Setup
+- [Decap CMS Setup](docs/setup/DECAP_CMS_SETUP.md) - Optional CMS
+- [Google Sheets Setup](docs/setup/GOOGLE_SHEETS_SETUP.md) - Integration guide
 
 ## 🛠️ Development
 
@@ -111,8 +183,8 @@ The site is static HTML, CSS, and JavaScript with one Vercel function in `api/`.
 - **HTML Files**: Root level (required for Vercel routing)
 - **CSS Files**: `/css` folder (standard web convention)
 - **JavaScript Files**: `/js` folder (standard web convention)
-- **Admin Panel**: `/admin` folder
-- **Serverless Function**: `/api` folder (publishes student profiles)
+- **Admin Files**: `/admin` folder (password-protected area)
+- **Server Scripts**: `/server` folder (Node.js scripts)
 - **Documentation**: `/docs` folder (organized by topic)
 
 ### Code Documentation
@@ -125,13 +197,22 @@ All code is comprehensively documented with:
 
 ### Key Files
 
-- `js/admin-students.js` - Admin panel
-- `api/save-students.js` - Publishes `data/students.json` and photos to GitHub
-- `js/students-loader.js` - Renders the Our Students page from `data/students.json`
+- `js/admin-students.js` - Admin panel functionality (600+ lines, fully documented)
+- `css/admin.css` - Admin UI styling (comprehensive design system)
+- `server/admin-server.js` - Local server with Git automation
+- `js/students-loader.js` - Dynamic student profile loading
 
 ## 🚀 Deployment
 
-Every push to `main` deploys on Vercel, including commits made by the admin panel's Publish button.
+### Automatic Deployment (Recommended)
+
+1. **Edit locally** at `localhost:3000/admin.html`
+2. **Click "Export HTML"** in admin panel
+3. **Server automatically:**
+   - Saves changes to `our-students.html`
+   - Commits to Git with timestamp
+   - Pushes to GitHub
+   - Triggers Vercel deployment
 
 ### Manual Deployment
 

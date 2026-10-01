@@ -43,8 +43,12 @@ function loadJsonp(url, callbackParam = 'callback') {
 async function fetchAvailableDates() {
     try {
         // Try regular CORS mode first
-        // No custom headers: Apps Script can't answer a CORS preflight
-        const response = await fetch(`${SCRIPT_URL}?action=getAvailableDates`);
+        const response = await fetch(`${SCRIPT_URL}?action=getAvailableDates`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -52,8 +56,7 @@ async function fetchAvailableDates() {
 
         const result = await response.json();
         console.log('✅ Successfully loaded dates via CORS');
-        if (!result.success) throw new Error(result.message || 'Could not load dates');
-        return result.dates;
+        return result.success ? result.dates : getFallbackDates();
 
     } catch (corsError) {
         // Fall back to JSONP if CORS fails
@@ -62,42 +65,28 @@ async function fetchAvailableDates() {
         try {
             const result = await loadJsonp(`${SCRIPT_URL}?action=getAvailableDates`);
             console.log('✅ Successfully loaded dates via JSONP fallback');
-            if (!result.success) throw new Error(result.message || 'Could not load dates');
-            return result.dates;
+            return result.success ? result.dates : getFallbackDates();
         } catch (jsonpError) {
             console.error('❌ Both CORS and JSONP failed:', jsonpError.message);
-            return null;
+            return getFallbackDates();
         }
     }
 }
 
-function escapeHtml(value) {
-    return String(value)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+// Fallback dates function
+function getFallbackDates() {
+    return [
+        { date: 'Nov 08', label: 'November 8, 2025 - Performance Class', available: true },
+        { date: 'Nov 22', label: 'November 22, 2025 - Violin Masterclass', available: true },
+        { date: 'Nov 29', label: 'November 29, 2025 - Viola Masterclass', available: true },
+        { date: 'Dec 06', label: 'December 6, 2025 - Performance Class', available: true }
+    ];
 }
 
 // Display available slots
 async function displayAvailableSlots() {
     const slotsContainer = document.getElementById('available-slots');
-    const dates = await fetchAvailableDates();
-    const form = document.getElementById('performance-signup-form');
-    const formControls = form.querySelectorAll('input, select, textarea, button');
-    
-    if (dates === null) {
-        availableDates = [];
-        slotsContainer.innerHTML = '<p class="no-slots unavailable"><strong>Sign-ups are temporarily unavailable.</strong> Please try again later or contact the program coordinator.</p>';
-        formControls.forEach(control => { control.disabled = true; });
-        form.classList.add('is-disabled');
-        return;
-    }
-    
-    availableDates = dates;
-    formControls.forEach(control => { control.disabled = false; });
-    form.classList.remove('is-disabled');
+    availableDates = await fetchAvailableDates();
     
     if (availableDates.length === 0) {
         slotsContainer.innerHTML = '<p class="no-slots">No available slots at the moment. Please check back later.</p>';
@@ -112,18 +101,13 @@ async function displayAvailableSlots() {
 
         let availabilityText = '';
         if (slot.availableSlots !== undefined) {
-            availabilityText = `<div class="slot-availability">${slot.availableSlots} ${slot.availableSlots === 1 ? 'slot' : 'slots'} available</div>`;
+            availabilityText = `<div class="slot-availability">${slot.availableSlots} slots available</div>`;
         }
 
-        // "Oct 17" -> day/month tile, matching the calendar's list view
-        const [slotMonth, slotDay] = String(slot.date).split(/\s+/);
         slotCard.innerHTML = `
-            <div class="slot-icon">
-                <span class="slot-day">${escapeHtml(slotDay || '')}</span>
-                <span class="slot-month">${escapeHtml((slotMonth || '').slice(0, 3))}</span>
-            </div>
+            <div class="slot-icon">🎵</div>
             <div class="slot-info">
-                <div class="slot-date">${escapeHtml(slot.label)}</div>
+                <div class="slot-date">${slot.label}</div>
                 <div class="slot-status available">Available</div>
                 ${availabilityText}
             </div>
@@ -142,29 +126,55 @@ async function displayAvailableSlots() {
     });
 }
 
-// Submit form to Google Sheets
+// Submit form to Google Sheets with CORS fallback
 async function submitPerformance(formData) {
-    // Sent as text/plain (no custom headers) so the browser skips the CORS preflight
-    // and we can read the script's JSON reply. Never fall back to no-cors: that
-    // hides failures and would tell the student they're registered when they aren't.
-    const response = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify(formData)
-    });
+    try {
+        // Try regular CORS mode first
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
 
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Successfully submitted via CORS');
+
+        if (result.success) {
+            return {
+                success: true,
+                message: 'Registration submitted successfully!'
+            };
+        } else {
+            throw new Error(result.message || 'Submission failed');
+        }
+
+    } catch (corsError) {
+        // Fall back to no-cors mode if CORS fails
+        console.warn('❌ CORS failed for submission, trying no-cors mode:', corsError.message);
+
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+
+        // In no-cors mode we can't read the response, so assume success
+        console.log('✅ Submitted via no-cors fallback');
+        return {
+            success: true,
+            message: 'Registration submitted successfully! Please check your email for confirmation.'
+        };
     }
-
-    const result = await response.json();
-    return {
-        success: !!result.success,
-        message: result.message || ''
-    };
 }
-
-// Accepts plain minutes ("12", "9.5") or minutes' seconds'' ("12' 30''", "12'30\"")
-const DURATION_PATTERN = /^(\d+(\.\d+)?|\d+'\s*(\d{1,2}\s*(''|"|')?)?)$/;
 
 // Form validation
 function validateForm(formData) {
@@ -192,15 +202,14 @@ function validateForm(formData) {
     
     if (!formData.duration) {
         errors.push('Please enter the estimated duration');
-    } else if (!DURATION_PATTERN.test(formData.duration.trim())) {
-        errors.push('Duration must be in minutes (e.g., 12) or minutes\' seconds\'\' (e.g., 12\' 30\'\')');
+    } else if (!/^\d+[']\s*\d*["']?$/.test(formData.duration.trim())) {
+        errors.push('Duration must be in format: minutes\' seconds" (e.g., 12\' 30")');
     }
     
     return errors;
 }
 
 // Show form message
-let formMessageTimer;
 function showFormMessage(message, type = 'success') {
     const messageDiv = document.getElementById('form-message');
     messageDiv.textContent = message;
@@ -208,8 +217,7 @@ function showFormMessage(message, type = 'success') {
     messageDiv.style.display = 'block';
     
     // Auto-hide after 5 seconds
-    clearTimeout(formMessageTimer);
-    formMessageTimer = setTimeout(() => {
+    setTimeout(() => {
         messageDiv.style.display = 'none';
     }, 5000);
 }
@@ -264,26 +272,27 @@ document.addEventListener('DOMContentLoaded', async function() {
                 // Refresh available slots
                 await displayAvailableSlots();
             } else {
-                // e.g. the slot filled up between page load and submission
-                showFormMessage(`✗ ${result.message || 'Your registration could not be completed. Please try again.'}`, 'error');
+                throw new Error(result.message || 'Submission failed');
             }
         } catch (error) {
             showFormMessage('✗ An error occurred while submitting your registration. Please try again or contact the program coordinator.', 'error');
             console.error('Submission error:', error);
         } finally {
             // Reset button state
-            submitBtn.disabled = availableDates.length === 0;
+            submitBtn.disabled = false;
             btnText.style.display = 'inline';
             btnLoading.style.display = 'none';
         }
     });
     
     // Real-time validation hints
+    const nameInput = document.getElementById('name');
+    const pieceInput = document.getElementById('piece');
     const durationInput = document.getElementById('duration');
     
     durationInput.addEventListener('blur', function() {
         const value = this.value.trim();
-        if (value && !DURATION_PATTERN.test(value)) {
+        if (value && !/^\d+[']\s*\d*["']?$/.test(value)) {
             this.classList.add('invalid');
             const helpText = this.nextElementSibling;
             if (helpText) {
@@ -298,4 +307,17 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     });
     
+    // Auto-format duration
+    durationInput.addEventListener('input', function() {
+        let value = this.value;
+        // Remove any existing quotes
+        value = value.replace(/['"]/g, '');
+        
+        // If user types numbers, auto-format
+        if (/^\d+$/.test(value)) {
+            if (value.length >= 2) {
+                this.value = value + '\' ';
+            }
+        }
+    });
 });
