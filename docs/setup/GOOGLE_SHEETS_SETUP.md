@@ -1,5 +1,15 @@
 # PCP Website - Google Sheets Integration Setup
 
+## Current setup (2026-27)
+
+- The calendar reads the **Performances** tab with the public Sheets API key in `calendar.js`.
+- Columns: A Date, B Guest Artist, C Remarks, D Student Name, E Instrument, F Piece, G Duration. Rows 1-2 are the title and headers.
+- Sign-ups go through the Apps Script in `google-apps-script-FIXED.js`. After any change to it, open the script editor, paste the file, then **Deploy > Manage deployments > Edit > New version** with **Execute as: Me** and **Who has access: Anyone**.
+- If the deployment URL changes, update `SCRIPT_URL` in `signup.js`.
+- If the sign-up page says "Sign-ups are temporarily unavailable", the script URL is not publicly reachable (usually the access setting) and needs to be redeployed as above.
+
+The sections below describe the original setup.
+
 ## Problem
 The sign up form was not actually sending data to Google Sheets. The JavaScript was simulating success but not making real API calls.
 

@@ -1480,7 +1480,8 @@ body.dropdown-active .page-header {
 /* Student Profiles */
 .students-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(360px, 575px));
+    /* auto-fit drops empty tracks so a single card is centered */
+    grid-template-columns: repeat(auto-fit, minmax(360px, 575px));
     justify-content: center;
     gap: 2.75rem;
     margin-top: 2rem;
@@ -2772,4 +2773,38 @@ body.dropdown-active .page-header {
     .room-number-today {
         font-size: 1.5rem;
     }
+}
+
+/* Shown on our-students.html?preview while viewing unpublished admin changes */
+.preview-banner {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10002;
+    padding: 0.75rem 1rem;
+    text-align: center;
+    font-weight: 600;
+    color: #1a1a2e;
+    background: var(--accent-light);
+}
+
+.preview-banner a {
+    color: #1a1a2e;
+    margin-left: 0.5rem;
+}
+
+.footer-credit {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    opacity: 0.7;
+}
+
+.footer-credit a {
+    color: var(--accent-light);
+    text-decoration: none;
+}
+
+.footer-credit a:hover {
+    text-decoration: underline;
 }
