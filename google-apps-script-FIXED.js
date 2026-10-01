@@ -295,12 +295,12 @@ function sendConfirmationEmail(registrationData) {
     const piece = registrationData.piece;
     const duration = registrationData.duration;
 
-    const subject = 'Performance Registration Confirmation - UOttawa Pre-College Program';
+    const subject = 'Performance Registration Confirmation - uOttawa Pre-College Program';
 
     const htmlBody = `
       <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f8f9fa; padding: 20px;">
         <div style="background: linear-gradient(135deg, #6d0a2e, #d4af37); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-          <h1 style="color: white; margin: 0; font-size: 28px;">UOttawa Pre-College Program</h1>
+          <h1 style="color: white; margin: 0; font-size: 28px;">uOttawa Pre-College Program</h1>
           <p style="color: #f5f6ff; margin: 10px 0 0 0; font-size: 16px;">Excellence in Music Education</p>
         </div>
 
@@ -342,7 +342,7 @@ function sendConfirmationEmail(registrationData) {
     `;
 
     const textBody = `
-      UOttawa Pre-College Program - Registration Confirmation
+      uOttawa Pre-College Program - Registration Confirmation
 
       Dear ${studentName},
 

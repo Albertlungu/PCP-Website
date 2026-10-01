@@ -58,89 +58,26 @@
     function showPasswordModal() {
         if (document.getElementById('password-modal-overlay')) return;
 
-        // Create modal overlay
+        // Styles live in css/styles.css (.gate-*)
         const overlay = document.createElement('div');
         overlay.id = 'password-modal-overlay';
-        overlay.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            backdrop-filter: blur(5px);
-            visibility: visible; /* the page body is hidden while locked; keep the dialog visible */
-        `;
+        overlay.className = 'gate-overlay';
 
-        // Create modal content
         const modal = document.createElement('div');
-        modal.style.cssText = `
-            background: white;
-            padding: 2.5rem;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 400px;
-            width: 90%;
-            text-align: center;
-        `;
-
+        modal.className = 'gate-dialog';
+        modal.setAttribute('role', 'dialog');
+        modal.setAttribute('aria-modal', 'true');
+        modal.setAttribute('aria-labelledby', 'gate-title');
         modal.innerHTML = `
-            <h2 style="margin: 0 0 1rem 0; color: #8B1538; font-family: 'Arial', serif;">Password Required</h2>
-            <p style="margin: 0 0 1.5rem 0; color: #666; font-size: 0.95rem;">Please enter the password to access the performance sign-up page.</p>
+            <h2 id="gate-title">Performance sign-up</h2>
+            <p>Enter the password from your program coordinator to open the sign-up form.</p>
             <form id="password-form">
-                <input
-                    type="password"
-                    id="password-input"
-                    placeholder="Enter password"
-                    style="
-                        width: 100%;
-                        padding: 0.75rem;
-                        border: 2px solid #ddd;
-                        border-radius: 8px;
-                        font-size: 1rem;
-                        box-sizing: border-box;
-                        margin-bottom: 1rem;
-                        transition: border-color 0.3s;
-                    "
-                    required
-                >
-                <div id="error-message" style="color: #d32f2f; font-size: 0.875rem; margin-bottom: 1rem; min-height: 1.25rem;"></div>
-                <div style="display: flex; gap: 0.75rem;">
-                    <button
-                        type="button"
-                        id="cancel-btn"
-                        style="
-                            flex: 1;
-                            padding: 0.75rem 1.5rem;
-                            background: #f5f5f5;
-                            color: #333;
-                            border: none;
-                            border-radius: 8px;
-                            font-size: 1rem;
-                            cursor: pointer;
-                            transition: background 0.3s;
-                            font-weight: 500;
-                        "
-                    >Cancel</button>
-                    <button
-                        type="submit"
-                        style="
-                            flex: 1;
-                            padding: 0.75rem 1.5rem;
-                            background: #8B1538;
-                            color: white;
-                            border: none;
-                            border-radius: 8px;
-                            font-size: 1rem;
-                            cursor: pointer;
-                            transition: background 0.3s;
-                            font-weight: 500;
-                        "
-                    >Submit</button>
+                <label class="gate-label" for="password-input">Password</label>
+                <input type="password" id="password-input" class="gate-input" autocomplete="current-password" required>
+                <div id="error-message" class="gate-error" role="alert"></div>
+                <div class="gate-actions">
+                    <button type="button" id="cancel-btn" class="gate-btn gate-btn-secondary">Cancel</button>
+                    <button type="submit" class="gate-btn gate-btn-primary">Open sign-up</button>
                 </div>
             </form>
         `;
@@ -148,33 +85,10 @@
         overlay.appendChild(modal);
         document.body.appendChild(overlay);
 
-        // Add hover effects
-        const submitBtn = modal.querySelector('button[type="submit"]');
-        submitBtn.addEventListener('mouseenter', () => {
-            submitBtn.style.background = '#a01a42';
-        });
-        submitBtn.addEventListener('mouseleave', () => {
-            submitBtn.style.background = '#8B1538';
-        });
-
         const cancelBtn = modal.querySelector('#cancel-btn');
-        cancelBtn.addEventListener('mouseenter', () => {
-            cancelBtn.style.background = '#e0e0e0';
-        });
-        cancelBtn.addEventListener('mouseleave', () => {
-            cancelBtn.style.background = '#f5f5f5';
-        });
-
-        // Focus input with border effect
         const passwordInput = modal.querySelector('#password-input');
         // autofocus is ignored on elements inserted after load
         setTimeout(() => passwordInput.focus(), 0);
-        passwordInput.addEventListener('focus', () => {
-            passwordInput.style.borderColor = '#8B1538';
-        });
-        passwordInput.addEventListener('blur', () => {
-            passwordInput.style.borderColor = '#ddd';
-        });
 
         // Handle form submission
         const form = modal.querySelector('#password-form');
@@ -192,10 +106,9 @@
                     window.location.href = 'signup.html';
                 }
             } else {
-                errorMessage.textContent = 'Incorrect password. Please try again.';
+                errorMessage.textContent = 'That password is incorrect. Check with your program coordinator.';
                 passwordInput.value = '';
                 passwordInput.focus();
-                passwordInput.style.borderColor = '#d32f2f';
             }
         });
 

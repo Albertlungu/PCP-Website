@@ -205,12 +205,11 @@
         upcomingDates.forEach((assignment, dateIndex) => {
             const note = getSpecialNote(assignment);
             const hasRooms = assignment.rooms.some(room => /^\d+$/.test(room));
-            const dateLabel = dateIndex === 0 ? 'Next Session' : dateIndex === 1 ? 'Following' : 'Later';
 
             html += `<div class="chamber-date-card">`;
             html += `<div class="chamber-date-header">`;
-            html += `<span class="date-label">${dateLabel}</span>`;
             html += `<span class="date-value">${formatDate(assignment.date)}</span>`;
+            if (dateIndex === 0) html += `<span class="date-label">Next session</span>`;
             html += `</div>`;
 
             if (note) {
@@ -283,7 +282,7 @@
             html += '</div>';
         }
 
-        html += '<a href="chamber-rooms.html" class="chamber-banner-link">View Full Schedule →</a>';
+        html += '<a href="chamber-rooms.html" class="chamber-banner-link">View full schedule</a>';
         html += '</div>';
         html += '</div>';
 

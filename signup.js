@@ -115,8 +115,13 @@ async function displayAvailableSlots() {
             availabilityText = `<div class="slot-availability">${slot.availableSlots} ${slot.availableSlots === 1 ? 'slot' : 'slots'} available</div>`;
         }
 
+        // "Oct 17" -> day/month tile, matching the calendar's list view
+        const [slotMonth, slotDay] = String(slot.date).split(/\s+/);
         slotCard.innerHTML = `
-            <div class="slot-icon">🎵</div>
+            <div class="slot-icon">
+                <span class="slot-day">${escapeHtml(slotDay || '')}</span>
+                <span class="slot-month">${escapeHtml((slotMonth || '').slice(0, 3))}</span>
+            </div>
             <div class="slot-info">
                 <div class="slot-date">${escapeHtml(slot.label)}</div>
                 <div class="slot-status available">Available</div>
