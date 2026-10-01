@@ -3,85 +3,107 @@
 
 const SPREADSHEET_ID = '1GSVqiWOL4mZTVuTaTuaskvX7zCzQrhJ7zL1Pvzl3F68';
 const API_KEY = 'AIzaSyDYPaPDtcWQDMna_ZIFtofdnNcBSPYS2ys'; // I updated with my API key
-const SHEET_NAME = 'Sheet1';
+const SHEET_NAME = 'Performances';
 
 // Event data structure
 let allEvents = [];
 let currentMonth = new Date().getMonth();
 let currentYear = new Date().getFullYear();
 let currentFilter = 'all';
+let loadError = false;
 
 // Month names
 const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'];
 
-// Parse the spreadsheet data into events
+// Sheet values come from public sign-ups, so they must never be injected as raw HTML
+function escapeHtml(value) {
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function isBlank(value) {
+    const v = (value || '').toString().trim();
+    return v === '' || v.toUpperCase() === 'N/A';
+}
+
+// The schedule runs Sept-June; read the start year from a title like "2026-27",
+// otherwise assume the academic year that contains today (starting in August).
+function getAcademicStartYear(data) {
+    const title = (data[0] && data[0][0]) || '';
+    const match = title.match(/(\d{4})\s*[-–\/]\s*\d{2,4}/);
+    if (match) return parseInt(match[1], 10);
+    const today = new Date();
+    return today.getMonth() >= 7 ? today.getFullYear() : today.getFullYear() - 1;
+}
+
+// Sheet columns: A Date, B Guest Artist, C Remarks, D Student Name, E Instrument, F Piece, G Duration
 function parseSheetData(data) {
     const events = [];
+    const startYear = getAcademicStartYear(data);
     
-    // Skip header rows (first 2 rows)
+    // Skip header rows (title row + column headers)
     for (let i = 2; i < data.length; i++) {
-        const row = data[i];
-        const dateStr = row[0]; // Column A: Date
-        const guestArtist = row[1]; // Column B: Guest Artist
-        const name = row[2]; // Column C: Name
-        const instrument = row[3]; // Column D: Instrument
-        const piece = row[4]; // Column E: Piece
-        const duration = row[5]; // Column F: Duration
-        const remarks = row[6]; // Column G: Remarks
+        const row = data[i] || [];
+        const dateStr = (row[0] || '').trim();
         
-        // Skip empty rows or special rows
         if (!dateStr || dateStr === 'Date' || dateStr === 'N/A') continue;
         
         // Parse date - format is like "Sept 13", "Oct 4", etc.
-        const date = parseDate(dateStr, currentYear);
+        const date = parseDate(dateStr, startYear);
         if (!date) continue;
         
+        const guestArtist = (row[1] || '').trim();
+        const remarks = (row[2] || '').trim();
+        const lowerRemarks = remarks.toLowerCase();
+        
         // Determine event type
-        let eventType = 'performance';
-        if (remarks && remarks.toLowerCase().includes('masterclass')) {
+        let eventType = 'special';
+        if (lowerRemarks.includes('masterclass') || lowerRemarks.includes('master class')) {
             eventType = 'masterclass';
-        } else if (remarks && remarks.toLowerCase().includes('performance class')) {
+        } else if (lowerRemarks.includes('performance class')) {
             eventType = 'performance';
-        } else if (remarks && (remarks.toLowerCase().includes('thanksgiving') || 
-                               remarks.toLowerCase().includes('rehearsal') || 
-                               remarks.toLowerCase().includes('improvisation'))) {
-            eventType = 'special';
+        } else if (!remarks && !isBlank(guestArtist)) {
+            // A guest artist with no label is a masterclass
+            eventType = 'masterclass';
         }
         
-        // Create event object
         const event = {
             date: date,
             dateStr: dateStr,
-            guestArtist: guestArtist || 'TBA',
+            // Non-class rows (holidays, orientation) reuse this column for notes
+            guestArtist: isBlank(guestArtist) || eventType === 'special' ? '' : guestArtist,
             performers: [],
             type: eventType,
-            remarks: remarks || ''
+            remarks: remarks
         };
         
-        // Add performer if exists
-        if (name && name !== 'N/A') {
-            event.performers.push({
-                name: name,
-                instrument: instrument || '',
-                piece: piece || '',
-                duration: duration || ''
-            });
-            
-            // Check for multiple performers in same date (next rows)
-            let j = i + 1;
-            while (j < data.length && (!data[j][0] || data[j][0] === '')) {
-                if (data[j][2] && data[j][2] !== 'N/A') {
-                    event.performers.push({
-                        name: data[j][2],
-                        instrument: data[j][3] || '',
-                        piece: data[j][4] || '',
-                        duration: data[j][5] || ''
-                    });
-                }
-                j++;
+        // Performers are on this row and on the following rows until the next date
+        let j = i;
+        do {
+            const performerRow = data[j] || [];
+            const name = (performerRow[3] || '').trim();
+            if (!isBlank(name)) {
+                event.performers.push({
+                    name: name,
+                    instrument: (performerRow[4] || '').trim(),
+                    piece: (performerRow[5] || '').trim(),
+                    duration: formatDuration(performerRow[6])
+                });
             }
-            i = j - 1; // Skip the rows we've already processed
+            j++;
+        } while (j < data.length && !((data[j] || [])[0] || '').trim());
+        i = j - 1;
+        
+        // Dates with nothing scheduled yet are placeholders in the sheet
+        if (!event.remarks && !event.guestArtist && event.performers.length === 0) continue;
+        
+        if (!event.remarks) {
+            event.remarks = eventType === 'masterclass' ? 'Masterclass' : 'Event';
         }
         
         events.push(event);
@@ -90,8 +112,15 @@ function parseSheetData(data) {
     return events;
 }
 
-// Parse date string like "Sept 13" to Date object
-function parseDate(dateStr, year) {
+// Durations are entered as plain minutes ("10", "9.5") or as 12' 30''
+function formatDuration(value) {
+    const v = (value || '').toString().trim();
+    if (isBlank(v)) return '';
+    return /^\d+(\.\d+)?$/.test(v) ? `${v} min` : v;
+}
+
+// Parse date string like "Sept 13" to Date object within the academic year
+function parseDate(dateStr, startYear) {
     const monthMap = {
         'jan': 0, 'january': 0,
         'feb': 1, 'february': 1,
@@ -107,7 +136,7 @@ function parseDate(dateStr, year) {
         'dec': 11, 'december': 11
     };
     
-    const parts = dateStr.trim().toLowerCase().split(' ');
+    const parts = dateStr.trim().toLowerCase().replace('.', '').split(/\s+/);
     if (parts.length < 2) return null;
     
     const month = monthMap[parts[0]];
@@ -115,21 +144,15 @@ function parseDate(dateStr, year) {
     
     if (month === undefined || isNaN(day)) return null;
     
+    // August-December belong to the start year, January-July to the next
+    const year = month >= 7 ? startYear : startYear + 1;
     return new Date(year, month, day);
-}
-
-// Helper function to format guest artist display
-function formatGuestArtist(guestArtist) {
-    if (guestArtist && guestArtist.toUpperCase() === 'HOST') {
-        return 'Performance Class';
-    }
-    return guestArtist || 'TBA';
 }
 
 // Fetch events from Google Sheets API
 async function fetchEvents() {
     try {
-        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${SHEET_NAME}?key=${API_KEY}`;
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}?key=${API_KEY}`;
 
         const response = await fetch(url);
         if (!response.ok) {
@@ -143,48 +166,12 @@ async function fetchEvents() {
 
         allEvents = parseSheetData(data.values);
         console.log(`Successfully loaded ${allEvents.length} events from Google Sheets`);
-        return allEvents;
     } catch (error) {
         console.error('Error fetching events from Google Sheets:', error);
-
-        // Fallback to hardcoded data if API fails
-        console.log('Falling back to hardcoded data...');
-        const hardcodedData = [
-            ['Date', 'Guest Artist', 'Name', 'Instrument', 'Piece', 'Duration', 'Remarks'],
-            ['uOttawa PC Performance Class Schedule', '', '', '', '', '', ''],
-            ['Sept 13', 'Rachel Mercer', 'N/A', 'N/A', 'N/A', 'N/A', 'Chamber Rehearsal Technique'],
-            ['Sept 20', 'Abramoff', 'N/A', 'N/A', 'N/A', 'N/A', 'Improvisation Technique'],
-            ['Sept 27', 'Chooi', 'Philippe Lafleur', 'Violin', 'Mendelssohn Violin Concerto, E minor, first movement', '14\' 00\'\'', 'Violin Masterclass'],
-            ['', '', 'Vincent Pham', 'Violin', 'Sibelius Violin Concerto, D minor, first movement (1st half)', '17\' 30\'\'', ''],
-            ['', '', 'Sakura Sone', 'Violin', 'Wieniawski Scherzo-Tarantelle', '5\' 00\'\'', ''],
-            ['Oct 4', 'Harrison', 'Noah & Ella Marks', 'Violin & Cello', 'Brahms Concerto for Violin and Cello, A Minor, first movement', '18\' 00\'\'', 'Cello Masterclass'],
-            ['', '', 'Josie van der Sloot', 'Cello', 'Haydn Cello Concerto, C Major, first movement', '8\' 00\'\'', ''],
-            ['', '', 'Jacob Kang', 'Cello', 'Bach Cello Suite #5, C minor, Prelude', '5\' 30\'\'', ''],
-            ['Oct 11', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'Thanksgiving'],
-            ['Oct 18', 'HOST', 'Vincent Pham', 'Violin', 'Sibelius Violin Concerto, D minor, first movement', '14\'00"', 'Performance Class'],
-            ['', '', 'Henrik Stephenson', 'Cello', 'Elgar Cello Concerto, E minor, first movement', '8\'00\'\'', ''],
-            ['', '', 'Abigail Goncharenko', 'Violin', 'Mozart Violin Concerto # 4, D Major, first movement', '8\'30\'\'', ''],
-            ['', '', 'Philippe Lafleur', 'Violin', 'Mendelssohn Violin Concerto, E minor, first movement', '14\' 00\'\'', ''],
-            ['', '', 'Albert Lungu', 'Viola', 'Bowen Viola Sonata, C minor, first movement', '11\'00\'\'', ''],
-            ['', '', 'Opus Pocus Quartet', 'String Quartet', 'Beethoven String Quartet, C Minor, first movement', '10\'00\'\'', ''],
-            ['Oct 25', 'van der Sloot', 'Philippe Lafleur', 'Violin', 'Mendelssohn Violin Concerto, E minor, first movement', '14\' 00\'\'', 'Violin/Viola Masterclass'],
-            ['', '', 'Hayato Sone', 'Violin', 'Bach Violin Concerto, A minor, first movement', '5\' 00\'\'', ''],
-            ['', '', 'Olivia Kwan', 'Violin', 'Mozart concerto # 3, G Major, first movement', '6\' 00\'\'', ''],
-            ['Nov 01', 'Jessy Kim', 'Abigail Goncharenko', 'Violin', 'Mozart Violin Concerto # 4, D Major, first movement', '8\'30\'\'', 'Violin Masterclass'],
-            ['Nov 8', 'HOST', 'Vincent Pham', 'Violin', 'Paganini 13', '', 'Performance Class'],
-            ['Nov 15', 'Mercer', 'Henrik Stephenson', 'Cello', 'Elgar Cello Concerto, E minor, first movement', '8\'00\'\'', 'Cello Masterclass'],
-            ['', '', 'Jacob Kang', 'Cello', 'Chopin Cello Sonata, G Minor, first movement', '15\' 00\'\'', ''],
-            ['', '', 'Ella Marks', 'Cello', 'Haydn Cello Concerto, C Major, first movement', '7\'00"', ''],
-            ['', '', 'Josie van der Sloot', '', '', '', ''],
-            ['Nov 22', 'Roseman', 'Vincent Pham', 'Violin', 'Saint Saens Introduction and Rondo Capriccioso', '10\' 00\'\'', 'Violin Masterclass'],
-            ['Nov 29', 'Thies-Thompson', '', '', '', '', 'Viola Masterclass'],
-            ['Dec 6', 'HOST', 'Vincent Pham', 'Violin', 'Saint Saens Introduction and Rondo Capriccioso', '10\' 00\'\'', 'Performance Class']
-        ];
-
-        allEvents = parseSheetData(hardcodedData);
-        console.log(`Loaded ${allEvents.length} events from fallback data`);
-        return allEvents;
+        allEvents = [];
+        loadError = true;
     }
+    return allEvents;
 }
 
 // Render calendar
@@ -193,6 +180,11 @@ function renderCalendar(month, year) {
     const monthYearDisplay = document.getElementById('current-month-year');
     
     monthYearDisplay.textContent = `${monthNames[month]} ${year}`;
+    
+    if (loadError) {
+        calendarGrid.innerHTML = '<div class="no-events" style="grid-column: 1 / -1;">The schedule could not be loaded right now. Please try again later.</div>';
+        return;
+    }
     
     // Clear previous calendar
     calendarGrid.innerHTML = '';
@@ -228,7 +220,6 @@ function renderCalendar(month, year) {
         dayCell.appendChild(dayNumber);
         
         // Check if this day has events
-        const currentDate = new Date(year, month, day);
         const dayEvents = allEvents.filter(event => 
             event.date.getDate() === day && 
             event.date.getMonth() === month && 
@@ -242,8 +233,14 @@ function renderCalendar(month, year) {
             dayEvents.forEach(event => {
                 const eventDot = document.createElement('div');
                 eventDot.className = `event-indicator ${event.type}`;
-                eventDot.title = event.remarks || 'Event';
+                eventDot.title = event.remarks;
                 dayCell.appendChild(eventDot);
+                
+                // Short text label for wider screens (hidden on phones via CSS)
+                const eventLabel = document.createElement('div');
+                eventLabel.className = `event-label ${event.type}`;
+                eventLabel.textContent = event.remarks;
+                dayCell.appendChild(eventLabel);
             });
             
             dayCell.addEventListener('click', () => showEventDetails(dayEvents));
@@ -270,7 +267,9 @@ function renderListView() {
     ).sort((a, b) => a.date - b.date);
     
     if (filteredEvents.length === 0) {
-        listView.innerHTML = '<div class="no-events">No events found</div>';
+        listView.innerHTML = loadError
+            ? '<div class="no-events">The schedule could not be loaded right now. Please try again later.</div>'
+            : '<div class="no-events">No events found</div>';
         return;
     }
     
@@ -294,9 +293,9 @@ function renderListView() {
             event.performers.forEach(performer => {
                 performersHTML += `
                     <div class="performer-item">
-                        <strong>${performer.name}</strong> - ${performer.instrument}
-                        ${performer.piece ? `<br><em>${performer.piece}</em>` : ''}
-                        ${performer.duration ? `<span class="duration">${performer.duration}</span>` : ''}
+                        <strong>${escapeHtml(performer.name)}</strong>${performer.instrument ? ` &ndash; ${escapeHtml(performer.instrument)}` : ''}
+                        ${performer.piece ? `<br><em>${escapeHtml(performer.piece)}</em>` : ''}
+                        ${performer.duration ? `<span class="duration">${escapeHtml(performer.duration)}</span>` : ''}
                     </div>
                 `;
             });
@@ -304,8 +303,8 @@ function renderListView() {
         }
         
         eventInfo.innerHTML = `
-            <div class="event-title">${event.remarks}</div>
-            <div class="event-guest">Guest: ${formatGuestArtist(event.guestArtist)}</div>
+            <div class="event-title">${escapeHtml(event.remarks)}</div>
+            ${event.guestArtist ? `<div class="event-guest">${event.type === 'masterclass' ? 'Guest: ' : ''}${escapeHtml(event.guestArtist)}</div>` : ''}
             ${performersHTML}
         `;
         
@@ -330,9 +329,9 @@ function showEventDetails(events) {
         detailsHTML += `
             <div class="event-detail-card ${event.type}">
                 <div class="event-detail-header">
-                    <h3>${event.remarks}</h3>
+                    <h3>${escapeHtml(event.remarks)}</h3>
                     <p class="event-detail-date">${dateStr}</p>
-                    <p class="event-detail-guest"><strong>${formatGuestArtist(event.guestArtist).includes('Performance Class') ? '' : 'Guest Artist: '}</strong>${formatGuestArtist(event.guestArtist)}</p>
+                    ${event.guestArtist ? `<p class="event-detail-guest">${event.type === 'masterclass' ? '<strong>Guest Artist: </strong>' : ''}${escapeHtml(event.guestArtist)}</p>` : ''}
                 </div>
         `;
         
@@ -341,9 +340,9 @@ function showEventDetails(events) {
             event.performers.forEach(performer => {
                 detailsHTML += `
                     <li>
-                        <strong>${performer.name}</strong> - ${performer.instrument}
-                        ${performer.piece ? `<br><span class="piece-title">${performer.piece}</span>` : ''}
-                        ${performer.duration ? `<br><span class="duration">Duration: ${performer.duration}</span>` : ''}
+                        <strong>${escapeHtml(performer.name)}</strong>${performer.instrument ? ` &ndash; ${escapeHtml(performer.instrument)}` : ''}
+                        ${performer.piece ? `<br><span class="piece-title">${escapeHtml(performer.piece)}</span>` : ''}
+                        ${performer.duration ? `<br><span class="duration">Duration: ${escapeHtml(performer.duration)}</span>` : ''}
                     </li>
                 `;
             });
@@ -399,7 +398,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 document.getElementById('list-view').style.display = 'none';
             } else {
                 document.getElementById('calendar-view').style.display = 'none';
-                document.getElementById('list-view').style.display = 'block';
+                document.getElementById('list-view').style.display = 'flex';
                 renderListView();
             }
         });
@@ -433,6 +432,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('event-modal').addEventListener('click', function(e) {
         if (e.target === this) {
             this.style.display = 'none';
+        }
+    });
+    
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.getElementById('event-modal').style.display = 'none';
         }
     });
 });
