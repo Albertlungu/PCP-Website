@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calendar - UOttawa Pre-College</title>
     <meta name="description" content="View upcoming performance classes, masterclasses, and events">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="styles-calendar-signup.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="background-animations"></div>
@@ -64,10 +64,10 @@
         <div class="container">
             <div class="calendar-controls">
                 <button class="calendar-view-btn active" data-view="calendar">
-                    <span class="icon"></span> Calendar View
+                    Calendar View
                 </button>
                 <button class="calendar-view-btn" data-view="list">
-                    <span class="icon"></span> List View
+                    List View
                 </button>
                 <div class="calendar-filters">
                     <button class="filter-btn active" data-filter="all">All Events</button>
@@ -79,12 +79,17 @@
             <!-- Calendar View -->
             <div id="calendar-view" class="calendar-container">
                 <div class="calendar-header">
-                    <button class="calendar-nav-btn" id="prev-month">‹</button>
-                    <h2 class="calendar-month-year" id="current-month-year">September 2025</h2>
-                    <button class="calendar-nav-btn" id="next-month">›</button>
+                    <button class="calendar-nav-btn" id="prev-month" aria-label="Previous month">‹</button>
+                    <h2 class="calendar-month-year" id="current-month-year"></h2>
+                    <button class="calendar-nav-btn" id="next-month" aria-label="Next month">›</button>
                 </div>
                 <div class="calendar-grid" id="calendar-grid">
                     <!-- Calendar will be generated here -->
+                </div>
+                <div class="calendar-legend">
+                    <span><span class="event-indicator masterclass"></span> Masterclass</span>
+                    <span><span class="event-indicator performance"></span> Performance class</span>
+                    <span><span class="event-indicator special"></span> Other event</span>
                 </div>
             </div>
 
@@ -93,15 +98,16 @@
                 <!-- Events will be listed here -->
             </div>
 
-            <!-- Event Details Modal -->
-            <div class="event-modal" id="event-modal">
-                <div class="event-modal-content">
-                    <button class="event-modal-close" id="modal-close">&times;</button>
-                    <div id="event-details"></div>
-                </div>
-            </div>
         </div>
     </section>
+
+    <!-- Event Details Modal (outside the section so its transform doesn't affect position: fixed) -->
+    <div class="event-modal" id="event-modal">
+        <div class="event-modal-content">
+            <button class="event-modal-close" id="modal-close" aria-label="Close">&times;</button>
+            <div id="event-details"></div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer class="footer">
@@ -131,7 +137,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2025 University of Ottawa Pre-College Program. All rights reserved.</p>
+                <p>&copy; 2026 University of Ottawa Pre-College Program. All rights reserved.</p>
             </div>
         </div>
     </footer>
