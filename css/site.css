@@ -550,23 +550,12 @@ li::marker {
     margin-top: 0.5rem;
 }
 
-.conduct-list {
-    margin-top: 2rem;
-    padding-left: 2.25rem;
-}
-
-.conduct-list li {
-    margin-bottom: 1.75rem;
-    padding-left: 0.25rem;
-}
-
-.conduct-list li::marker {
-    font-size: var(--step-1);
+.conduct-note {
+    margin-top: 2rem !important;
+    padding-left: 1rem;
+    border-left: 2px solid var(--accent);
+    font-style: italic;
     color: var(--muted);
-}
-
-.content-card .conduct-list h3 {
-    margin: 0 0 0.35rem;
 }
 
 /* Program components and similar lists: ruled rows, name on the left */
@@ -946,12 +935,14 @@ a.feature-card:hover h3 {
 }
 
 .performer-item .duration::before,
-.event-detail-performers .duration::before {
+.event-detail-performers .duration::before,
+.programme .duration::before {
     content: '(';
 }
 
 .performer-item .duration::after,
-.event-detail-performers .duration::after {
+.event-detail-performers .duration::after,
+.programme .duration::after {
     content: ')';
 }
 
@@ -1862,9 +1853,9 @@ a.feature-card:hover h3 {
 }
 
 /* Season tables: the next date is marked, and a row opens to show its programme */
+/* The bar sits just outside the table so the date stays aligned with the other rows */
 .season-table tr.is-next td:first-child {
-    box-shadow: inset 2px 0 0 var(--accent);
-    padding-left: 0.75rem;
+    box-shadow: -0.75rem 0 0 -0.6rem var(--accent);
 }
 
 .season-table tr.has-programme {
@@ -1942,6 +1933,10 @@ a.feature-card:hover h3 {
 
 .programme-piece {
     font-style: italic;
+}
+
+.programme .duration {
+    font-style: normal;
 }
 
 @keyframes unfold {

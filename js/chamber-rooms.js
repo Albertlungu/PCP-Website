@@ -44,7 +44,7 @@
 
     function groupPicker() {
         const mine = getMyGroup();
-        let html = '<label class="group-picker">Highlight my group <select data-group-picker><option value="">None</option>';
+        let html = '<label class="group-picker">Highlight my group <select data-group-picker><option value="">Choose your group</option>';
         CHAMBER_GROUPS.forEach(group => {
             html += `<option value="${escapeHtml(group.members)}"${group.members === mine ? ' selected' : ''}>${escapeHtml(group.members)}</option>`;
         });

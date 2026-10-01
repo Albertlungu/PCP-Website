@@ -64,14 +64,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// "today", "tomorrow", "in 3 days" for dates in the next two weeks; empty otherwise
+// "today", "tomorrow", "in 3 days" for dates in the next three weeks; empty otherwise
 function relativeDay(date) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const days = Math.round((date - today) / 86400000);
     if (days === 0) return 'today';
     if (days === 1) return 'tomorrow';
-    return days > 1 && days < 14 ? `in ${days} days` : '';
+    return days > 1 && days <= 21 ? `in ${days} days` : '';
 }
 
 // Cross-fades a DOM update where the browser supports view transitions and motion is welcome
