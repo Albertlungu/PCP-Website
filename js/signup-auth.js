@@ -51,7 +51,13 @@
     /**
      * Show password modal
      */
+    function isSignupPage() {
+        return /\/signup(\.html)?$/.test(window.location.pathname);
+    }
+
     function showPasswordModal() {
+        if (document.getElementById('password-modal-overlay')) return;
+
         // Create modal overlay
         const overlay = document.createElement('div');
         overlay.id = 'password-modal-overlay';
@@ -67,6 +73,7 @@
             justify-content: center;
             z-index: 10000;
             backdrop-filter: blur(5px);
+            visibility: visible; /* the page body is hidden while locked; keep the dialog visible */
         `;
 
         // Create modal content
@@ -100,7 +107,6 @@
                         transition: border-color 0.3s;
                     "
                     required
-                    autofocus
                 >
                 <div id="error-message" style="color: #d32f2f; font-size: 0.875rem; margin-bottom: 1rem; min-height: 1.25rem;"></div>
                 <div style="display: flex; gap: 0.75rem;">
@@ -161,6 +167,8 @@
 
         // Focus input with border effect
         const passwordInput = modal.querySelector('#password-input');
+        // autofocus is ignored on elements inserted after load
+        setTimeout(() => passwordInput.focus(), 0);
         passwordInput.addEventListener('focus', () => {
             passwordInput.style.borderColor = '#8B1538';
         });
@@ -180,7 +188,7 @@
                 setAuthenticated();
                 overlay.remove();
                 // If we're not on the signup page, redirect to it
-                if (!window.location.pathname.includes('signup.html')) {
+                if (!isSignupPage()) {
                     window.location.href = 'signup.html';
                 }
             } else {
@@ -195,7 +203,7 @@
         cancelBtn.addEventListener('click', () => {
             overlay.remove();
             // Redirect to home if we're on signup page
-            if (window.location.pathname.includes('signup.html')) {
+            if (isSignupPage()) {
                 window.location.href = 'index.html';
             }
         });
@@ -205,7 +213,7 @@
      * Initialize authentication check for signup page
      */
     function initSignupPageAuth() {
-        if (window.location.pathname.includes('signup.html')) {
+        if (isSignupPage()) {
             if (!isAuthenticated()) {
                 // Hide page content
                 document.body.style.visibility = 'hidden';
