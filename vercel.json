@@ -3,9 +3,11 @@
     { "source": "/index.html", "destination": "/", "permanent": true },
     { "source": "/html/admin/index.html", "destination": "/admin", "permanent": true },
     { "source": "/html/admin", "destination": "/admin", "permanent": true },
+    { "source": "/html/admin/", "destination": "/admin", "permanent": true },
     { "source": "/html/:section(about|program|participate)/:page([a-z-]+).html", "destination": "/:page", "permanent": true },
     { "source": "/:section(about|program|participate)/:page([a-z-]+).html", "destination": "/:page", "permanent": true },
-    { "source": "/:page([a-z-]+).html", "destination": "/:page", "permanent": true }
+    { "source": "/:page([a-z-]+).html", "destination": "/:page", "permanent": true },
+    { "source": "/:page(description|the-program)", "destination": "/about", "permanent": true }
   ],
   "rewrites": [
     { "source": "/admin", "destination": "/html/admin/index.html" },
