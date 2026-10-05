@@ -50,10 +50,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (event.key === 'Escape') closeMenu();
     });
 
-    // Mark the current page; compare without ".html" so clean URLs (e.g. /calendar) still match
-    const currentPage = (window.location.pathname.split('/').pop() || 'index.html').replace(/\.html$/, '');
+    // Mark the current page by file name (page names are unique across html/); compare without
+    // ".html" so clean URLs (e.g. /calendar) still match
+    const pageName = path => (path.split('/').pop() || 'index.html').replace(/\.html$/, '');
+    const currentPage = pageName(window.location.pathname);
     document.querySelectorAll('.nav-menu a').forEach(link => {
-        const linkPage = link.getAttribute('href').replace(/\.html$/, '');
+        const linkPage = pageName(link.getAttribute('href'));
         link.classList.toggle('active', linkPage === currentPage);
         if (linkPage === currentPage) link.setAttribute('aria-current', 'page');
     });
@@ -64,7 +66,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// "today", "tomorrow", "in 3 days" for dates in the next three weeks; empty otherwise
+// "today", "tomorrow", "in 3 days" for dates in the next three weeks; empty otherwise.
+// Counts from the real date, not SITE.todayOverride, so the distance shown is always true.
 function relativeDay(date) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);

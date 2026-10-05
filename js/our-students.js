@@ -1,12 +1,12 @@
-// students-loader.js - Renders student profiles on the Our Students page
+// Renders student profiles on the Our Students page
 //
-// Published profiles live in /data/students.json, written by the admin panel.
+// Published profiles live in data/students.json, written by the admin panel.
 // our-students.html?preview shows the admin's unpublished draft (from this browser) instead.
 
 (function() {
     'use strict';
 
-    const DATA_URL = '/data/students.json';
+    const DATA_URL = sitePath('data/students.json');
     const DRAFT_STORAGE_KEY = 'pcp_students_draft'; // Same key as js/admin-students.js
 
     function escapeHtml(value) {
@@ -18,9 +18,9 @@
             .replace(/'/g, '&#039;');
     }
 
-    // Repo-relative image paths need a leading slash so they resolve from any page
+    // Repo-relative image paths are resolved from the site root so they work from any page
     function imageSrc(image) {
-        return image.startsWith('images/') ? `/${image}` : image;
+        return image.startsWith('images/') ? sitePath(image) : image;
     }
 
     function getInitials(name) {
@@ -66,7 +66,7 @@
     function showPreviewBanner() {
         const banner = document.createElement('div');
         banner.className = 'preview-banner';
-        banner.innerHTML = 'Preview of unpublished changes. <a href="/admin/">Back to admin</a>';
+        banner.innerHTML = `Preview of unpublished changes. <a href="${sitePath('html/admin/index.html')}">Back to admin</a>`;
         document.body.prepend(banner);
     }
 

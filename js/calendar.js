@@ -1,14 +1,11 @@
 // Calendar functionality for PCP Website
-// This reads from the Google Sheets and displays events in a calendar format
-
-const SPREADSHEET_ID = '1GSVqiWOL4mZTVuTaTuaskvX7zCzQrhJ7zL1Pvzl3F68';
-const API_KEY = 'AIzaSyDYPaPDtcWQDMna_ZIFtofdnNcBSPYS2ys'; // I updated with my API key
-const SHEET_NAME = 'Performances';
+// Reads the "Performances" tab of the Google Sheet (see js/shared/config.js) and renders it as the
+// calendar page, the "Coming up" panel on the home page, and the season tables on the program pages.
 
 // Event data structure
 let allEvents = [];
-let currentMonth = new Date().getMonth();
-let currentYear = new Date().getFullYear();
+let currentMonth = siteToday().getMonth();
+let currentYear = siteToday().getFullYear();
 let currentFilter = 'all';
 let loadError = false;
 
@@ -42,7 +39,7 @@ function getAcademicStartYear(data) {
     const title = (data[0] && data[0][0]) || '';
     const match = title.match(/(\d{4})\s*[-–\/]\s*\d{2,4}/);
     if (match) return parseInt(match[1], 10);
-    const today = new Date();
+    const today = siteToday();
     return today.getMonth() >= 7 ? today.getFullYear() : today.getFullYear() - 1;
 }
 
@@ -183,7 +180,7 @@ function parseDate(dateStr, startYear) {
 // Fetch events from Google Sheets API
 async function fetchEvents() {
     try {
-        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}?key=${API_KEY}`;
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SITE.spreadsheetId}/values/${encodeURIComponent(SITE.tabs.performances)}?key=${SITE.apiKey}`;
 
         const response = await fetch(url);
         if (!response.ok) {
@@ -277,7 +274,7 @@ function renderCalendar(month, year) {
             dayCell.addEventListener('click', () => showEventDetails(dayEvents));
         }
         
-        // Highlight today
+        // Highlight the real today (not SITE.todayOverride): a calendar grid should never mislead
         const today = new Date();
         if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
             dayCell.classList.add('today');
@@ -300,8 +297,7 @@ function renderListView() {
     const listView = document.getElementById('list-view');
     listView.innerHTML = '';
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Set to start of day for comparison
+    const today = siteToday();
 
     // Filter and sort events - show only future events
     const filteredEvents = allEvents.filter(event => {
@@ -399,19 +395,18 @@ function showEventDetails(events) {
 // Home page: the next upcoming event, with its performers
 function renderNextEvent(container) {
     const MAX_PERFORMERS = 6;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const today = siteToday();
     const next = allEvents
         .filter(event => event.date >= today)
         .sort((a, b) => a.date - b.date)[0];
 
     let html = '<h2 class="next-event-heading">Coming up</h2>';
     if (loadError) {
-        container.innerHTML = html + '<p class="next-event-more">The schedule could not be loaded right now. <a href="calendar.html">Open the calendar</a></p>';
+        container.innerHTML = html + `<p class="next-event-more">The schedule could not be loaded right now. <a href="${sitePath('html/participate/calendar.html')}">Open the calendar</a></p>`;
         return;
     }
     if (!next) {
-        container.innerHTML = html + '<p class="next-event-more">Nothing scheduled yet. <a href="calendar.html">Open the calendar</a></p>';
+        container.innerHTML = html + `<p class="next-event-more">Nothing scheduled yet. <a href="${sitePath('html/participate/calendar.html')}">Open the calendar</a></p>`;
         return;
     }
 
@@ -429,14 +424,14 @@ function renderNextEvent(container) {
     }
 
     const remaining = next.performers.length - MAX_PERFORMERS;
-    html += `<p class="next-event-more">${remaining > 0 ? `and ${remaining} more. ` : ''}<a href="calendar.html">Full program in the calendar</a></p>`;
+    html += `<p class="next-event-more">${remaining > 0 ? `and ${remaining} more. ` : ''}<a href="${sitePath('html/participate/calendar.html')}">Full program in the calendar</a></p>`;
     container.innerHTML = html;
 }
 
 // A table of this year's dates, optionally limited to one event type (data-season on the container)
 function renderSeasonTable(container) {
     if (loadError) {
-        container.innerHTML = '<p class="no-events">The schedule could not be loaded right now. <a href="calendar.html">Try the calendar</a>.</p>';
+        container.innerHTML = `<p class="no-events">The schedule could not be loaded right now. <a href="${sitePath('html/participate/calendar.html')}">Try the calendar</a>.</p>`;
         return;
     }
     const kind = container.dataset.season;
@@ -448,8 +443,7 @@ function renderSeasonTable(container) {
         return;
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const today = siteToday();
     const next = events.find(event => event.date >= today);
     const showGuest = kind !== 'performance';
     const columns = showGuest ? 4 : 3;

@@ -24,26 +24,27 @@
             </button>
             <ul class="nav-menu">
                 <li><a href="index.html">Home</a></li>
-                <li><a href="description.html">About</a></li>
+                <li><a href="html/about/the-program.html">About</a></li>
                 <li class="has-dropdown">
                     <a href="#" class="dropdown-toggle">Program</a>
                     <ul class="dropdown-menu">
-                        <li><a href="chamber-music.html">Chamber music</a></li>
-                        <li><a href="masterclasses.html">Masterclasses</a></li>
-                        <li><a href="performance-class.html">Performance class</a></li>
-                        <li><a href="schedule.html">Schedule</a></li>
+                        <li><a href="html/program/chamber-music.html">Chamber music</a></li>
+                        <li><a href="html/program/masterclasses.html">Masterclasses</a></li>
+                        <li><a href="html/program/performance-class.html">Performance class</a></li>
+                        <li><a href="html/program/schedule.html">Schedule</a></li>
                     </ul>
                 </li>
                 <li class="has-dropdown">
                     <a href="#" class="dropdown-toggle">Participate</a>
                     <ul class="dropdown-menu">
-                        <li><a href="calendar.html">Calendar</a></li>
-                        <li><a href="chamber-rooms.html">Room assignments</a></li>
-                        <li><a href="signup.html">Sign up to perform</a></li>
+                        <li><a href="html/participate/calendar.html">Calendar</a></li>
+                        <li><a href="html/participate/chamber-rooms.html">Room assignments</a></li>
+                        <li><a href="html/participate/snacks.html">Snacks</a></li>
+                        <li><a href="html/participate/signup.html">Sign up to perform</a></li>
                     </ul>
                 </li>
-                <li><a href="our-students.html">Our students</a></li>
-                <li><a href="code-of-conduct.html">Code of conduct</a></li>
+                <li><a href="html/about/our-students.html">Our students</a></li>
+                <li><a href="html/about/code-of-conduct.html">Code of conduct</a></li>
             </ul>
         </div>
     </nav>
@@ -55,15 +56,20 @@
                 <h2 class="week-rooms-heading">Chamber rooms</h2>
                 <p class="week-rooms-note">Loading this week&rsquo;s rooms&hellip;</p>
             </aside>
+            <!-- Filled from the snacks sheet by js/snacks.js -->
+            <aside class="week-snacks" id="week-snacks" aria-live="polite">
+                <h2 class="week-snacks-heading">Snacks</h2>
+                <p class="week-snacks-note">Loading this week&rsquo;s snacks&hellip;</p>
+            </aside>
             <div class="hero-intro">
                 <h1 class="hero-title">University of Ottawa <span class="nowrap">Pre-College</span> Program</h1>
                 <p class="hero-lead">Saturday chamber music, masterclasses, and performance classes for advanced high school musicians in <span class="nowrap">Ottawa&ndash;Gatineau</span>. Students join at RCM Grade&nbsp;9 or above, alongside their regular private lessons.</p>
                 <div class="hero-actions">
-                    <a href="signup.html" class="btn btn-primary">Sign up to perform</a>
-                    <a href="calendar.html" class="text-link">See the full calendar</a>
+                    <a href="html/participate/signup.html" class="btn btn-primary">Sign up to perform</a>
+                    <a href="html/participate/calendar.html" class="text-link">See the full calendar</a>
                 </div>
             </div>
-            <!-- Filled from the schedule sheet by calendar.js -->
+            <!-- Filled from the schedule sheet by js/calendar.js -->
             <aside class="next-event" id="next-event" aria-live="polite">
                 <h2 class="next-event-heading">Coming up</h2>
                 <p class="next-event-more">Loading the schedule&hellip;</p>
@@ -76,15 +82,15 @@
             <h2 class="section-title">The program</h2>
             <div class="features-grid">
                 <div class="feature-card">
-                    <h3><a href="chamber-music.html">Chamber music</a></h3>
+                    <h3><a href="html/program/chamber-music.html">Chamber music</a></h3>
                     <p>Weekly coaching in small groups with University of Ottawa faculty, working toward a performance at the end of each term and at the Kiwanis Music Festival.</p>
                 </div>
                 <div class="feature-card">
-                    <h3><a href="masterclasses.html">Masterclasses</a></h3>
+                    <h3><a href="html/program/masterclasses.html">Masterclasses</a></h3>
                     <p>Sixteen a year with guest artists from the University and the region: eight for violin, four for viola, and four for cello.</p>
                 </div>
                 <div class="feature-card">
-                    <h3><a href="performance-class.html">Performance class</a></h3>
+                    <h3><a href="html/program/performance-class.html">Performance class</a></h3>
                     <p>Regular chances to play for the other students in the program and to give each other feedback.</p>
                 </div>
             </div>
@@ -95,15 +101,19 @@
         <div class="container">
             <h2 class="section-title">For current students</h2>
             <div class="features-grid">
-                <a href="calendar.html" class="feature-card">
+                <a href="html/participate/calendar.html" class="feature-card">
                     <h3>Calendar</h3>
                     <p>Every masterclass and performance class this year, with who is playing what.</p>
                 </a>
-                <a href="chamber-rooms.html" class="feature-card">
+                <a href="html/participate/chamber-rooms.html" class="feature-card">
                     <h3>Room assignments</h3>
                     <p>Which room your chamber group is in each Saturday.</p>
                 </a>
-                <a href="signup.html" class="feature-card">
+                <a href="html/participate/snacks.html" class="feature-card">
+                    <h3>Snacks</h3>
+                    <p>Which family brings snacks each Saturday.</p>
+                </a>
+                <a href="html/participate/signup.html" class="feature-card">
                     <h3>Sign up to perform</h3>
                     <p>Claim a slot in an upcoming performance class or masterclass.</p>
                 </a>
@@ -122,26 +132,27 @@
                 <div class="footer-section">
                     <h4>Program</h4>
                     <ul>
-                        <li><a href="chamber-music.html">Chamber music</a></li>
-                        <li><a href="masterclasses.html">Masterclasses</a></li>
-                        <li><a href="performance-class.html">Performance class</a></li>
-                        <li><a href="schedule.html">Schedule</a></li>
+                        <li><a href="html/program/chamber-music.html">Chamber music</a></li>
+                        <li><a href="html/program/masterclasses.html">Masterclasses</a></li>
+                        <li><a href="html/program/performance-class.html">Performance class</a></li>
+                        <li><a href="html/program/schedule.html">Schedule</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
                     <h4>Participate</h4>
                     <ul>
-                        <li><a href="calendar.html">Calendar</a></li>
-                        <li><a href="chamber-rooms.html">Room assignments</a></li>
-                        <li><a href="signup.html">Sign up to perform</a></li>
+                        <li><a href="html/participate/calendar.html">Calendar</a></li>
+                        <li><a href="html/participate/chamber-rooms.html">Room assignments</a></li>
+                        <li><a href="html/participate/snacks.html">Snacks</a></li>
+                        <li><a href="html/participate/signup.html">Sign up to perform</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
                     <h4>About</h4>
                     <ul>
-                        <li><a href="description.html">About the program</a></li>
-                        <li><a href="our-students.html">Our students</a></li>
-                        <li><a href="code-of-conduct.html">Code of conduct</a></li>
+                        <li><a href="html/about/the-program.html">About the program</a></li>
+                        <li><a href="html/about/our-students.html">Our students</a></li>
+                        <li><a href="html/about/code-of-conduct.html">Code of conduct</a></li>
                     </ul>
                 </div>
             </div>
@@ -152,9 +163,12 @@
         </div>
     </footer>
 
-    <script src="js/signup-auth.js"></script>
-    <script src="script.js"></script>
-    <script src="calendar.js"></script>
+    <script src="js/shared/config.js"></script>
+    <script src="js/shared/signup-gate.js"></script>
+    <script src="js/shared/site.js"></script>
+    <script src="js/calendar.js"></script>
+    <script src="js/shared/sheets.js"></script>
     <script src="js/chamber-rooms.js"></script>
+    <script src="js/snacks.js"></script>
 </body>
 </html>

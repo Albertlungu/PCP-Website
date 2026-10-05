@@ -115,7 +115,7 @@
                 document.querySelectorAll('.content-section').forEach(section => { section.hidden = false; });
                 // If we're not on the signup page, redirect to it
                 if (!isSignupPage()) {
-                    window.location.href = 'signup.html';
+                    window.location.href = sitePath('html/participate/signup.html');
                 }
             } else {
                 errorMessage.textContent = 'That password is incorrect. Check with your program coordinator.';
@@ -129,7 +129,7 @@
             overlay.remove();
             // Redirect to home if we're on signup page
             if (isSignupPage()) {
-                window.location.href = 'index.html';
+                window.location.href = sitePath('index.html');
             }
         });
     }

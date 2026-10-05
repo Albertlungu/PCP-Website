@@ -1,200 +1,79 @@
-# 🎵 UOttawa Pre-College Program Website
+# uOttawa Pre-College Program website
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue)
-![Node](https://img.shields.io/badge/node-%3E%3D14.0.0-brightgreen)
-![License](https://img.shields.io/badge/license-MIT-green)
+The public website of the University of Ottawa Pre-College Program (PCP): what the program is, this
+year's calendar of masterclasses and performance classes, chamber room assignments, the snack
+schedule, performance sign-ups, and student profiles.
 
-> Professional website for the University of Ottawa Pre-College Music Program with integrated admin panel for easy content management.
+It is a plain static site: HTML, CSS and JavaScript with no build step and no framework. If you can
+edit a text file, you can maintain it. Most week-to-week content (dates, performers, rooms, snacks)
+is not in this repository at all; it is read live from the program's Google Sheet.
 
-## 📋 Table of Contents
+## Where the site lives
 
-- [Overview](#overview)
-- [Features](#features)
-- [Project Structure](#project-structure)
-- [Quick Start](#quick-start)
-- [Documentation](#documentation)
-- [Development](#development)
-- [Deployment](#deployment)
-- [Contributing](#contributing)
-- [License](#license)
+| Where | What it serves | Updates when |
+| --- | --- | --- |
+| GitHub Pages, https://albertlungu.github.io/PCP-Website/ | the `prototype` branch | a minute or two after a push to `prototype` |
+| Vercel | the `main` branch | about two minutes after a push to `main` |
 
-## 🎯 Overview
+GitHub Pages can only serve files. Vercel can also run the small server function in `api/`, which
+the admin panel needs to publish student profiles (see [docs/admin-panel.md](docs/admin-panel.md)).
 
-This is a modern, responsive website for the UOttawa Pre-College Program featuring:
-- **Public Website**: Informational pages about the program, events, and students
-- **Admin Panel**: Easy-to-use interface for managing student profiles
-- **Auto-Deployment**: Automatic deployment to Vercel via Git integration
-- **Password Protection**: Admin publishing is checked server-side
-
-## ✨ Features
-
-### Public Website
-- 📱 Fully responsive design
-- 🎨 Modern glassmorphism UI
-- 🎭 Interactive navigation with dropdowns
-- 📅 Event calendar integration
-- 👥 Dynamic student profiles
-- 📝 Sign-up forms for performances
-
-### Admin Panel
-- Add, edit, reorder, and delete student profiles at `/admin`
-- Drafts stay in the browser until published
-- Publishing commits `data/students.json` and photos to GitHub; Vercel redeploys automatically
-- Password checked server-side by the Vercel function
-
-See [ADMIN_SETUP.md](ADMIN_SETUP.md) for setup and usage.
-
-## 📁 Project Structure
+## Folder map
 
 ```
-PCP-Website/
-│
-├── 📄 *.html                   # Public pages (root level for Vercel)
-│   ├── index.html             # Homepage
-│   ├── description.html       # About page
-│   ├── our-students.html      # Student profiles
-│   ├── calendar.html          # Event calendar
-│   └── ...
-│
-├── 🎨 css/                     # Stylesheets
-│   ├── site.css               # Public site styles
-│   └── admin.css              # Admin panel additions
-│
-├── 📜 js/                      # JavaScript files
-│   ├── admin-students.js      # Admin panel logic
-│   ├── students-loader.js     # Dynamic student loading
-│   └── ...
-│
-├── 🖼️ images/students/         # Student photos (written by the admin panel)
-│
-├── 📊 data/students.json       # Published student profiles
-│
-├── 🔐 admin/index.html         # Admin panel (password checked by the API)
-│
-├── ⚡ api/save-students.js     # Vercel function that publishes student profiles
-│
-├── 📚 docs/                    # Setup and deployment notes
-│
-├── ⚙️ vercel.json              # Vercel configuration
-└── 📖 README.md                # This file
+index.html                 Home page (must stay at the root: it is what the site address opens)
+html/                      Every other page, grouped like the site's menus and footer
+  about/                     the-program.html, our-students.html, code-of-conduct.html
+  program/                   "Program" menu: chamber-music, masterclasses, performance-class, schedule
+  participate/               "Participate" menu: calendar, chamber-rooms, snacks, signup
+  admin/                     index.html, the admin panel for student profiles
+css/
+  site.css                   All public styles, in labelled sections (Navigation, Home, Calendar, ...)
+  admin.css                  Extra styles for the admin panel only
+js/
+  shared/                    Loaded on every page
+    config.js                  Settings: Google Sheet ID, tab names, date override. Start here.
+    site.js                    Menu behaviour, current-page highlight, small date helpers
+    signup-gate.js             Password prompt in front of the sign-up page
+    sheets.js                  Reads a tab of the Google Sheet (used by rooms and snacks)
+  calendar.js                Performances tab: calendar page, home "Coming up", program tables
+  chamber-rooms.js           Chamber Rooms tab: home panel, room assignments, chamber groups list
+  snacks.js                  Snacks tab: home panel, snacks page
+  signup.js                  Sign-up form (talks to the Google Apps Script)
+  our-students.js            Our Students page (reads data/students.json)
+  admin-students.js          Admin panel
+data/students.json         Student profiles shown on Our Students (written by the admin panel)
+images/students/           Student photos (written by the admin panel)
+api/save-students.js       Vercel server function that publishes student profiles
+google-apps-script/        Source of the Apps Script that receives sign-ups (runs at Google, not here)
+docs/                      Guides for maintainers (below)
+vercel.json                Vercel settings: the /admin shortcut, and keeping the admin out of search
 ```
 
-## 🚀 Quick Start
+`api/`, `vercel.json` and `index.html` have to be at the root for Vercel and GitHub Pages to find them.
 
-### Prerequisites
-- Node.js >= 14.0.0
-- Git
-- A text editor (VS Code recommended)
+## Guides
 
-### For Content Editors
+- [docs/google-sheet.md](docs/google-sheet.md): the spreadsheet's tabs and columns, and how sign-ups
+  reach it. Read this before the start of each year.
+- [docs/editing-the-site.md](docs/editing-the-site.md): changing text, adding a page, how links and
+  scripts fit together, previewing locally, and the date override for weeks without classes.
+- [docs/admin-panel.md](docs/admin-panel.md): managing student profiles.
 
-Go to `/admin` on the live site, sign in, edit, and click **Publish**. See [ADMIN_SETUP.md](ADMIN_SETUP.md).
+## Common tasks
 
-### For Developers
+| I want to... | Do this |
+| --- | --- |
+| Change dates, performers, rooms or snacks | Edit the Google Sheet. The site picks it up on the next page load. |
+| Start a new school year | Follow "New year checklist" in [docs/google-sheet.md](docs/google-sheet.md). |
+| Change text on a page | Edit that page in `html/` (or `index.html`). |
+| Change the sign-up page password | `CORRECT_PASSWORD` in `js/shared/signup-gate.js`. |
+| Change the admin password | `ADMIN_PASSWORD` in `js/admin-students.js` (see [docs/admin-panel.md](docs/admin-panel.md)). |
+| Skip a week without classes on the home page | `todayOverride` in `js/shared/config.js`. |
+| Add or edit student profiles | The admin panel, `html/admin/` on the live site. |
 
-The site is static HTML, CSS, and JavaScript with one Vercel function in `api/`.
+## Passwords are not secret
 
-1. Clone the repository.
-2. Preview the public pages with any static server (for example `python3 -m http.server`), or run `vercel dev` to also run the admin API locally.
-3. Commit and push to `main`; Vercel deploys automatically.
-
-## 📚 Documentation
-
-- [Admin Panel Setup and Usage](ADMIN_SETUP.md)
-- [Google Sheets Setup](docs/setup/GOOGLE_SHEETS_SETUP.md) - Calendar and sign-up integration
-
-## 🛠️ Development
-
-### Code Organization
-
-- **HTML Files**: Root level (required for Vercel routing)
-- **CSS Files**: `/css` folder (standard web convention)
-- **JavaScript Files**: `/js` folder (standard web convention)
-- **Admin Panel**: `/admin` folder
-- **Serverless Function**: `/api` folder (publishes student profiles)
-- **Documentation**: `/docs` folder (organized by topic)
-
-### Code Documentation
-
-All code is comprehensively documented with:
-- **JSDoc comments** for JavaScript files
-- **CSS section headers** with descriptions
-- **HTML comments** explaining page structure
-- **Inline comments** for complex logic
-
-### Key Files
-
-- `js/admin-students.js` - Admin panel
-- `api/save-students.js` - Publishes `data/students.json` and photos to GitHub
-- `js/students-loader.js` - Renders the Our Students page from `data/students.json`
-
-## 🚀 Deployment
-
-Every push to `main` deploys on Vercel, including commits made by the admin panel's Publish button.
-
-### Manual Deployment
-
-```bash
-git add .
-git commit -m "Update content"
-git push origin main
-```
-
-Vercel will automatically detect the push and deploy in ~2 minutes.
-
-### Vercel Admin Area
-
-- **URL**: `https://yoursite.vercel.app/admin/`
-- **Mode**: View-only (no editing capabilities)
-- **Purpose**: Preview current students remotely
-- **Access**: Password-protected
-
-## 🤝 Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-### Development Workflow
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Test thoroughly
-5. Commit your changes (`git commit -m 'Add amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
-
-### Code Style
-
-- Use **2 spaces** for indentation
-- Follow **JSDoc** conventions for JavaScript
-- Add **section comments** in CSS files
-- Write **semantic HTML**
-- Keep functions **small and focused**
-- Add **comprehensive comments**
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Built with ❤️ for the UOttawa Pre-College Program
-- Powered by [Vercel](https://vercel.com)
-- Developed with assistance from [Claude Code](https://claude.com/claude-code)
-
-## 📞 Support
-
-For questions or issues:
-- 📧 Email: contact@uottawa-pcp.ca
-- 🐛 Issues: [GitHub Issues](https://github.com/yourusername/pcp-website/issues)
-- 📖 Docs: See `/docs` folder
-
-## 🔄 Version History
-
-- **v2.0.0** - Complete redesign with organized structure and comprehensive documentation
-- **v1.5.0** - Added admin panel with auto-deployment
-- **v1.0.0** - Initial release
-
----
-
-**Made with 🎵 by the UOttawa Pre-College Team**
+The sign-up and admin passwords are written in the JavaScript, so anyone who opens the browser's
+developer tools can read them. They only keep casual visitors out. Do not reuse a password that
+protects anything else.

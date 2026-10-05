@@ -2,13 +2,13 @@
   "redirects": [
     {
       "source": "/admin",
-      "destination": "/admin/index.html",
+      "destination": "/html/admin/index.html",
       "permanent": false
     }
   ],
   "headers": [
     {
-      "source": "/admin/(.*)",
+      "source": "/html/admin/(.*)",
       "headers": [
         {
           "key": "X-Robots-Tag",

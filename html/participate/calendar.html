@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calendar - uOttawa Pre-College</title>
     <meta name="description" content="View upcoming performance classes, masterclasses, and events">
-    <link rel="stylesheet" href="css/site.css">
+    <link rel="stylesheet" href="../../css/site.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
     <nav class="navbar">
         <div class="container">
             <div class="nav-brand">
-                <a href="index.html">uOttawa Pre-College</a>
+                <a href="../../index.html">uOttawa Pre-College</a>
             </div>
             <button class="mobile-menu-toggle" aria-label="Toggle menu">
                 <span></span>
@@ -24,15 +24,15 @@
                 <span></span>
             </button>
             <ul class="nav-menu">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="description.html">About</a></li>
+                <li><a href="../../index.html">Home</a></li>
+                <li><a href="../about/the-program.html">About</a></li>
                 <li class="has-dropdown">
                     <a href="#" class="dropdown-toggle">Program</a>
                     <ul class="dropdown-menu">
-                        <li><a href="chamber-music.html">Chamber music</a></li>
-                        <li><a href="masterclasses.html">Masterclasses</a></li>
-                        <li><a href="performance-class.html">Performance class</a></li>
-                        <li><a href="schedule.html">Schedule</a></li>
+                        <li><a href="../program/chamber-music.html">Chamber music</a></li>
+                        <li><a href="../program/masterclasses.html">Masterclasses</a></li>
+                        <li><a href="../program/performance-class.html">Performance class</a></li>
+                        <li><a href="../program/schedule.html">Schedule</a></li>
                     </ul>
                 </li>
                 <li class="has-dropdown">
@@ -40,11 +40,12 @@
                     <ul class="dropdown-menu">
                         <li><a href="calendar.html">Calendar</a></li>
                         <li><a href="chamber-rooms.html">Room assignments</a></li>
+                        <li><a href="snacks.html">Snacks</a></li>
                         <li><a href="signup.html">Sign up to perform</a></li>
                     </ul>
                 </li>
-                <li><a href="our-students.html">Our students</a></li>
-                <li><a href="code-of-conduct.html">Code of conduct</a></li>
+                <li><a href="../about/our-students.html">Our students</a></li>
+                <li><a href="../about/code-of-conduct.html">Code of conduct</a></li>
             </ul>
         </div>
     </nav>
@@ -121,10 +122,10 @@
                 <div class="footer-section">
                     <h4>Program</h4>
                     <ul>
-                        <li><a href="chamber-music.html">Chamber music</a></li>
-                        <li><a href="masterclasses.html">Masterclasses</a></li>
-                        <li><a href="performance-class.html">Performance class</a></li>
-                        <li><a href="schedule.html">Schedule</a></li>
+                        <li><a href="../program/chamber-music.html">Chamber music</a></li>
+                        <li><a href="../program/masterclasses.html">Masterclasses</a></li>
+                        <li><a href="../program/performance-class.html">Performance class</a></li>
+                        <li><a href="../program/schedule.html">Schedule</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
@@ -132,15 +133,16 @@
                     <ul>
                         <li><a href="calendar.html">Calendar</a></li>
                         <li><a href="chamber-rooms.html">Room assignments</a></li>
+                        <li><a href="snacks.html">Snacks</a></li>
                         <li><a href="signup.html">Sign up to perform</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
                     <h4>About</h4>
                     <ul>
-                        <li><a href="description.html">About the program</a></li>
-                        <li><a href="our-students.html">Our students</a></li>
-                        <li><a href="code-of-conduct.html">Code of conduct</a></li>
+                        <li><a href="../about/the-program.html">About the program</a></li>
+                        <li><a href="../about/our-students.html">Our students</a></li>
+                        <li><a href="../about/code-of-conduct.html">Code of conduct</a></li>
                     </ul>
                 </div>
             </div>
@@ -151,8 +153,9 @@
         </div>
     </footer>
 
-    <script src="js/signup-auth.js"></script>
-    <script src="script.js"></script>
-    <script src="calendar.js"></script>
+    <script src="../../js/shared/config.js"></script>
+    <script src="../../js/shared/signup-gate.js"></script>
+    <script src="../../js/shared/site.js"></script>
+    <script src="../../js/calendar.js"></script>
 </body>
 </html>

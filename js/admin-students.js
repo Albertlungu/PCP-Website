@@ -1,5 +1,5 @@
 /**
- * Admin panel for student profiles (admin/index.html).
+ * Admin panel for student profiles (html/admin/index.html).
  *
  * Flow:
  *   1. Sign in: the password is checked in the browser against ADMIN_PASSWORD and kept for this tab only.
@@ -8,9 +8,9 @@
  *   4. Publish sends the list to /api/save-students, which commits data/students.json and photos to GitHub.
  */
 
-const DATA_URL = '../data/students.json'; // Relative so it also resolves under /PCP-Website/ on GitHub Pages
+const DATA_URL = sitePath('data/students.json');
 const API_URL = '/api/save-students';
-const DRAFT_STORAGE_KEY = 'pcp_students_draft'; // Also read by js/students-loader.js for ?preview
+const DRAFT_STORAGE_KEY = 'pcp_students_draft'; // Also read by js/our-students.js for ?preview
 const PASSWORD_SESSION_KEY = 'pcp_admin_password';
 // Deliberately insecure: GitHub Pages is static, so the password can only be checked client-side
 const ADMIN_PASSWORD = '12345678';
@@ -79,7 +79,7 @@ async function handleLoginSubmit(event) {
 
 function signOut() {
     sessionStorage.removeItem(PASSWORD_SESSION_KEY);
-    window.location.href = '/';
+    window.location.href = sitePath('index.html');
 }
 
 // ============================================================================
@@ -442,7 +442,7 @@ function updateImagePreview() {
 
 /** Repo-relative paths ("images/students/...") need a leading slash from /admin/ */
 function imageSrc(image) {
-    return image.startsWith('images/') ? `/${image}` : image;
+    return image.startsWith('images/') ? sitePath(image) : image;
 }
 
 // ============================================================================

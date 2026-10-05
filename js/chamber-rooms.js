@@ -1,12 +1,11 @@
-// Chamber Rooms Schedule Data and Display Logic
+// Chamber room assignments: reads the "Chamber Rooms" tab of the Google Sheet (see js/shared/config.js)
+// and fills the home page panel, the room assignments page, and the group list on the chamber music page.
 
 (function() {
     'use strict';
 
-    // Google Sheets API Configuration
-    const SPREADSHEET_ID = '1GSVqiWOL4mZTVuTaTuaskvX7zCzQrhJ7zL1Pvzl3F68';
-    const API_KEY = 'AIzaSyDYPaPDtcWQDMna_ZIFtofdnNcBSPYS2ys';
-    const SHEET_NAME = 'Chamber Rooms';
+    const { cell, escapeHtml, formatDate } = Sheets;
+    const ROOMS_PAGE = sitePath('html/participate/chamber-rooms.html');
 
     // Colors for groups, in sheet column order
     const GROUP_COLORS = ['#d4af37', '#d6457a', '#4a90e2', '#8b4789', '#3fb68b', '#e67e22'];
@@ -60,19 +59,6 @@
             `<span class="week-coach">${escapeHtml(group.coach)}</span></span></li>`;
     }
 
-    function escapeHtml(value) {
-        return String(value ?? '')
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;');
-    }
-
-    function cell(row, index) {
-        return ((row && row[index]) || '').toString().trim();
-    }
-
     /**
      * Parse the "Chamber Rooms" tab.
      * Layout: a "Coach" header row followed by the coach names, a "Groups" row with members,
@@ -96,10 +82,9 @@
             });
         }
 
-        const startYear = getAcademicStartYear();
         const assignments = [];
         data.forEach(row => {
-            const date = parseSheetDate(cell(row, 0), startYear);
+            const date = Sheets.parseDate(cell(row, 0));
             if (!date) return;
             assignments.push({
                 date: date,
@@ -110,67 +95,18 @@
         return assignments;
     }
 
-    // The program runs Sept-June; dates without a year belong to the academic year containing today
-    function getAcademicStartYear() {
-        const today = new Date();
-        return today.getMonth() >= 7 ? today.getFullYear() : today.getFullYear() - 1;
-    }
-
-    const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-
-    /** Accepts "Sept 12", "Oct 3", "08-Nov", or "10/3/2026" (M/D/YYYY) */
-    function parseSheetDate(text, startYear) {
-        if (!text) return null;
-        let month, day, year;
-
-        let match = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-        if (match) {
-            month = parseInt(match[1], 10) - 1;
-            day = parseInt(match[2], 10);
-            year = parseInt(match[3], 10);
-        } else if ((match = text.match(/^([A-Za-z]+)\.?\s+(\d{1,2})$/))) {
-            month = MONTHS.indexOf(match[1].slice(0, 3).toLowerCase());
-            day = parseInt(match[2], 10);
-        } else if ((match = text.match(/^(\d{1,2})-([A-Za-z]+)$/))) {
-            month = MONTHS.indexOf(match[2].slice(0, 3).toLowerCase());
-            day = parseInt(match[1], 10);
-        } else {
-            return null;
-        }
-        if (month < 0 || month > 11 || !day) return null;
-        if (year === undefined) year = month >= 7 ? startYear : startYear + 1;
-
-        const date = new Date(year, month, day);
-        date.setHours(0, 0, 0, 0);
-        return date;
-    }
-
     /**
      * Fetch room assignments from Google Sheets
      */
     async function fetchRoomAssignments() {
         try {
-            const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}?key=${API_KEY}`;
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            if (!data.values) {
-                throw new Error('No data found in spreadsheet');
-            }
-            ROOM_ASSIGNMENTS = parseSheetData(data.values);
+            ROOM_ASSIGNMENTS = parseSheetData(await Sheets.fetchTab(SITE.tabs.chamberRooms));
             return true;
         } catch (error) {
             console.error('[Chamber Rooms] Error fetching from Google Sheets:', error);
             ROOM_ASSIGNMENTS = [];
             return false;
         }
-    }
-
-    function formatDate(date) {
-        // Same format as the calendar: "Saturday, October 3"
-        return date.toLocaleDateString('en-CA', { weekday: 'long', month: 'long', day: 'numeric' });
     }
 
     /** Rows like "Thanksgiving" or "NO CLASSES" have text instead of a room number */
@@ -182,8 +118,7 @@
      * Get upcoming dates (current/next and up to 2 more)
      */
     function getUpcomingDates() {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const today = siteToday();
 
         console.log('[Chamber Rooms] Getting upcoming dates...');
         console.log('[Chamber Rooms] Today:', today.toISOString().split('T')[0]);
@@ -284,12 +219,11 @@
         const next = getUpcomingDates()[0];
         if (!loadSucceeded || !next) {
             html += `<p class="week-rooms-note">${loadSucceeded ? 'No sessions are scheduled.' : 'Room assignments could not be loaded right now.'}</p>`;
-            container.innerHTML = html + '<p class="week-rooms-more"><a href="chamber-rooms.html">Room assignments</a></p>';
+            container.innerHTML = html + `<p class="week-rooms-more"><a href="${ROOMS_PAGE}">Room assignments</a></p>`;
             return;
         }
 
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const today = siteToday();
         const isToday = next.date.getTime() === today.getTime();
         const relative = relativeDay(next.date);
         html += `<p class="week-rooms-date">${isToday ? 'Today, ' : ''}${escapeHtml(formatDate(next.date))}` +
@@ -305,7 +239,7 @@
             });
             html += '</ul>';
         }
-        container.innerHTML = html + '<div class="week-rooms-more"><a href="chamber-rooms.html">All weeks</a>' +
+        container.innerHTML = html + `<div class="week-rooms-more"><a href="${ROOMS_PAGE}">All weeks</a>` +
             (note ? '' : groupPicker()) + '</div>';
     }
 

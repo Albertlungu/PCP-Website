@@ -346,6 +346,7 @@ li::marker {
     grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
     grid-template-areas:
         "intro rooms"
+        "snacks rooms"
         "next next";
     column-gap: 4rem;
     row-gap: 2.5rem;
@@ -354,6 +355,7 @@ li::marker {
 
 .hero-intro { grid-area: intro; }
 .week-rooms { grid-area: rooms; }
+.week-snacks { grid-area: snacks; }
 .next-event { grid-area: next; }
 
 /* This week's chamber rooms: the first thing on the page */
@@ -412,6 +414,50 @@ li::marker {
 }
 
 .week-rooms-more {
+    margin-top: 0.75rem;
+    font-size: 0.9375rem;
+}
+
+/* Who brings snacks this Saturday: sits under the introduction, beside the rooms */
+.week-snacks {
+    padding-top: 1.25rem;
+    border-top: 2px solid var(--accent);
+    max-width: 34rem;
+}
+
+.week-snacks-heading {
+    font-size: var(--step-2);
+    margin-bottom: 0.25rem;
+}
+
+.week-snacks-date {
+    font-style: italic;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+}
+
+/* The name and family sit tight under the date instead of taking the usual paragraph gap */
+.week-snacks-name,
+.week-snacks-family {
+    margin-top: 0;
+}
+
+.week-snacks-name {
+    font-size: var(--step-1);
+    line-height: 1.3;
+}
+
+.week-snacks-family {
+    font-style: italic;
+    font-size: 0.9375rem;
+    color: var(--muted);
+}
+
+.week-snacks-note {
+    color: var(--muted);
+}
+
+.week-snacks-more {
     margin-top: 0.75rem;
     font-size: 0.9375rem;
 }
@@ -1258,7 +1304,7 @@ a.feature-card:hover h3 {
     border-color: var(--type-performance);
 }
 
-/* Sign-up password dialog (js/signup-auth.js) */
+/* Sign-up password dialog (js/shared/signup-gate.js) */
 .gate-overlay {
     position: fixed;
     inset: 0;
@@ -1480,6 +1526,7 @@ a.feature-card:hover h3 {
         grid-template-columns: minmax(0, 1fr);
         grid-template-areas:
             "rooms"
+            "snacks"
             "intro"
             "next";
         row-gap: 3rem;
@@ -1641,6 +1688,12 @@ a.feature-card:hover h3 {
 }
 
 .season-table tr.past td {
+    color: var(--muted);
+}
+
+/* Snacks page: Saturdays without classes read as notes, not as a family */
+.snack-table tr.no-session td:last-child {
+    font-style: italic;
     color: var(--muted);
 }
 
