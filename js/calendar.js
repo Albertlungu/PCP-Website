@@ -549,6 +549,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             const view = this.dataset.view;
             withViewTransition(() => {
                 if (view === 'calendar') {
+                    // The filter may have changed while the list was showing
+                    renderCalendar(currentMonth, currentYear);
                     document.getElementById('calendar-view').style.display = 'block';
                     document.getElementById('list-view').style.display = 'none';
                 } else {
