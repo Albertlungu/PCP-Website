@@ -10,9 +10,9 @@
  * New photos are written to images/students/, photos no longer referenced are deleted, and
  * everything lands in a single commit so Vercel redeploys once.
  *
- * Required Vercel environment variables:
- *   ADMIN_PASSWORD  - password the admin panel must send
- *   GITHUB_TOKEN    - fine-grained token with Contents read/write on this repository only
+ * Vercel environment variables:
+ *   ADMIN_PASSWORD  - password the admin panel must send (falls back to a hardcoded default)
+ *   GITHUB_TOKEN    - fine-grained token with Contents read/write on this repository only (required to publish)
  * Optional: GITHUB_OWNER, GITHUB_REPO, GITHUB_BRANCH
  */
 
@@ -30,13 +30,9 @@ export default async function handler(req, res) {
         return res.status(405).json({ success: false, error: 'Method not allowed. Use POST.' });
     }
 
-    const { ADMIN_PASSWORD, GITHUB_TOKEN } = process.env;
-    if (!ADMIN_PASSWORD || !GITHUB_TOKEN) {
-        return res.status(500).json({
-            success: false,
-            error: 'Server is not configured: set ADMIN_PASSWORD and GITHUB_TOKEN in Vercel environment variables.'
-        });
-    }
+    // Deliberately insecure default so the admin works without any Vercel configuration
+    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '12345678';
+    const { GITHUB_TOKEN } = process.env;
 
     const body = req.body || {};
     if (!passwordMatches(body.password, ADMIN_PASSWORD)) {
@@ -45,6 +41,13 @@ export default async function handler(req, res) {
 
     if (body.verify) {
         return res.status(200).json({ success: true });
+    }
+
+    if (!GITHUB_TOKEN) {
+        return res.status(500).json({
+            success: false,
+            error: 'Server is not configured: set GITHUB_TOKEN in Vercel environment variables.'
+        });
     }
 
     let students;

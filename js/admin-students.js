@@ -2,16 +2,18 @@
  * Admin panel for student profiles (admin/index.html).
  *
  * Flow:
- *   1. Sign in: the password is checked by /api/save-students (verify mode) and kept for this tab only.
+ *   1. Sign in: the password is checked in the browser against ADMIN_PASSWORD and kept for this tab only.
  *   2. The published list is loaded from /data/students.json, so every browser starts from the live data.
  *   3. Edits are kept as a draft in localStorage until published; our-students.html?preview shows the draft.
  *   4. Publish sends the list to /api/save-students, which commits data/students.json and photos to GitHub.
  */
 
-const DATA_URL = '/data/students.json';
+const DATA_URL = '../data/students.json'; // Relative so it also resolves under /PCP-Website/ on GitHub Pages
 const API_URL = '/api/save-students';
 const DRAFT_STORAGE_KEY = 'pcp_students_draft'; // Also read by js/students-loader.js for ?preview
 const PASSWORD_SESSION_KEY = 'pcp_admin_password';
+// Deliberately insecure: GitHub Pages is static, so the password can only be checked client-side
+const ADMIN_PASSWORD = '12345678';
 const MAX_HISTORY_ITEMS = 50;
 const IMAGE_TARGET_HEIGHT = 500;
 
@@ -61,34 +63,17 @@ function showLoginModal(message = '') {
 async function handleLoginSubmit(event) {
     event.preventDefault();
     const input = document.getElementById('adminPassword');
-    const button = document.getElementById('loginSubmit');
     const password = input.value;
     if (!password) return;
 
-    button.disabled = true;
-    button.textContent = 'Checking…';
-    try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password, verify: true })
-        });
-        const result = await response.json().catch(() => ({}));
-        if (response.ok && result.success) {
-            sessionStorage.setItem(PASSWORD_SESSION_KEY, password);
-            document.getElementById('loginModal').classList.remove('active');
-            document.body.classList.remove('signed-out');
-            input.value = '';
-            await loadData();
-        } else {
-            document.getElementById('loginError').textContent = result.error || `Sign-in failed (HTTP ${response.status}).`;
-        }
-    } catch (error) {
-        document.getElementById('loginError').textContent =
-            'Could not reach the server. The admin panel only works on the deployed site (or with "vercel dev").';
-    } finally {
-        button.disabled = false;
-        button.textContent = 'Sign in';
+    if (password === ADMIN_PASSWORD) {
+        sessionStorage.setItem(PASSWORD_SESSION_KEY, password);
+        document.getElementById('loginModal').classList.remove('active');
+        document.body.classList.remove('signed-out');
+        input.value = '';
+        await loadData();
+    } else {
+        document.getElementById('loginError').textContent = 'Incorrect password.';
     }
 }
 
