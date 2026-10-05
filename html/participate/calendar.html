@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendar - uOttawa Pre-College</title>
+    <meta name="description" content="View upcoming performance classes, masterclasses, and events">
+    <link rel="stylesheet" href="../../css/site.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+</head>
+<body>
+    
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="../../index.html">uOttawa Pre-College</a>
+            </div>
+            <button class="mobile-menu-toggle" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-menu">
+                <li><a href="../../index.html">Home</a></li>
+                <li><a href="../about/the-program.html">About</a></li>
+                <li class="has-dropdown">
+                    <a href="#" class="dropdown-toggle">Program</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="../program/chamber-music.html">Chamber music</a></li>
+                        <li><a href="../program/masterclasses.html">Masterclasses</a></li>
+                        <li><a href="../program/performance-class.html">Performance class</a></li>
+                        <li><a href="../program/schedule.html">Schedule</a></li>
+                    </ul>
+                </li>
+                <li class="has-dropdown">
+                    <a href="#" class="dropdown-toggle">Participate</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="calendar.html">Calendar</a></li>
+                        <li><a href="chamber-rooms.html">Room assignments</a></li>
+                        <li><a href="snacks.html">Snacks</a></li>
+                        <li><a href="signup.html">Sign up to perform</a></li>
+                    </ul>
+                </li>
+                <li><a href="../about/our-students.html">Our students</a></li>
+                <li><a href="../about/code-of-conduct.html">Code of conduct</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <div class="page-header-content">
+                <h1>Calendar</h1>
+            </div>
+        </div>
+    </section>
+
+    <!-- Calendar Controls -->
+    <section class="content-section">
+        <div class="container">
+            <div class="calendar-controls">
+                <div class="view-toggle" role="group" aria-label="View">
+                    <button class="calendar-view-btn" data-view="calendar">
+                        Month
+                    </button>
+                    <button class="calendar-view-btn active" data-view="list">
+                        List
+                    </button>
+                </div>
+                <div class="calendar-filters">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="masterclass">Masterclasses</button>
+                    <button class="filter-btn" data-filter="performance">Performance classes</button>
+                </div>
+            </div>
+
+            <!-- Calendar View -->
+            <div id="calendar-view" class="calendar-container">
+                <div class="calendar-header">
+                    <button class="calendar-nav-btn" id="prev-month" aria-label="Previous month">‹</button>
+                    <h2 class="calendar-month-year" id="current-month-year"></h2>
+                    <button class="calendar-nav-btn" id="next-month" aria-label="Next month">›</button>
+                </div>
+                <div class="calendar-grid" id="calendar-grid">
+                    <!-- Calendar will be generated here -->
+                </div>
+                <div class="calendar-legend">
+                    <span><span class="event-indicator masterclass"></span> Masterclass</span>
+                    <span><span class="event-indicator performance"></span> Performance class</span>
+                    <span><span class="event-indicator special"></span> Other event</span>
+                </div>
+            </div>
+
+            <!-- List View -->
+            <div id="list-view" class="events-list" style="display: none;">
+                <!-- Events will be listed here -->
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Event Details Modal (outside the section so its transform doesn't affect position: fixed) -->
+    <div class="event-modal" id="event-modal">
+        <div class="event-modal-content">
+            <button class="event-modal-close" id="modal-close" aria-label="Close">&times;</button>
+            <div id="event-details"></div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>uOttawa Pre-College</h3>
+                    <p>Saturdays at the University of Ottawa, September to May.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Program</h4>
+                    <ul>
+                        <li><a href="../program/chamber-music.html">Chamber music</a></li>
+                        <li><a href="../program/masterclasses.html">Masterclasses</a></li>
+                        <li><a href="../program/performance-class.html">Performance class</a></li>
+                        <li><a href="../program/schedule.html">Schedule</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Participate</h4>
+                    <ul>
+                        <li><a href="calendar.html">Calendar</a></li>
+                        <li><a href="chamber-rooms.html">Room assignments</a></li>
+                        <li><a href="snacks.html">Snacks</a></li>
+                        <li><a href="signup.html">Sign up to perform</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>About</h4>
+                    <ul>
+                        <li><a href="../about/the-program.html">About the program</a></li>
+                        <li><a href="../about/our-students.html">Our students</a></li>
+                        <li><a href="../about/code-of-conduct.html">Code of conduct</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 University of Ottawa Pre-College Program</p>
+                <p class="footer-credit">Website by <a href="https://github.com/albertlungu" target="_blank" rel="noopener">Albert Lungu</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../../js/shared/config.js"></script>
+    <script src="../../js/shared/signup-gate.js"></script>
+    <script src="../../js/shared/site.js"></script>
+    <script src="../../js/calendar.js"></script>
+</body>
+</html>

@@ -1,995 +1,589 @@
 /**
- * Admin Students Management System
+ * Admin panel for student profiles (html/admin/index.html).
  *
- * @fileoverview Comprehensive student management system for the admin panel.
- * Provides CRUD operations, undo/redo functionality, auto-save to server,
- * and localStorage persistence.
- *
- * @author UOttawa Pre-College Program
- * @version 2.0.0
- *
- * Features:
- * - Add, edit, and delete student profiles
- * - Image upload (base64 encoding) or URL input
- * - Undo/Redo with history tracking (max 50 items)
- * - Auto-save to local server with Git integration
- * - Export students to HTML format
- * - localStorage persistence for offline editing
- * - Real-time validation and preview
- *
- * Dependencies:
- * - None (vanilla JavaScript)
- *
- * Related Files:
- * - /css/admin.css - Styling for admin interface
- * - /server/admin-server.js - Backend for saving changes
- * - /admin.html - Main admin interface
+ * Flow:
+ *   1. Sign in: the password is checked in the browser against ADMIN_PASSWORD and kept for this tab only.
+ *   2. The published list is loaded from /data/students.json, so every browser starts from the live data.
+ *   3. Edits are kept as a draft in localStorage until published; our-students.html?preview shows the draft.
+ *   4. Publish sends the list to /api/save-students, which commits data/students.json and photos to GitHub.
  */
 
-console.log('Admin Students JS loaded');
-
-// ============================================================================
-// CONSTANTS
-// ============================================================================
-
-/** @const {string} LocalStorage key for student data */
-const STUDENTS_STORAGE_KEY = 'pcp_students_data';
-
-/** @const {string} LocalStorage key for history/undo data */
-const HISTORY_STORAGE_KEY = 'pcp_students_history';
-
-/** @const {number} Maximum number of history items to keep */
+const DATA_URL = sitePath('data/students.json');
+const API_URL = '/api/save-students';
+const DRAFT_STORAGE_KEY = 'pcp_students_draft'; // Also read by js/our-students.js for ?preview
+const PASSWORD_SESSION_KEY = 'pcp_admin_password';
+// Deliberately insecure: GitHub Pages is static, so the password can only be checked client-side
+const ADMIN_PASSWORD = '12345678';
 const MAX_HISTORY_ITEMS = 50;
+const IMAGE_TARGET_HEIGHT = 500;
 
-// ============================================================================
-// GLOBAL STATE
-// ============================================================================
+/** @type {Array<{name: string, bio: string, image: string}>} Last published list */
+let published = [];
 
-/**
- * Array of student objects
- * @type {Array<{name: string, bio: string, image: string}>}
- */
+/** @type {Array<{name: string, bio: string, image: string}>} Working copy being edited */
 let students = [];
 
-/**
- * Index of currently editing student (-1 if adding new)
- * @type {number}
- */
+/** @type {number} Index being edited in the modal, or -1 when adding */
 let currentEditingIndex = -1;
 
-/**
- * Stack of previous states for undo/redo
- * @type {Array<Array>}
- */
+/** @type {Array<{timestamp: string, label: string, students: Array}>} Undo/redo snapshots (this tab only) */
 let historyStack = [];
-
-/**
- * Current position in history stack
- * @type {number}
- */
 let historyPosition = -1;
 
-// Initialize the admin panel
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOMContentLoaded fired');
+let isPublishing = false;
 
-    try {
-        loadStudents();
-        renderStudents();
-        initializeEventListeners();
-        updateUndoRedoButtons();
-        console.log('Initialization complete');
-    } catch (error) {
-        console.error('Error during initialization:', error);
-    }
+document.addEventListener('DOMContentLoaded', async () => {
+    initializeEventListeners();
+    const signedIn = await ensureSignedIn();
+    if (signedIn) await loadData();
 });
 
-// Load students from localStorage
-function loadStudents() {
-    const savedData = localStorage.getItem(STUDENTS_STORAGE_KEY);
-    if (savedData) {
-        try {
-            students = JSON.parse(savedData);
-            console.log('Loaded students:', students);
-        } catch (e) {
-            console.error('Error loading students:', e);
-            students = [];
-        }
+// ============================================================================
+// SIGN-IN
+// ============================================================================
+
+function getPassword() {
+    return sessionStorage.getItem(PASSWORD_SESSION_KEY);
+}
+
+async function ensureSignedIn() {
+    if (getPassword()) return true;
+    showLoginModal();
+    return false;
+}
+
+function showLoginModal(message = '') {
+    const modal = document.getElementById('loginModal');
+    document.getElementById('loginError').textContent = message;
+    modal.classList.add('active');
+    document.body.classList.add('signed-out');
+    setTimeout(() => document.getElementById('adminPassword').focus(), 50);
+}
+
+async function handleLoginSubmit(event) {
+    event.preventDefault();
+    const input = document.getElementById('adminPassword');
+    const password = input.value;
+    if (!password) return;
+
+    if (password === ADMIN_PASSWORD) {
+        sessionStorage.setItem(PASSWORD_SESSION_KEY, password);
+        document.getElementById('loginModal').classList.remove('active');
+        document.body.classList.remove('signed-out');
+        input.value = '';
+        await loadData();
     } else {
-        console.log('No saved students found');
-    }
-
-    // Load history
-    const savedHistory = localStorage.getItem(HISTORY_STORAGE_KEY);
-    if (savedHistory) {
-        try {
-            historyStack = JSON.parse(savedHistory);
-            historyPosition = historyStack.length - 1;
-        } catch (e) {
-            console.error('Error loading history:', e);
-            historyStack = [];
-            historyPosition = -1;
-        }
+        document.getElementById('loginError').textContent = 'Incorrect password.';
     }
 }
 
-// Save students to localStorage
-function saveStudents() {
-    localStorage.setItem(STUDENTS_STORAGE_KEY, JSON.stringify(students));
-    addToHistory();
-    showSaveNotification();
+function signOut() {
+    sessionStorage.removeItem(PASSWORD_SESSION_KEY);
+    window.location.href = sitePath('index.html');
 }
 
-// Show save notification
-function showSaveNotification() {
-    // Remove any existing notification
-    const existingNotification = document.querySelector('.save-notification');
-    if (existingNotification) {
-        existingNotification.remove();
+// ============================================================================
+// DATA
+// ============================================================================
+
+async function loadData() {
+    try {
+        const response = await fetch(DATA_URL, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        published = Array.isArray(data.students) ? data.students : [];
+    } catch (error) {
+        notify(`Could not load the published students (${error.message}). Reload to try again.`, 'error');
+        published = [];
     }
 
-    // Create notification
-    const notification = document.createElement('div');
-    notification.className = 'save-notification';
-    notification.innerHTML = `
-        <div class="notification-content">
-            <span class="notification-icon">✓</span>
-            <span class="notification-text">Changes saved! <a href="our-students.html" target="_blank">View Preview</a></span>
-        </div>
-    `;
+    const draft = readDraft();
+    students = clone(draft ? draft.students : published);
 
-    document.body.appendChild(notification);
+    historyStack = [];
+    historyPosition = -1;
+    pushHistory('Opened');
 
-    // Fade in
-    setTimeout(() => notification.classList.add('show'), 10);
-
-    // Remove after 4 seconds
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => notification.remove(), 300);
-    }, 4000);
+    renderStudents();
+    updateStatus();
 }
 
-// Add current state to history
-function addToHistory() {
-    // Remove any future history if we're not at the end
-    if (historyPosition < historyStack.length - 1) {
-        historyStack = historyStack.slice(0, historyPosition + 1);
+function readDraft() {
+    try {
+        const draft = JSON.parse(localStorage.getItem(DRAFT_STORAGE_KEY));
+        return Array.isArray(draft?.students) ? draft : null;
+    } catch (error) {
+        return null;
     }
+}
 
-    // Add new state
-    historyStack.push({
-        timestamp: new Date().toISOString(),
-        students: JSON.parse(JSON.stringify(students))
-    });
-
-    // Limit history size
-    if (historyStack.length > MAX_HISTORY_ITEMS) {
-        historyStack.shift();
-    } else {
-        historyPosition++;
+function writeDraft() {
+    if (sameStudents(students, published)) {
+        localStorage.removeItem(DRAFT_STORAGE_KEY);
+        return;
     }
+    try {
+        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({ savedAt: new Date().toISOString(), students }));
+    } catch (error) {
+        // Photos are stored inline until published, so a large draft can exceed the browser quota
+        notify('This draft is too large to keep in the browser. Publish soon so your changes are not lost.', 'error');
+    }
+}
 
-    // Save history
-    localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(historyStack));
+function hasUnpublishedChanges() {
+    return !sameStudents(students, published);
+}
+
+function sameStudents(a, b) {
+    return JSON.stringify(a) === JSON.stringify(b);
+}
+
+function clone(value) {
+    return JSON.parse(JSON.stringify(value));
+}
+
+/** Record a change: snapshot for undo, persist the draft, refresh the UI */
+function commitChange(label) {
+    pushHistory(label);
+    writeDraft();
+    renderStudents();
+    updateStatus();
+}
+
+// ============================================================================
+// UNDO / REDO / HISTORY
+// ============================================================================
+
+function pushHistory(label) {
+    historyStack = historyStack.slice(0, historyPosition + 1);
+    historyStack.push({ timestamp: new Date().toISOString(), label, students: clone(students) });
+    if (historyStack.length > MAX_HISTORY_ITEMS) historyStack.shift();
+    historyPosition = historyStack.length - 1;
     updateUndoRedoButtons();
 }
 
-// Undo last action
+function restoreHistory(position) {
+    historyPosition = position;
+    students = clone(historyStack[position].students);
+    writeDraft();
+    renderStudents();
+    updateStatus();
+    updateUndoRedoButtons();
+}
+
 function undo() {
-    if (historyPosition > 0) {
-        historyPosition--;
-        students = JSON.parse(JSON.stringify(historyStack[historyPosition].students));
-        localStorage.setItem(STUDENTS_STORAGE_KEY, JSON.stringify(students));
-        renderStudents();
-        updateUndoRedoButtons();
-    }
+    if (historyPosition > 0) restoreHistory(historyPosition - 1);
 }
 
-// Redo last undone action
 function redo() {
-    if (historyPosition < historyStack.length - 1) {
-        historyPosition++;
-        students = JSON.parse(JSON.stringify(historyStack[historyPosition].students));
-        localStorage.setItem(STUDENTS_STORAGE_KEY, JSON.stringify(students));
-        renderStudents();
-        updateUndoRedoButtons();
-    }
+    if (historyPosition < historyStack.length - 1) restoreHistory(historyPosition + 1);
 }
 
-// Update undo/redo button states
 function updateUndoRedoButtons() {
-    const undoBtn = document.getElementById('undoBtn');
-    const redoBtn = document.getElementById('redoBtn');
-
-    if (undoBtn) {
-        undoBtn.disabled = historyPosition <= 0;
-    }
-
-    if (redoBtn) {
-        redoBtn.disabled = historyPosition >= historyStack.length - 1;
-    }
+    document.getElementById('undoBtn').disabled = historyPosition <= 0;
+    document.getElementById('redoBtn').disabled = historyPosition >= historyStack.length - 1;
 }
 
-// Initialize event listeners
-function initializeEventListeners() {
-    console.log('Initializing event listeners...');
+function showHistoryModal() {
+    const historyList = document.getElementById('historyList');
+    historyList.innerHTML = '';
 
-    // Add student button
-    const addStudentBtn = document.getElementById('addStudentBtn');
-    console.log('Add student button:', addStudentBtn);
-
-    if (addStudentBtn) {
-        addStudentBtn.addEventListener('click', (e) => {
-            console.log('Add student button clicked');
-            e.preventDefault();
-            e.stopPropagation();
-            openModal();
+    historyStack.slice().reverse().forEach((entry, reverseIndex) => {
+        const index = historyStack.length - 1 - reverseIndex;
+        const item = document.createElement('div');
+        item.className = 'history-item' + (index === historyPosition ? ' active' : '');
+        item.innerHTML = `
+            <div class="history-info">
+                <strong>${escapeHtml(entry.label)}</strong>
+                <span>${new Date(entry.timestamp).toLocaleTimeString()} &middot; ${entry.students.length} student(s)</span>
+            </div>
+            <button class="restore-btn">${index === historyPosition ? 'Current' : 'Restore'}</button>
+        `;
+        const button = item.querySelector('.restore-btn');
+        button.disabled = index === historyPosition;
+        button.addEventListener('click', () => {
+            restoreHistory(index);
+            closeModalById('historyModal');
         });
-        console.log('Event listener attached to Add Student button');
-    } else {
-        console.error('Add Student button not found!');
-    }
+        historyList.appendChild(item);
+    });
 
-    // Clear all button
-    const clearAllBtn = document.getElementById('clearAllBtn');
-    if (clearAllBtn) {
-        console.log('Clear all button:', clearAllBtn);
-        clearAllBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (confirm('Are you sure you want to delete ALL students? This action cannot be undone!')) {
-                students = [];
-                saveStudents();
-                renderStudents();
-                updateUndoRedoButtons();
-                console.log('All students cleared successfully');
-            }
-        });
-        console.log('Clear all button listener attached');
-    }
-
-    // Modal close buttons
-    const modalClose = document.getElementById('modalClose');
-    if (modalClose) {
-        modalClose.addEventListener('click', closeModal);
-        console.log('Modal close button listener attached');
-    } else {
-        console.warn('Modal close button not found');
-    }
-
-    const cancelBtn = document.getElementById('cancelBtn');
-    if (cancelBtn) {
-        cancelBtn.addEventListener('click', closeModal);
-        console.log('Cancel button listener attached');
-    } else {
-        console.warn('Cancel button not found');
-    }
-
-    // Close modal when clicking outside
-    const editModal = document.getElementById('editModal');
-    if (editModal) {
-        editModal.addEventListener('click', (e) => {
-            if (e.target === editModal) {
-                closeModal();
-            }
-        });
-        console.log('Modal overlay click listener attached');
-    } else {
-        console.error('Edit modal not found!');
-    }
-
-    // Form submission
-    const studentForm = document.getElementById('studentForm');
-    if (studentForm) {
-        studentForm.addEventListener('submit', handleFormSubmit);
-        console.log('Form submit listener attached');
-    } else {
-        console.warn('Student form not found');
-    }
-
-    // Image URL preview
-    const imageUrl = document.getElementById('imageUrl');
-    if (imageUrl) {
-        imageUrl.addEventListener('input', updateImagePreview);
-        console.log('Image URL input listener attached');
-    } else {
-        console.warn('Image URL input not found');
-    }
-
-    // File upload button
-    const uploadFileBtn = document.getElementById('uploadFileBtn');
-    const imageFileInput = document.getElementById('imageFileInput');
-
-    if (uploadFileBtn && imageFileInput) {
-        uploadFileBtn.addEventListener('click', () => {
-            imageFileInput.click();
-        });
-
-        imageFileInput.addEventListener('change', handleImageFileUpload);
-        console.log('File upload listeners attached');
-    } else {
-        console.warn('File upload elements not found');
-    }
-
-    // Clipboard paste support for images
-    const imagePreview = document.getElementById('imagePreview');
-    if (imagePreview) {
-        imagePreview.addEventListener('paste', handleImagePaste);
-        imagePreview.setAttribute('contenteditable', 'true');
-        imagePreview.style.cursor = 'text';
-        console.log('Clipboard paste listener attached to image preview');
-    }
-
-    // Also listen for paste on the whole modal body (studentForm already declared above)
-    if (studentForm) {
-        studentForm.addEventListener('paste', handleImagePaste);
-        console.log('Clipboard paste listener attached to form');
-    }
-
-    // Undo/Redo buttons
-    const undoBtn = document.getElementById('undoBtn');
-    if (undoBtn) {
-        undoBtn.addEventListener('click', undo);
-        console.log('Undo button listener attached');
-    }
-
-    const redoBtn = document.getElementById('redoBtn');
-    if (redoBtn) {
-        redoBtn.addEventListener('click', redo);
-        console.log('Redo button listener attached');
-    }
-
-    // History button
-    const historyBtn = document.getElementById('historyBtn');
-    if (historyBtn) {
-        historyBtn.addEventListener('click', showHistoryModal);
-        console.log('History button listener attached');
-    }
-
-    // Export button
-    const exportBtn = document.getElementById('exportBtn');
-    if (exportBtn) {
-        exportBtn.addEventListener('click', showExportModal);
-        console.log('Export button listener attached');
-    }
-
-    // History modal close
-    const historyModalClose = document.getElementById('historyModalClose');
-    if (historyModalClose) {
-        historyModalClose.addEventListener('click', closeHistoryModal);
-    }
-
-    // Export modal close
-    const exportModalClose = document.getElementById('exportModalClose');
-    if (exportModalClose) {
-        exportModalClose.addEventListener('click', closeExportModal);
-    }
-
-    // Copy code button
-    const copyCodeBtn = document.getElementById('copyCodeBtn');
-    if (copyCodeBtn) {
-        copyCodeBtn.addEventListener('click', copyExportCode);
-    }
-
-    console.log('All event listeners initialized');
+    document.getElementById('historyModal').classList.add('active');
 }
 
-/**
- * Scale image to 500px height while maintaining aspect ratio
- * @param {string} imageDataUrl - Base64 image data URL
- * @param {Function} callback - Callback with scaled image data URL
- */
-function scaleImageTo500px(imageDataUrl, callback) {
-    const img = new Image();
-    img.onload = function() {
-        // Calculate new dimensions (500px height, maintain aspect ratio)
-        const targetHeight = 500;
-        const aspectRatio = img.width / img.height;
-        const targetWidth = Math.round(targetHeight * aspectRatio);
+// ============================================================================
+// PUBLISH
+// ============================================================================
 
-        // Create canvas for resizing
-        const canvas = document.createElement('canvas');
-        canvas.width = targetWidth;
-        canvas.height = targetHeight;
-
-        const ctx = canvas.getContext('2d');
-
-        // Use better image smoothing for higher quality
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-
-        ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
-
-        // Convert back to base64 with higher quality (0.95 instead of 0.9)
-        const scaledImage = canvas.toDataURL('image/jpeg', 0.95);
-        callback(scaledImage);
-    };
-    img.onerror = function() {
-        console.error('Error loading image for scaling');
-        callback(imageDataUrl); // Return original if scaling fails
-    };
-    img.src = imageDataUrl;
-}
-
-/**
- * Process and upload image file with scaling
- * @param {File} file - Image file to process
- */
-function processImageFile(file) {
-    if (!file) return;
-
-    console.log('File selected:', file.name, file.type, file.size);
-
-    // Check if file is an image
-    if (!file.type.startsWith('image/')) {
-        alert('Please select an image file (JPG, PNG, GIF, etc.)');
+async function publish() {
+    if (isPublishing) return;
+    if (!hasUnpublishedChanges()) {
+        notify('Nothing to publish. The live site already matches this list.');
         return;
     }
 
-    // Check file size (max 10MB before scaling)
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    if (file.size > maxSize) {
-        alert('Image is too large. Please select an image smaller than 10MB.');
-        return;
-    }
+    const count = students.length;
+    const prompt = count === 0
+        ? 'This will remove ALL students from the live site. Publish an empty list?'
+        : `Publish ${count} student${count === 1 ? '' : 's'} to the live site?`;
+    if (!confirm(prompt)) return;
 
-    // Read the file as base64
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const base64Image = e.target.result;
-        console.log('Image loaded, original size:', base64Image.length, 'characters');
-
-        // Scale image to 500px height for better quality
-        scaleImageTo500px(base64Image, function(scaledImage) {
-            console.log('Image scaled, new size:', scaledImage.length, 'characters');
-
-            // Update the hidden image URL field with scaled base64 data
-            const imageUrlInput = document.getElementById('imageUrl');
-            if (imageUrlInput) {
-                imageUrlInput.value = scaledImage;
-            }
-
-            // Update preview
-            updateImagePreview();
-
-            console.log('Image uploaded and scaled successfully');
-        });
-    };
-
-    reader.onerror = function(error) {
-        console.error('Error reading file:', error);
-        alert('Error reading the image file. Please try again.');
-    };
-
-    reader.readAsDataURL(file);
-}
-
-// Handle file upload
-function handleImageFileUpload(event) {
-    const file = event.target.files[0];
-    processImageFile(file);
-}
-
-/**
- * Handle clipboard paste for images
- * @param {ClipboardEvent} event - Paste event
- */
-function handleImagePaste(event) {
-    const items = event.clipboardData?.items;
-    if (!items) return;
-
-    // Look for image in clipboard
-    for (let i = 0; i < items.length; i++) {
-        if (items[i].type.indexOf('image') !== -1) {
-            event.preventDefault(); // Prevent default paste behavior
-
-            const file = items[i].getAsFile();
-            console.log('Image pasted from clipboard:', file.type, file.size);
-
-            processImageFile(file);
-            return;
-        }
-    }
-}
-
-/**
- * Update image preview display
- */
-function updateImagePreview() {
-    const imageUrlInput = document.getElementById('imageUrl');
-    const imagePreview = document.getElementById('imagePreview');
-
-    if (!imageUrlInput || !imagePreview) return;
-
-    const imageUrl = imageUrlInput.value;
-
-    if (imageUrl && imageUrl.trim() !== '') {
-        // Display image (already scaled to 100px height)
-        imagePreview.innerHTML = `<img src="${imageUrl}" alt="Preview" style="height: 100px; width: auto; object-fit: contain;" onerror="this.parentElement.innerHTML='<span class=\\'preview-placeholder\\'>Invalid image</span>'">`;
-        imagePreview.classList.add('has-image');
-    } else {
-        imagePreview.innerHTML = '<span class="preview-placeholder">📋 Paste image here or click "Choose File"</span>';
-        imagePreview.classList.remove('has-image');
-    }
-}
-
-// Open modal for adding/editing student
-function openModal(index = -1) {
-    console.log('openModal called with index:', index);
+    const button = document.getElementById('publishBtn');
+    isPublishing = true;
+    button.disabled = true;
+    button.textContent = 'Publishing…';
 
     try {
-        const modal = document.getElementById('editModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const form = document.getElementById('studentForm');
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: getPassword(), students })
+        });
+        const result = await response.json().catch(() => ({}));
 
-        console.log('Modal element:', modal);
-        console.log('Modal title element:', modalTitle);
-        console.log('Form element:', form);
-
-        if (!modal) {
-            console.error('Modal element not found!');
-            alert('Error: Modal element not found. Please check the page structure.');
+        if (response.status === 401) {
+            sessionStorage.removeItem(PASSWORD_SESSION_KEY);
+            showLoginModal('Your session expired. Sign in again, then publish.');
             return;
         }
-
-        currentEditingIndex = index;
-
-        if (index >= 0 && index < students.length) {
-            // Edit mode
-            console.log('Opening in edit mode');
-            modalTitle.textContent = 'Edit Student';
-            const student = students[index];
-            document.getElementById('imageUrl').value = student.image || '';
-            document.getElementById('studentName').value = student.name || '';
-            document.getElementById('studentBio').value = student.bio || '';
-            updateImagePreview();
-        } else {
-            // Add mode
-            console.log('Opening in add mode');
-            if (modalTitle) modalTitle.textContent = 'Add Student';
-            if (form) form.reset();
-            const imagePreview = document.getElementById('imagePreview');
-            if (imagePreview) {
-                imagePreview.innerHTML = '<span class="preview-placeholder">Paste image URL below</span>';
-            }
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || `HTTP ${response.status}`);
         }
 
-        console.log('Adding active class to modal');
-        modal.classList.add('active');
-
-        // Force reflow and log classes
-        setTimeout(() => {
-            console.log('Modal classes after adding active:', modal.classList.toString());
-            const computedStyle = window.getComputedStyle(modal);
-            console.log('Modal display style:', computedStyle.display);
-            console.log('Modal opacity:', computedStyle.opacity);
-            console.log('Modal visibility:', computedStyle.visibility);
-            console.log('Modal z-index:', computedStyle.zIndex);
-            console.log('Modal position:', computedStyle.position);
-            console.log('Modal pointer-events:', computedStyle.pointerEvents);
-
-            // Check if modal is actually in viewport
-            const rect = modal.getBoundingClientRect();
-            console.log('Modal bounding rect:', {
-                top: rect.top,
-                left: rect.left,
-                width: rect.width,
-                height: rect.height,
-                visible: rect.width > 0 && rect.height > 0
-            });
-
-            // Log all parent z-indexes
-            let parent = modal.parentElement;
-            let level = 0;
-            while (parent && level < 5) {
-                const parentStyle = window.getComputedStyle(parent);
-                console.log(`Parent ${level} (${parent.tagName}):`, {
-                    zIndex: parentStyle.zIndex,
-                    position: parentStyle.position,
-                    transform: parentStyle.transform
-                });
-                parent = parent.parentElement;
-                level++;
-            }
-        }, 100);
-
+        // The server swaps uploaded photos for file paths; adopt its version as the new baseline
+        published = result.students;
+        students = clone(published);
+        localStorage.removeItem(DRAFT_STORAGE_KEY);
+        historyStack = [];
+        historyPosition = -1;
+        pushHistory('Published');
+        renderStudents();
+        updateStatus();
+        notify(result.message || 'Published.', 'success');
     } catch (error) {
-        console.error('Error in openModal:', error);
-        alert('Error opening modal: ' + error.message);
+        notify(`Publishing failed: ${error.message}`, 'error');
+    } finally {
+        isPublishing = false;
+        button.disabled = false;
+        button.textContent = 'Publish';
     }
 }
 
-// Close modal
+function discardDraft() {
+    if (!confirm('Discard all unpublished changes and go back to the live version?')) return;
+    students = clone(published);
+    commitChange('Discarded changes');
+}
+
+function updateStatus() {
+    const dirty = hasUnpublishedChanges();
+    const badge = document.getElementById('modeBadge');
+    badge.textContent = dirty ? 'Unpublished changes' : 'Up to date';
+    badge.classList.toggle('dirty', dirty);
+    document.getElementById('discardBtn').hidden = !dirty;
+}
+
+// ============================================================================
+// EDIT MODAL
+// ============================================================================
+
+function openModal(index = -1) {
+    currentEditingIndex = index;
+    const editing = index >= 0 && index < students.length;
+    const student = editing ? students[index] : { image: '', name: '', bio: '' };
+
+    document.getElementById('modalTitle').textContent = editing ? 'Edit Student' : 'Add Student';
+    // Set every field explicitly: form.reset() does not clear hidden inputs
+    document.getElementById('imageUrl').value = student.image;
+    document.getElementById('studentName').value = student.name;
+    document.getElementById('studentBio').value = student.bio;
+    document.getElementById('imageFileInput').value = '';
+    updateImagePreview();
+
+    document.getElementById('editModal').classList.add('active');
+    setTimeout(() => document.getElementById('studentName').focus(), 50);
+}
+
 function closeModal() {
-    console.log('closeModal called');
-    const modal = document.getElementById('editModal');
-    if (modal) {
-        modal.classList.remove('active');
-        console.log('Modal closed');
-    }
+    closeModalById('editModal');
     currentEditingIndex = -1;
 }
 
-// Handle form submission
-function handleFormSubmit(e) {
-    console.log('Form submitted');
-    e.preventDefault();
+function closeModalById(id) {
+    document.getElementById(id).classList.remove('active');
+}
 
-    const imageUrl = document.getElementById('imageUrl').value.trim();
+function handleFormSubmit(event) {
+    event.preventDefault();
+
+    const image = document.getElementById('imageUrl').value.trim();
     const name = document.getElementById('studentName').value.trim();
     const bio = document.getElementById('studentBio').value.trim();
 
-    console.log('Form data:', { imageUrl: imageUrl.substring(0, 50) + '...', name, bio });
-
-    if (!imageUrl) {
-        alert('Please upload an image or provide an image URL');
+    if (!image) {
+        alert('Please add a photo (choose a file or paste an image).');
         return;
     }
-
     if (!name || !bio) {
-        alert('Please fill in all fields (name and bio are required)');
+        alert('Please fill in both the name and the description.');
         return;
     }
 
-    const studentData = {
-        image: imageUrl,
-        name: name,
-        bio: bio
-    };
-
+    const studentData = { name, bio, image };
     if (currentEditingIndex >= 0) {
-        // Update existing student
-        console.log('Updating student at index:', currentEditingIndex);
         students[currentEditingIndex] = studentData;
+        commitChange(`Edited ${name}`);
     } else {
-        // Add new student
-        console.log('Adding new student');
         students.push(studentData);
+        commitChange(`Added ${name}`);
     }
-
-    saveStudents();
-    renderStudents();
     closeModal();
 }
 
-// Render students grid
-function renderStudents() {
-    console.log('Rendering students...');
-    const studentsGrid = document.getElementById('studentsGrid');
-    if (!studentsGrid) {
-        console.error('Students grid not found!');
+function deleteStudent(index) {
+    const name = students[index].name;
+    if (!confirm(`Delete ${name}? You can undo this until you publish.`)) return;
+    students.splice(index, 1);
+    commitChange(`Deleted ${name}`);
+}
+
+function moveStudent(index, direction) {
+    const target = index + direction;
+    if (target < 0 || target >= students.length) return;
+    [students[index], students[target]] = [students[target], students[index]];
+    commitChange(`Moved ${students[target].name}`);
+}
+
+function clearAll() {
+    if (students.length === 0) return;
+    if (!confirm('Remove every student from this draft? Nothing changes on the live site until you publish, and you can undo this.')) return;
+    students = [];
+    commitChange('Cleared all');
+}
+
+// ============================================================================
+// IMAGES
+// ============================================================================
+
+/** Resize to IMAGE_TARGET_HEIGHT (never upscale) and re-encode as JPEG */
+function scaleImage(dataUrl) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+            const scale = Math.min(1, IMAGE_TARGET_HEIGHT / img.height);
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.round(img.width * scale);
+            canvas.height = Math.round(img.height * scale);
+            const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/jpeg', 0.88));
+        };
+        img.onerror = () => reject(new Error('This file could not be read as an image.'));
+        img.src = dataUrl;
+    });
+}
+
+function processImageFile(file) {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+        alert('Please choose an image file (JPG, PNG, or WebP).');
+        return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+        alert('That image is larger than 10 MB. Please choose a smaller one.');
         return;
     }
 
-    studentsGrid.innerHTML = '';
-
-    students.forEach((student, index) => {
-        const studentCard = createStudentCard(student, index);
-        studentsGrid.appendChild(studentCard);
-    });
-
-    console.log('Rendered', students.length, 'students');
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+        try {
+            document.getElementById('imageUrl').value = await scaleImage(event.target.result);
+            updateImagePreview();
+        } catch (error) {
+            alert(error.message);
+        }
+    };
+    reader.onerror = () => alert('Error reading the image file. Please try again.');
+    reader.readAsDataURL(file);
 }
 
-// Create a student card element
+function handleImagePaste(event) {
+    const items = event.clipboardData?.items || [];
+    for (const item of items) {
+        if (item.type.startsWith('image/')) {
+            event.preventDefault();
+            processImageFile(item.getAsFile());
+            return;
+        }
+    }
+}
+
+function updateImagePreview() {
+    const image = document.getElementById('imageUrl').value;
+    const preview = document.getElementById('imagePreview');
+    preview.innerHTML = '';
+
+    if (image) {
+        const img = document.createElement('img');
+        img.src = imageSrc(image);
+        img.alt = 'Preview';
+        img.addEventListener('error', () => {
+            preview.innerHTML = '<span class="preview-placeholder">This image could not be loaded</span>';
+        });
+        preview.appendChild(img);
+        preview.classList.add('has-image');
+    } else {
+        preview.innerHTML = '<span class="preview-placeholder">Paste an image here or choose a file</span>';
+        preview.classList.remove('has-image');
+    }
+}
+
+/** Repo-relative paths ("images/students/...") need a leading slash from /admin/ */
+function imageSrc(image) {
+    return image.startsWith('images/') ? sitePath(image) : image;
+}
+
+// ============================================================================
+// RENDERING
+// ============================================================================
+
+function renderStudents() {
+    const grid = document.getElementById('studentsGrid');
+    grid.innerHTML = '';
+
+    if (students.length === 0) {
+        grid.innerHTML = '<p class="no-history">No students yet. Use "Add New Student" below.</p>';
+        return;
+    }
+
+    students.forEach((student, index) => grid.appendChild(createStudentCard(student, index)));
+}
+
 function createStudentCard(student, index) {
     const card = document.createElement('div');
     card.className = 'student-card';
     card.innerHTML = `
         <div class="student-image">
-            <img src="${escapeHtml(student.image)}" alt="${escapeHtml(student.name)}">
+            <img src="${escapeHtml(imageSrc(student.image))}" alt="${escapeHtml(student.name)}">
         </div>
         <div class="student-info">
             <h3>${escapeHtml(student.name)}</h3>
             <p>${escapeHtml(student.bio)}</p>
         </div>
         <div class="student-actions">
-            <button class="action-btn edit-btn" data-index="${index}">
-                <span>✏️</span> Edit
-            </button>
-            <button class="action-btn delete-btn" data-index="${index}">
-                <span>🗑️</span> Delete
-            </button>
+            <button class="action-btn move-btn" data-action="up" title="Move earlier" ${index === 0 ? 'disabled' : ''}>&uarr;</button>
+            <button class="action-btn move-btn" data-action="down" title="Move later" ${index === students.length - 1 ? 'disabled' : ''}>&darr;</button>
+            <button class="action-btn edit-btn" data-action="edit">Edit</button>
+            <button class="action-btn delete-btn" data-action="delete">Delete</button>
         </div>
     `;
 
-    // Add event listeners
-    const editBtn = card.querySelector('.edit-btn');
-    if (editBtn) {
-        editBtn.addEventListener('click', () => {
-            console.log('Edit button clicked for index:', index);
-            openModal(index);
-        });
-    } else {
-        console.error('Edit button not found in student card');
-    }
-
-    const deleteBtn = card.querySelector('.delete-btn');
-    if (deleteBtn) {
-        deleteBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('Delete button clicked for index:', index);
-            deleteStudent(index);
-        });
-    } else {
-        console.error('Delete button not found in student card');
-    }
+    card.querySelector('.student-actions').addEventListener('click', (event) => {
+        const action = event.target.closest('button')?.dataset.action;
+        if (action === 'edit') openModal(index);
+        if (action === 'delete') deleteStudent(index);
+        if (action === 'up') moveStudent(index, -1);
+        if (action === 'down') moveStudent(index, 1);
+    });
 
     return card;
 }
 
-// Escape HTML to prevent XSS
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
 
-// Delete student
-function deleteStudent(index) {
-    console.log('deleteStudent called with index:', index);
-    console.log('Student to delete:', students[index]);
+function notify(message, type = 'info') {
+    document.querySelector('.save-notification')?.remove();
 
-    if (confirm(`Are you sure you want to delete ${students[index].name}?`)) {
-        console.log('User confirmed deletion. Deleting student at index:', index);
-        students.splice(index, 1);
-        saveStudents();
-        renderStudents();
-        updateUndoRedoButtons();
-        console.log('Student deleted successfully. Remaining students:', students.length);
-    } else {
-        console.log('User cancelled deletion');
-    }
-}
-
-// Show history modal
-function showHistoryModal() {
-    console.log('Opening history modal');
-    const historyModal = document.getElementById('historyModal');
-    const historyList = document.getElementById('historyList');
-
-    if (!historyModal || !historyList) {
-        console.error('History modal elements not found');
-        return;
-    }
-
-    historyList.innerHTML = '';
-
-    if (historyStack.length === 0) {
-        historyList.innerHTML = '<p class="no-history">No history available</p>';
-    } else {
-        historyStack.slice().reverse().forEach((entry, reverseIndex) => {
-            const index = historyStack.length - 1 - reverseIndex;
-            const historyItem = document.createElement('div');
-            historyItem.className = 'history-item' + (index === historyPosition ? ' active' : '');
-
-            const date = new Date(entry.timestamp);
-            const formattedDate = date.toLocaleString();
-
-            historyItem.innerHTML = `
-                <div class="history-info">
-                    <strong>${formattedDate}</strong>
-                    <span>${entry.students.length} student(s)</span>
-                </div>
-                <button class="restore-btn" data-index="${index}">Restore</button>
-            `;
-
-            const restoreBtn = historyItem.querySelector('.restore-btn');
-            restoreBtn.addEventListener('click', () => restoreFromHistory(index));
-
-            historyList.appendChild(historyItem);
-        });
-    }
-
-    historyModal.classList.add('active');
-}
-
-// Close history modal
-function closeHistoryModal() {
-    const historyModal = document.getElementById('historyModal');
-    if (historyModal) {
-        historyModal.classList.remove('active');
-    }
-}
-
-// Restore from history
-function restoreFromHistory(index) {
-    if (confirm('Restore this version? Current changes will be saved to history.')) {
-        historyPosition = index;
-        students = JSON.parse(JSON.stringify(historyStack[index].students));
-        localStorage.setItem(STUDENTS_STORAGE_KEY, JSON.stringify(students));
-        renderStudents();
-        updateUndoRedoButtons();
-        closeHistoryModal();
-    }
-}
-
-// Auto-save to server
-async function autoSaveToServer() {
-    console.log('🔵 [AUTO-SAVE] Starting auto-save process...');
-    console.log('🔵 [AUTO-SAVE] Current hostname:', window.location.hostname);
-
-    // Determine the API endpoint based on environment
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const apiEndpoint = isLocalhost
-        ? 'http://localhost:3000/api/save-students'
-        : '/api/save-students'; // Vercel serverless function
-
-    console.log('🔵 [AUTO-SAVE] Using endpoint:', apiEndpoint);
-    console.log('🔵 [AUTO-SAVE] Number of students to save:', students.length);
-    console.log('🔵 [AUTO-SAVE] Students data preview:', students.map(s => ({ name: s.name, imageLength: s.image?.length })));
-
-    try {
-        console.log('🔵 [AUTO-SAVE] Sending POST request...');
-
-        const response = await fetch(apiEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                students: students,
-                autoCommit: true // Enable auto-commit and push to Git
-            })
-        });
-
-        console.log('🔵 [AUTO-SAVE] Response status:', response.status);
-        console.log('🔵 [AUTO-SAVE] Response ok:', response.ok);
-
-        if (!response.ok) {
-            console.error('❌ [AUTO-SAVE] Response not OK, status:', response.status);
-            const errorText = await response.text();
-            console.error('❌ [AUTO-SAVE] Error response:', errorText);
-            return false;
-        }
-
-        const result = await response.json();
-        console.log('🔵 [AUTO-SAVE] Full response:', result);
-
-        if (result.success) {
-            console.log('✅ [AUTO-SAVE] Auto-save successful!');
-            console.log('✅ [AUTO-SAVE] Committed to Git:', result.committed);
-            if (result.commitSha) {
-                console.log('✅ [AUTO-SAVE] Commit SHA:', result.commitSha);
-            }
-            if (result.deployInfo) {
-                console.log('📡 [AUTO-SAVE]', result.deployInfo);
-            }
-            showAutoSaveSuccess(result.committed);
-            return true;
-        } else {
-            console.error('❌ [AUTO-SAVE] Save failed:', result.error);
-            return false;
-        }
-    } catch (error) {
-        console.error('❌ [AUTO-SAVE] Exception occurred:', error);
-        console.error('❌ [AUTO-SAVE] Error name:', error.name);
-        console.error('❌ [AUTO-SAVE] Error message:', error.message);
-        console.error('❌ [AUTO-SAVE] Error stack:', error.stack);
-        return false;
-    }
-}
-
-// Show auto-save success notification
-function showAutoSaveSuccess(committed) {
     const notification = document.createElement('div');
-    notification.className = 'auto-save-notification';
-
-    let message = '';
-    if (committed) {
-        message = `
-            <span class="notification-icon">✓</span>
-            <span class="notification-text">
-                <strong>Success! Changes deployed</strong><br>
-                <small>Live on Vercel in ~2 minutes</small>
-            </span>
-        `;
-    } else {
-        message = `
-            <span class="notification-icon">✓</span>
-            <span class="notification-text">
-                <strong>Success! Website updated</strong><br>
-                <small>Changes saved locally</small>
-            </span>
-        `;
-    }
-
-    notification.innerHTML = `<div class="notification-content">${message}</div>`;
-
+    notification.className = `save-notification ${type}`;
+    notification.setAttribute('role', 'status');
+    notification.innerHTML = `<div class="notification-content"><span class="notification-text"></span></div>`;
+    notification.querySelector('.notification-text').textContent = message;
     document.body.appendChild(notification);
-    setTimeout(() => notification.classList.add('show'), 10);
 
+    setTimeout(() => notification.classList.add('show'), 10);
+    // Errors stay longer so they can be read
     setTimeout(() => {
         notification.classList.remove('show');
         setTimeout(() => notification.remove(), 300);
-    }, 5000);
+    }, type === 'error' ? 9000 : 4500);
 }
 
-// Show export modal
-async function showExportModal() {
-    console.log('🟢 [EXPORT] Starting export process...');
+// ============================================================================
+// EVENT WIRING
+// ============================================================================
 
-    // Try auto-save first
-    console.log('🟢 [EXPORT] Calling autoSaveToServer()...');
-    const autoSaved = await autoSaveToServer();
-    console.log('🟢 [EXPORT] autoSaveToServer() returned:', autoSaved);
+function initializeEventListeners() {
+    document.getElementById('loginForm').addEventListener('submit', handleLoginSubmit);
+    document.getElementById('signOutBtn').addEventListener('click', signOut);
 
-    if (autoSaved) {
-        // Auto-save successful, show success message instead of modal
-        console.log('✅ [EXPORT] Auto-save successful! Modal will NOT be shown.');
-        return;
-    }
+    document.getElementById('addStudentBtn').addEventListener('click', () => openModal());
+    document.getElementById('clearAllBtn').addEventListener('click', clearAll);
+    document.getElementById('discardBtn').addEventListener('click', discardDraft);
+    document.getElementById('publishBtn').addEventListener('click', publish);
+    document.getElementById('undoBtn').addEventListener('click', undo);
+    document.getElementById('redoBtn').addEventListener('click', redo);
+    document.getElementById('historyBtn').addEventListener('click', showHistoryModal);
+    document.getElementById('historyModalClose').addEventListener('click', () => closeModalById('historyModal'));
 
-    console.log('⚠️ [EXPORT] Auto-save failed or not available. Showing manual export modal...');
-
-    // Auto-save not available, show manual export modal
-    const exportModal = document.getElementById('exportModal');
-    const exportCode = document.getElementById('exportCode');
-
-    if (!exportModal || !exportCode) {
-        console.error('❌ [EXPORT] Export modal elements not found!');
-        return;
-    }
-
-    console.log('🟢 [EXPORT] Generating HTML code...');
-    // Generate HTML code
-    const htmlCode = generateStudentsHTML();
-    exportCode.textContent = htmlCode;
-
-    console.log('🟢 [EXPORT] Opening export modal...');
-    exportModal.classList.add('active');
-}
-
-// Close export modal
-function closeExportModal() {
-    const exportModal = document.getElementById('exportModal');
-    if (exportModal) {
-        exportModal.classList.remove('active');
-    }
-}
-
-// Generate HTML code for students
-function generateStudentsHTML() {
-    let html = '<div class="students-grid">\n';
-
-    students.forEach(student => {
-        html += `    <div class="student-card">\n`;
-        html += `        <div class="student-image">\n`;
-        html += `            <img src="${escapeHtml(student.image)}" alt="${escapeHtml(student.name)}">\n`;
-        html += `        </div>\n`;
-        html += `        <div class="student-info">\n`;
-        html += `            <h3>${escapeHtml(student.name)}</h3>\n`;
-        html += `            <p>${escapeHtml(student.bio)}</p>\n`;
-        html += `        </div>\n`;
-        html += `    </div>\n`;
+    document.getElementById('modalClose').addEventListener('click', closeModal);
+    document.getElementById('cancelBtn').addEventListener('click', closeModal);
+    document.getElementById('studentForm').addEventListener('submit', handleFormSubmit);
+    // Paste works anywhere while the edit dialog is open, not only when a form field has focus
+    document.addEventListener('paste', (event) => {
+        if (document.getElementById('editModal').classList.contains('active')) handleImagePaste(event);
     });
 
-    html += '</div>';
+    const preview = document.getElementById('imagePreview');
+    preview.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        preview.classList.add('dragging');
+    });
+    preview.addEventListener('dragleave', () => preview.classList.remove('dragging'));
+    preview.addEventListener('drop', (event) => {
+        event.preventDefault();
+        preview.classList.remove('dragging');
+        processImageFile(event.dataTransfer.files[0]);
+    });
 
-    return html;
-}
+    const fileInput = document.getElementById('imageFileInput');
+    document.getElementById('uploadFileBtn').addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (event) => processImageFile(event.target.files[0]));
 
-// Copy export code to clipboard
-function copyExportCode() {
-    const exportCode = document.getElementById('exportCode');
-    const copyBtn = document.getElementById('copyCodeBtn');
+    // Clicking the dimmed backdrop closes edit/history dialogs (never the sign-in dialog)
+    ['editModal', 'historyModal'].forEach(id => {
+        const modal = document.getElementById(id);
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) id === 'editModal' ? closeModal() : closeModalById(id);
+        });
+    });
 
-    if (!exportCode || !copyBtn) return;
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            closeModal();
+            closeModalById('historyModal');
+        }
+        const mod = event.metaKey || event.ctrlKey;
+        const typing = ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName);
+        if (mod && !typing && event.key.toLowerCase() === 'z') {
+            event.preventDefault();
+            event.shiftKey ? redo() : undo();
+        }
+    });
 
-    navigator.clipboard.writeText(exportCode.textContent).then(() => {
-        const originalText = copyBtn.textContent;
-        copyBtn.textContent = '✓ Copied!';
-        copyBtn.classList.add('success');
-
-        setTimeout(() => {
-            copyBtn.textContent = originalText;
-            copyBtn.classList.remove('success');
-        }, 2000);
-    }).catch(err => {
-        console.error('Failed to copy:', err);
-        alert('Failed to copy to clipboard. Please copy manually.');
+    window.addEventListener('beforeunload', (event) => {
+        if (isPublishing) {
+            event.preventDefault();
+            event.returnValue = '';
+        }
     });
 }
-
-console.log('Admin Students JS fully loaded');

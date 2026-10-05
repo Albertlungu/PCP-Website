@@ -1,72 +1,97 @@
-// Chamber Rooms Schedule Data and Display Logic
+// Chamber room assignments: reads the "Chamber Rooms" tab of the Google Sheet (see js/shared/config.js)
+// and fills the home page panel, the room assignments page, and the group list on the chamber music page.
 
 (function() {
     'use strict';
 
-    // Google Sheets API Configuration
-    const SPREADSHEET_ID = '1GSVqiWOL4mZTVuTaTuaskvX7zCzQrhJ7zL1Pvzl3F68';
-    const API_KEY = 'AIzaSyDYPaPDtcWQDMna_ZIFtofdnNcBSPYS2ys';
-    const SHEET_NAME = 'Chamber Rooms';
+    const { cell, escapeHtml, formatDate } = Sheets;
+    const ROOMS_PAGE = sitePath('html/participate/chamber-rooms.html');
 
-    // Chamber groups configuration
-    const CHAMBER_GROUPS = [
-        {
-            id: 'augmented-triad',
-            name: 'Augmented TRIAD',
-            coach: 'David Thies-Thompson',
-            members: 'Lafleur/Lungu/Kang',
-            color: '#d4af37' // Gold
-        },
-        {
-            id: 'opus-pocus',
-            name: 'Opus Pocus Quartet',
-            coach: 'Fanny Marks',
-            members: 'Pham/Marks/Goncharenko/Stephenson',
-            color: '#6d0a2e' // Maroon
-        },
-        {
-            id: 'spiegel',
-            name: 'Spiegel Quartet',
-            coach: 'Jessy Kim',
-            members: 'Yang/Jouini/Melessanakis/van der Sloot',
-            color: '#4a90e2' // Blue
-        },
-        {
-            id: 'shoestring',
-            name: 'SHOEstring Quartet',
-            coach: 'Caren Abramoff',
-            members: 'Sone/Sone/Kwan/Marks',
-            color: '#8b4789' // Purple
-        }
-    ];
+    // Colors for groups, in sheet column order
+    const GROUP_COLORS = ['#d4af37', '#d6457a', '#4a90e2', '#8b4789', '#3fb68b', '#e67e22'];
+
+    // Groups (coach + members) are read from the sheet each year
+    let CHAMBER_GROUPS = [];
 
     // Room assignments will be populated from Google Sheets
     let ROOM_ASSIGNMENTS = [];
+    let loadSucceeded = false;
+
+    // The visitor's own group, remembered on this device; keyed by the member list so a new year starts fresh
+    const MY_GROUP_KEY = 'pcp-my-group';
+
+    function getMyGroup() {
+        try {
+            return localStorage.getItem(MY_GROUP_KEY) || '';
+        } catch (error) {
+            return '';
+        }
+    }
+
+    function setMyGroup(members) {
+        try {
+            if (members) localStorage.setItem(MY_GROUP_KEY, members);
+            else localStorage.removeItem(MY_GROUP_KEY);
+        } catch (error) {
+            // Storage blocked (private mode): the highlight just won't be remembered
+        }
+    }
+
+    function isMine(group) {
+        return group.members === getMyGroup();
+    }
+
+    function groupPicker() {
+        const mine = getMyGroup();
+        let html = '<label class="group-picker">Highlight my group <select data-group-picker><option value="">Choose your group</option>';
+        CHAMBER_GROUPS.forEach(group => {
+            html += `<option value="${escapeHtml(group.members)}"${group.members === mine ? ' selected' : ''}>${escapeHtml(group.members)}</option>`;
+        });
+        return html + '</select></label>';
+    }
+
+    // One row of the room list, shared by the home page and the room assignments page
+    function roomRow(group, room) {
+        const mine = isMine(group);
+        return `<li class="${mine ? 'is-mine' : ''}" style="border-left-color: ${group.color}">` +
+            `<span class="week-room">${room ? escapeHtml(room) : 'TBA'}</span>` +
+            `<span class="week-group">${escapeHtml(group.members)}${mine ? '<span class="sr-only"> (your group)</span>' : ''}` +
+            `<span class="week-coach">${escapeHtml(group.coach)}</span></span></li>`;
+    }
 
     /**
-     * Parse spreadsheet data into room assignments
+     * Parse the "Chamber Rooms" tab.
+     * Layout: a "Coach" header row followed by the coach names, a "Groups" row with members,
+     * then one row per Saturday: date in column A and each group's room in columns B onward.
+     * A non-numeric value in column B (e.g. "Thanksgiving") marks a day without chamber.
      */
     function parseSheetData(data) {
-        const assignments = [];
+        const coachHeader = data.findIndex(row => cell(row, 1).toLowerCase() === 'coach');
+        const coaches = coachHeader >= 0 ? (data[coachHeader + 1] || []) : [];
+        const groupsRow = data.find(row => cell(row, 0).toLowerCase() === 'groups') || [];
 
-        // Skip header row (first row)
-        for (let i = 1; i < data.length; i++) {
-            const row = data[i];
-            const dateStr = row[0]; // Column A: Date (YYYY-MM-DD format)
-            const room1 = row[1];   // Column B: Augmented TRIAD room
-            const room2 = row[2];   // Column C: Opus Pocus room
-            const room3 = row[3];   // Column D: Spiegel room
-            const room4 = row[4];   // Column E: SHOEstring room
-
-            // Skip empty rows
-            if (!dateStr) continue;
-
-            assignments.push({
-                date: dateStr,
-                rooms: [room1 || '', room2 || '', room3 || '', room4 || '']
+        const groupCount = Math.max(coaches.length, groupsRow.length) - 1;
+        CHAMBER_GROUPS = [];
+        for (let i = 1; i <= groupCount; i++) {
+            if (!cell(coaches, i) && !cell(groupsRow, i)) continue;
+            CHAMBER_GROUPS.push({
+                column: i,
+                coach: cell(coaches, i),
+                members: cell(groupsRow, i).split('/').map(name => name.trim()).filter(Boolean).join(' / '),
+                color: GROUP_COLORS[(i - 1) % GROUP_COLORS.length]
             });
         }
 
+        const assignments = [];
+        data.forEach(row => {
+            const date = Sheets.parseDate(cell(row, 0));
+            if (!date) return;
+            assignments.push({
+                date: date,
+                rooms: CHAMBER_GROUPS.map(group => cell(row, group.column)),
+                note: cell(row, 1)
+            });
+        });
         return assignments;
     }
 
@@ -75,110 +100,32 @@
      */
     async function fetchRoomAssignments() {
         try {
-            const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${SHEET_NAME}?key=${API_KEY}`;
-
-            console.log('[Chamber Rooms] Fetching data from Google Sheets...');
-            const response = await fetch(url);
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-
-            if (!data.values) {
-                throw new Error('No data found in spreadsheet');
-            }
-
-            ROOM_ASSIGNMENTS = parseSheetData(data.values);
-            console.log(`[Chamber Rooms] Successfully loaded ${ROOM_ASSIGNMENTS.length} assignments from Google Sheets`);
+            ROOM_ASSIGNMENTS = parseSheetData(await Sheets.fetchTab(SITE.tabs.chamberRooms));
             return true;
         } catch (error) {
             console.error('[Chamber Rooms] Error fetching from Google Sheets:', error);
-            console.log('[Chamber Rooms] Using empty assignments array');
             ROOM_ASSIGNMENTS = [];
             return false;
         }
     }
 
-    /**
-     * Parse date string in DD-MMM format and determine the correct year
-     */
-    function parseDateWithYear(dateStr) {
-        // Parse "DD-MMM" format (e.g., "08-Nov")
-        const [day, monthStr] = dateStr.split('-');
-        const monthMap = {
-            'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
-            'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
-        };
-        const month = monthMap[monthStr];
-
-        // Determine year: Sep-Dec are 2025, Jan-May are 2026
-        let year;
-        if (month >= 8) { // Sep, Oct, Nov, Dec (months 8-11)
-            year = 2025;
-        } else { // Jan-May (months 0-4)
-            year = 2026;
-        }
-
-        const date = new Date(year, month, parseInt(day));
-        date.setHours(0, 0, 0, 0);
-        return date;
-    }
-
-    /**
-     * Format date string to readable format
-     */
-    function formatDate(dateStr) {
-        const date = parseDateWithYear(dateStr);
-        const options = { month: 'short', day: 'numeric', year: 'numeric' };
-        return date.toLocaleDateString('en-US', options);
-    }
-
-    /**
-     * Get today's room assignments
-     */
-    function getTodaysAssignments() {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        return ROOM_ASSIGNMENTS.find(assignment => {
-            const assignmentDate = parseDateWithYear(assignment.date);
-            return assignmentDate.getTime() === today.getTime();
-        });
-    }
-
-    /**
-     * Check if it's Saturday between 12pm and 6pm
-     */
-    function isSaturdayAfternoon() {
-        const now = new Date();
-        const day = now.getDay(); // 0 = Sunday, 6 = Saturday
-        const hour = now.getHours();
-
-        return day === 6 && hour >= 12 && hour < 18;
+    /** Rows like "Thanksgiving" or "NO CLASSES" have text instead of a room number */
+    function getSpecialNote(assignment) {
+        return assignment.note && !/^\d+$/.test(assignment.note) ? assignment.note : '';
     }
 
     /**
      * Get upcoming dates (current/next and up to 2 more)
      */
     function getUpcomingDates() {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const today = siteToday();
 
         console.log('[Chamber Rooms] Getting upcoming dates...');
         console.log('[Chamber Rooms] Today:', today.toISOString().split('T')[0]);
         console.log('[Chamber Rooms] Total assignments in data:', ROOM_ASSIGNMENTS.length);
 
         // Find assignments from today onward
-        const upcoming = ROOM_ASSIGNMENTS.filter(assignment => {
-            const assignmentDate = parseDateWithYear(assignment.date);
-            const isUpcoming = assignmentDate >= today;
-            console.log(`[Chamber Rooms] ${assignment.date}: ${isUpcoming ? 'UPCOMING' : 'past'}`);
-            return isUpcoming;
-        });
-
-        console.log('[Chamber Rooms] Found', upcoming.length, 'upcoming dates');
+        const upcoming = ROOM_ASSIGNMENTS.filter(assignment => assignment.date >= today);
 
         // Return first 3 upcoming dates (or less if not available)
         return upcoming.slice(0, 3);
@@ -197,6 +144,11 @@
 
         const upcomingDates = getUpcomingDates();
 
+        if (!loadSucceeded) {
+            container.innerHTML = '<div class="no-upcoming-dates">Room assignments could not be loaded right now. Please try again later.</div>';
+            return;
+        }
+
         if (upcomingDates.length === 0) {
             console.log('[Chamber Rooms] No upcoming dates found - displaying message');
             container.innerHTML = '<div class="no-upcoming-dates">No upcoming chamber sessions scheduled.</div>';
@@ -208,27 +160,27 @@
         let html = '<div class="chamber-rooms-cards">';
 
         upcomingDates.forEach((assignment, dateIndex) => {
-            const isSpecial = assignment.rooms[0] && !assignment.rooms[0].match(/^\d+$/);
-            const dateLabel = dateIndex === 0 ? 'Next Session' : dateIndex === 1 ? 'Following' : 'Later';
+            const note = getSpecialNote(assignment);
+            const hasRooms = assignment.rooms.some(room => /^\d+$/.test(room));
 
             html += `<div class="chamber-date-card">`;
             html += `<div class="chamber-date-header">`;
-            html += `<span class="date-label">${dateLabel}</span>`;
             html += `<span class="date-value">${formatDate(assignment.date)}</span>`;
+            const relative = relativeDay(assignment.date);
+            if (relative || dateIndex === 0) html += `<span class="date-label">${relative || 'Next session'}</span>`;
             html += `</div>`;
 
-            if (isSpecial) {
-                html += `<div class="special-event-card">${assignment.rooms[0]}</div>`;
+            if (note) {
+                html += `<div class="special-event-card">${escapeHtml(note)}</div>`;
+            } else if (!hasRooms) {
+                html += `<div class="special-event-card">Rooms to be announced</div>`;
             } else {
-                html += `<div class="chamber-groups-grid">`;
+                // Same layout as the home page list; the stripe keeps each group's colour from week to week
+                html += '<ul class="week-rooms-list chamber-rooms-list">';
                 CHAMBER_GROUPS.forEach((group, index) => {
-                    const room = assignment.rooms[index];
-                    html += `<div class="chamber-group-assignment" style="border-left: 4px solid ${group.color}">
-                                <div class="group-name-mini">${group.name}</div>
-                                <div class="room-number-large">Room ${room}</div>
-                             </div>`;
+                    html += roomRow(group, assignment.rooms[index]);
                 });
-                html += `</div>`;
+                html += '</ul>';
             }
 
             html += `</div>`;
@@ -236,65 +188,65 @@
 
         html += '</div>';
 
-        container.innerHTML = html;
+        container.innerHTML = groupPicker() + html;
     }
 
     /**
-     * Render today's assignments banner (for home page)
+     * This year's groups and coaches (Chamber music page)
      */
-    function renderTodaysBanner() {
-        console.log('[Chamber Rooms] Checking if today\'s banner should be shown...');
+    function renderChamberGroups() {
+        const container = document.getElementById('chamber-groups');
+        if (!container) return;
+        if (!loadSucceeded || !CHAMBER_GROUPS.length) {
+            container.innerHTML = '<p class="no-events">The group list could not be loaded right now.</p>';
+            return;
+        }
+        let html = '<table class="season-table"><thead><tr><th scope="col">Group</th><th scope="col">Coach</th></tr></thead><tbody>';
+        CHAMBER_GROUPS.forEach(group => {
+            html += `<tr${isMine(group) ? ' class="is-mine"' : ''}><td>${escapeHtml(group.members)}</td><td>${escapeHtml(group.coach)}</td></tr>`;
+        });
+        container.innerHTML = html + '</tbody></table>';
+    }
 
-        // Only show on Saturday afternoon
-        if (!isSaturdayAfternoon()) {
-            console.log('[Chamber Rooms] Not Saturday afternoon - skipping banner');
+    /**
+     * Home page: rooms for the next session (today, if it is a Saturday with chamber)
+     */
+    function renderWeekRooms() {
+        const container = document.getElementById('week-rooms');
+        if (!container) return;
+
+        let html = '<h2 class="week-rooms-heading">Chamber rooms</h2>';
+        const next = getUpcomingDates()[0];
+        if (!loadSucceeded || !next) {
+            html += `<p class="week-rooms-note">${loadSucceeded ? 'No sessions are scheduled.' : 'Room assignments could not be loaded right now.'}</p>`;
+            container.innerHTML = html + `<p class="week-rooms-more"><a href="${ROOMS_PAGE}">Room assignments</a></p>`;
             return;
         }
 
-        console.log('[Chamber Rooms] It\'s Saturday afternoon - checking for today\'s assignments');
-        const todaysAssignments = getTodaysAssignments();
-        if (!todaysAssignments) {
-            console.log('[Chamber Rooms] No assignments for today');
-            return;
-        }
+        const today = siteToday();
+        const isToday = next.date.getTime() === today.getTime();
+        const relative = relativeDay(next.date);
+        html += `<p class="week-rooms-date">${isToday ? 'Today, ' : ''}${escapeHtml(formatDate(next.date))}` +
+            `${relative && !isToday ? ` <span class="relative-day">${relative}</span>` : ''}</p>`;
 
-        console.log('[Chamber Rooms] Found today\'s assignments:', todaysAssignments);
-
-        // Check if it's a special event
-        const isSpecial = todaysAssignments.rooms[0] && !todaysAssignments.rooms[0].match(/^\d+$/);
-
-        let html = '<div class="chamber-banner" id="chamber-today-banner">';
-        html += '<div class="chamber-banner-content">';
-        html += '<div class="chamber-banner-header">';
-        html += '<span class="chamber-banner-icon">🎵</span>';
-        html += '<h2>Chamber Music Today!</h2>';
-        html += '<button class="chamber-banner-close" onclick="document.getElementById(\'chamber-today-banner\').style.display=\'none\'">&times;</button>';
-        html += '</div>';
-
-        if (isSpecial) {
-            html += `<div class="chamber-special-notice">${todaysAssignments.rooms[0]}</div>`;
+        const note = getSpecialNote(next);
+        if (note) {
+            html += `<p class="week-rooms-note">${escapeHtml(note)}: no chamber coaching.</p>`;
         } else {
-            html += '<div class="chamber-groups-today">';
+            html += '<ul class="week-rooms-list">';
             CHAMBER_GROUPS.forEach((group, index) => {
-                const room = todaysAssignments.rooms[index];
-                html += `<div class="chamber-group-card" style="border-left: 5px solid ${group.color}">
-                            <div class="group-name-today">${group.name}</div>
-                            <div class="room-number-today">Room ${room}</div>
-                            <div class="group-members-today">${group.members}</div>
-                         </div>`;
+                html += roomRow(group, next.rooms[index]);
             });
-            html += '</div>';
+            html += '</ul>';
         }
+        container.innerHTML = html + `<div class="week-rooms-more"><a href="${ROOMS_PAGE}">All weeks</a>` +
+            (note ? '' : groupPicker()) + '</div>';
+    }
 
-        html += '<a href="chamber-rooms.html" class="chamber-banner-link">View Full Schedule →</a>';
-        html += '</div>';
-        html += '</div>';
-
-        // Insert banner after hero section on home page
-        const heroSection = document.querySelector('.hero');
-        if (heroSection) {
-            heroSection.insertAdjacentHTML('afterend', html);
-        }
+    function renderAll() {
+        renderChamberRoomsTable();
+        renderChamberGroups();
+        renderWeekRooms();
     }
 
     /**
@@ -305,18 +257,17 @@
         console.log('[Chamber Rooms] Current path:', window.location.pathname);
 
         // Fetch room assignments from Google Sheets
-        await fetchRoomAssignments();
+        loadSucceeded = await fetchRoomAssignments();
 
-        // Render table if on chamber rooms page
-        renderChamberRoomsTable();
+        renderAll();
 
-        // Render today's banner if on home page and it's Saturday afternoon
-        if (window.location.pathname === '/' || window.location.pathname.includes('index.html')) {
-            console.log('[Chamber Rooms] On home page - checking for banner');
-            renderTodaysBanner();
-        } else {
-            console.log('[Chamber Rooms] Not on home page - skipping banner');
-        }
+        // Choosing a group re-renders every list on the page with that group highlighted
+        document.addEventListener('change', event => {
+            if (!event.target.matches('[data-group-picker]')) return;
+            setMyGroup(event.target.value);
+            renderAll();
+            document.querySelector('[data-group-picker]')?.focus();
+        });
     }
 
     // Auto-initialize when DOM is ready
@@ -326,9 +277,4 @@
         init();
     }
 
-    // Expose functions globally if needed
-    window.chamberRooms = {
-        getTodaysAssignments,
-        isSaturdayAfternoon
-    };
 })();
