@@ -1,20 +1,26 @@
 {
   "redirects": [
-    {
-      "source": "/admin",
-      "destination": "/html/admin/index.html",
-      "permanent": false
-    }
+    { "source": "/index.html", "destination": "/", "permanent": true },
+    { "source": "/html/admin/index.html", "destination": "/admin", "permanent": true },
+    { "source": "/html/admin", "destination": "/admin", "permanent": true },
+    { "source": "/html/:section(about|program|participate)/:page([a-z-]+).html", "destination": "/:page", "permanent": true },
+    { "source": "/:section(about|program|participate)/:page([a-z-]+).html", "destination": "/:page", "permanent": true },
+    { "source": "/:page([a-z-]+).html", "destination": "/:page", "permanent": true }
+  ],
+  "rewrites": [
+    { "source": "/admin", "destination": "/html/admin/index.html" },
+    { "source": "/:page(about|our-students|code-of-conduct)", "destination": "/html/about/:page.html" },
+    { "source": "/:page(chamber-music|masterclasses|performance-class|schedule)", "destination": "/html/program/:page.html" },
+    { "source": "/:page(calendar|chamber-rooms|snacks|signup)", "destination": "/html/participate/:page.html" }
   ],
   "headers": [
     {
+      "source": "/admin",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
       "source": "/html/admin/(.*)",
-      "headers": [
-        {
-          "key": "X-Robots-Tag",
-          "value": "noindex, nofollow"
-        }
-      ]
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
     }
   ]
 }

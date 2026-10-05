@@ -67,6 +67,22 @@ by containing the placeholder and loading the script.
    page by file name.
 2. Change the `<title>`, the description, the page header and the content.
 3. Add a link to it in the navigation and footer of every page (see above).
+4. Add its file name to the matching list in `vercel.json` so it gets a short address (see below).
+
+## Short page addresses (Vercel only)
+
+On Vercel, pages are reached at short addresses such as `/about`, `/calendar` or `/admin` instead of
+their file paths. Two lists in `vercel.json` do this:
+
+- **rewrites** serve a short address from the real file, one list per folder, e.g.
+  `"/:page(calendar|chamber-rooms|snacks|signup)"` serves `/snacks` from `html/participate/snacks.html`.
+  A new page needs its file name added to its folder's list.
+- **redirects** send any address ending in `.html` (or starting with `/html/`) to the short form.
+  That is how the ordinary relative links in the HTML end up at the short addresses, and why the
+  links in the pages never need to change.
+
+This is also why a page's file name is its address, and why names must be unique across `html/`.
+GitHub Pages cannot do any of this, so there the full file paths are used.
 
 ## Styles
 

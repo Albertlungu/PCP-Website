@@ -1,7 +1,8 @@
 # Admin panel
 
 The admin panel manages the profiles on the Our Students page. It is at `html/admin/` on the live
-site, e.g. https://albertlungu.github.io/PCP-Website/html/admin/ (on Vercel, `/admin` also works).
+site: https://uottawa-pcp.vercel.app/admin on Vercel, or
+https://albertlungu.github.io/PCP-Website/html/admin/ on GitHub Pages.
 
 ## How it works
 

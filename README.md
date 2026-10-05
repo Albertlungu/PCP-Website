@@ -18,12 +18,16 @@ is not in this repository at all; it is read live from the program's Google Shee
 GitHub Pages can only serve files. Vercel can also run the small server function in `api/`, which
 the admin panel needs to publish student profiles (see [docs/admin-panel.md](docs/admin-panel.md)).
 
+On Vercel every page also has a short address, e.g. `/calendar` instead of
+`/html/participate/calendar.html`; see "Short page addresses" in
+[docs/editing-the-site.md](docs/editing-the-site.md). GitHub Pages uses the full file paths.
+
 ## Folder map
 
 ```
 index.html                 Home page (must stay at the root: it is what the site address opens)
 html/                      Every other page, grouped like the site's menus and footer
-  about/                     the-program.html, our-students.html, code-of-conduct.html
+  about/                     about.html, our-students.html, code-of-conduct.html
   program/                   "Program" menu: chamber-music, masterclasses, performance-class, schedule
   participate/               "Participate" menu: calendar, chamber-rooms, snacks, signup
   admin/                     index.html, the admin panel for student profiles
@@ -47,7 +51,7 @@ images/students/           Student photos (written by the admin panel)
 api/save-students.js       Vercel server function that publishes student profiles
 google-apps-script/        Source of the Apps Script that receives sign-ups (runs at Google, not here)
 docs/                      Guides for maintainers (below)
-vercel.json                Vercel settings: the /admin shortcut, and keeping the admin out of search
+vercel.json                Vercel settings: short page addresses (/calendar, /admin, ...), admin kept out of search
 ```
 
 `api/`, `vercel.json` and `index.html` have to be at the root for Vercel and GitHub Pages to find them.
