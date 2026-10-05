@@ -62,7 +62,7 @@ Used by the Snacks page and the "Snacks" panel on the home page.
 - Row 1 is a title, row 2 the headers: **A** Week, **B** Date, **C** Parent name, **D** Student name.
 - One row per Saturday. Week is a number on a normal Saturday.
 - A Saturday without classes has a word instead of a number in Week, e.g. `Thanksgiving` or
-  `No Classes`. The site shows it as "Thanksgiving: no classes".
+  `No Classes`. The site shows it as "Thanksgiving (no classes)".
 - Rows without a date (e.g. `Winter Break`) are ignored.
 
 ## Sign-ups: the Google Apps Script

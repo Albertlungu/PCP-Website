@@ -36,6 +36,11 @@
         return `${week.student}’s family`;
     }
 
+    /** "Thanksgiving (no classes)", or the label alone when it already says so ("No Classes") */
+    function noClassesLabel(note) {
+        return /no class/i.test(note) ? note : `${note} (no classes)`;
+    }
+
     /** Home page: who brings snacks on the next Saturday (today, if it is one) */
     function renderWeekSnacks(container, weeks) {
         let html = '<h2 class="week-snacks-heading">Snacks</h2>';
@@ -48,7 +53,7 @@
             html += `<p class="week-snacks-date">${isToday ? 'Today, ' : ''}${escapeHtml(formatDate(next.date))}` +
                 `${relative && !isToday ? ` <span class="relative-day">${relative}</span>` : ''}</p>`;
             if (next.note) {
-                html += `<p class="week-snacks-note">${escapeHtml(next.note)}: no classes.</p>`;
+                html += `<p class="week-snacks-note">${escapeHtml(noClassesLabel(next.note))}</p>`;
             } else {
                 html += `<p class="week-snacks-name">${escapeHtml(next.parent || 'To be announced')}</p>`;
                 if (familyOf(next)) html += `<p class="week-snacks-family">${escapeHtml(familyOf(next))}</p>`;
@@ -70,19 +75,18 @@
 
         const today = siteToday();
         const next = weeks.find(week => week.date >= today);
-        let html = '<table class="season-table snack-table"><thead><tr><th scope="col">Date</th>' +
-            '<th scope="col">Brought by</th><th scope="col">Family of</th></tr></thead><tbody>';
+        let html = '<table class="season-table"><thead><tr><th scope="col">Date</th>' +
+            '<th scope="col">Parent</th><th scope="col">Student</th></tr></thead><tbody>';
         weeks.forEach(week => {
             const classes = [];
             if (week.date < today) classes.push('past');
             if (week === next) classes.push('is-next');
-            if (week.note) classes.push('no-session');
             const relative = week === next ? relativeDay(week.date) : '';
             html += `<tr${classes.length ? ` class="${classes.join(' ')}"` : ''}>` +
                 `<td>${escapeHtml(formatDate(week.date))}${week === next ? ` <span class="next-label">${relative || 'next'}</span>` : ''}</td>` +
                 (week.note
-                    ? `<td colspan="2">${escapeHtml(week.note)}: no classes</td>`
-                    : `<td>${escapeHtml(week.parent)}</td><td>${escapeHtml(week.student)}</td>`) +
+                    ? `<td colspan="2">${escapeHtml(noClassesLabel(week.note))}</td>`
+                    : `<td>${escapeHtml(week.parent)}</td><td>${escapeHtml(familyOf(week) ? week.student : '')}</td>`) +
                 '</tr>';
         });
         container.innerHTML = html + '</tbody></table>';

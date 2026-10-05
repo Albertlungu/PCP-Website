@@ -1691,12 +1691,6 @@ a.feature-card:hover h3 {
     color: var(--muted);
 }
 
-/* Snacks page: Saturdays without classes read as notes, not as a family */
-.snack-table tr.no-session td:last-child {
-    font-style: italic;
-    color: var(--muted);
-}
-
 @media (max-width: 640px) {
     .calendar-legend {
         gap: 0.5rem 1.25rem;
