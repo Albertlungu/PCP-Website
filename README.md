@@ -32,7 +32,7 @@ css/
   admin.css                  Extra styles for the admin panel only
 js/
   shared/                    Loaded on every page
-    config.js                  Settings: Google Sheet ID, tab names, date override. Start here.
+    config.js                  Settings: Google Sheet ID, API key, tab names. Start here.
     site.js                    Menu behaviour, current-page highlight, small date helpers
     signup-gate.js             Password prompt in front of the sign-up page
     sheets.js                  Reads a tab of the Google Sheet (used by rooms and snacks)
@@ -57,7 +57,7 @@ vercel.json                Vercel settings: the /admin shortcut, and keeping the
 - [docs/google-sheet.md](docs/google-sheet.md): the spreadsheet's tabs and columns, and how sign-ups
   reach it. Read this before the start of each year.
 - [docs/editing-the-site.md](docs/editing-the-site.md): changing text, adding a page, how links and
-  scripts fit together, previewing locally, and the date override for weeks without classes.
+  scripts fit together, and previewing locally.
 - [docs/admin-panel.md](docs/admin-panel.md): managing student profiles.
 
 ## Common tasks
@@ -69,7 +69,6 @@ vercel.json                Vercel settings: the /admin shortcut, and keeping the
 | Change text on a page | Edit that page in `html/` (or `index.html`). |
 | Change the sign-up page password | `CORRECT_PASSWORD` in `js/shared/signup-gate.js`. |
 | Change the admin password | `ADMIN_PASSWORD` in `js/admin-students.js` (see [docs/admin-panel.md](docs/admin-panel.md)). |
-| Skip a week without classes on the home page | `todayOverride` in `js/shared/config.js`. |
 | Add or edit student profiles | The admin panel, `html/admin/` on the live site. |
 
 ## Passwords are not secret

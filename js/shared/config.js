@@ -14,23 +14,13 @@ const SITE = {
         performances: 'Performances',
         chamberRooms: 'Chamber Rooms',
         snacks: 'Snacks'
-    },
-
-    // Makes the site pick "next Saturday" as if today were this date (YYYY-MM-DD), for weeks without a session
-    // (e.g. Thanksgiving). It switches itself off once the real date reaches it, so it never needs
-    // removing. Set to '' to always use the real date.
-    todayOverride: '2026-10-11'
+    }
 };
 
-/** Today at midnight, honouring SITE.todayOverride while it is still in the future. */
+/** Today at midnight, for comparing against dates read from the sheet. */
 function siteToday() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(SITE.todayOverride);
-    if (match) {
-        const override = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
-        if (override > today) return override;
-    }
     return today;
 }
 

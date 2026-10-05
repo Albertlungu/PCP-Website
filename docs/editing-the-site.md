@@ -75,18 +75,6 @@ and so on). Colours and type sizes are variables at the top of the file. Rules n
 file deliberately refine earlier ones, so add new rules to the section they belong to rather than
 the very top.
 
-## Weeks without classes: the date override
-
-The home page shows the rooms and snacks for the next Saturday. On a week without classes (for
-example Thanksgiving) that would just say "no classes", so you can tell the site to behave as if it
-were already the following week: set `todayOverride` in `js/shared/config.js` to a date in that week,
-e.g. `'2026-10-11'` for the Sunday after Thanksgiving Saturday.
-
-The whole site then uses that date as "today" when choosing what comes next: the home page, the
-calendar, and the "next" marks on every table. Countdowns like "in 12 days" still count from the
-real date. The override stops on its own as soon as the real date reaches it, so it can be left in
-place; set it to `''` when you no longer need it.
-
 ## Publishing changes
 
 Commit and push. GitHub Pages serves the `prototype` branch and Vercel the `main` branch (see the

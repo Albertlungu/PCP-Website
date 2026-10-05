@@ -66,11 +66,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// "today", "tomorrow", "in 3 days" for dates in the next three weeks; empty otherwise.
-// Counts from the real date, not SITE.todayOverride, so the distance shown is always true.
+// "today", "tomorrow", "in 3 days" for dates in the next three weeks; empty otherwise
 function relativeDay(date) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const today = siteToday();
     const days = Math.round((date - today) / 86400000);
     if (days === 0) return 'today';
     if (days === 1) return 'tomorrow';

@@ -274,7 +274,7 @@ function renderCalendar(month, year) {
             dayCell.addEventListener('click', () => showEventDetails(dayEvents));
         }
         
-        // Highlight the real today (not SITE.todayOverride): a calendar grid should never mislead
+        // Highlight today
         const today = new Date();
         if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
             dayCell.classList.add('today');
